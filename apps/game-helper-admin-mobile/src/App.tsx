@@ -40,7 +40,9 @@ type RouteKey =
   | 'managedUserDetail'
   | 'managedUserForm'
   | 'bindDevice'
+  | 'bindDeviceConfirm'
   | 'gameAccounts'
+  | 'gameAccountForm'
   | 'userTaskHistory'
   | 'moduleGroups'
   | 'moduleGroupForm'
@@ -48,6 +50,8 @@ type RouteKey =
   | 'taskModules'
   | 'taskModuleDetail'
   | 'taskModuleForm'
+  | 'taskModuleMove'
+  | 'taskModuleDelete'
   | 'taskModuleSort'
   | 'taskCreateUser'
   | 'taskCreateAccount'
@@ -57,6 +61,8 @@ type RouteKey =
   | 'taskCreateParams'
   | 'taskCreateConfirm'
   | 'taskExecutionDetail'
+  | 'taskPauseConfirm'
+  | 'taskCancelConfirm'
   | 'taskRetry'
   | 'alerts'
   | 'alertDetail'
@@ -71,10 +77,13 @@ type RouteKey =
   | 'testPlan'
   | 'pendingDevices'
   | 'deviceDetail'
+  | 'deviceActions'
+  | 'deviceUnbind'
   | 'deviceAlert';
 type Tone = 'info' | 'success' | 'warning' | 'danger';
 type UserFormMode = 'create' | 'edit';
 type ModuleFormMode = 'create' | 'edit';
+type GameAccountFormMode = 'create' | 'edit';
 type TaskRunStatus = 'running' | 'failed' | 'finished';
 
 type ManagedUser = {
@@ -654,6 +663,7 @@ export function App() {
   const [logBackRoute, setLogBackRoute] = useState<RouteKey>('taskExecutionDetail');
   const [draftTaskRun, setDraftTaskRun] = useState<TaskRun | null>(null);
   const [taskFilter, setTaskFilter] = useState<'running' | 'failed' | 'finished'>('running');
+  const [gameAccountFormMode, setGameAccountFormMode] = useState<GameAccountFormMode>('create');
   const [moduleFormMode, setModuleFormMode] = useState<ModuleFormMode>('create');
   const [userFormMode, setUserFormMode] = useState<UserFormMode>('create');
 
@@ -725,13 +735,24 @@ export function App() {
       setRoute('taskExecutionDetail');
     },
     openSheet: (title: string, body: string) => openShellSheet({ body, title }),
-    openDevice: (deviceId: string, nextRoute: 'deviceDetail' | 'deviceAlert' = 'deviceDetail') => {
+    openDevice: (deviceId: string, nextRoute: 'deviceDetail' | 'deviceActions' | 'deviceUnbind' | 'deviceAlert' = 'deviceDetail') => {
       setSelectedDeviceId(deviceId);
       setRoute(nextRoute);
     },
     openBindDevice: (userId: string) => {
       setSelectedUserId(userId);
       setRoute('bindDevice');
+    },
+    openBindDeviceConfirm: (userId: string) => {
+      setSelectedUserId(userId);
+      setRoute('bindDeviceConfirm');
+    },
+    openGameAccountForm: (mode: GameAccountFormMode, accountId?: string) => {
+      if (accountId) {
+        setSelectedGameAccountId(accountId);
+      }
+      setGameAccountFormMode(mode);
+      setRoute('gameAccountForm');
     },
     openManagedUser: (userId: string) => {
       setSelectedUserId(userId);
@@ -762,6 +783,10 @@ export function App() {
       }
       setModuleFormMode(mode);
       setRoute('taskModuleForm');
+    },
+    openTaskModuleMove: (moduleId: string) => {
+      setSelectedTaskModuleId(moduleId);
+      setRoute('taskModuleMove');
     },
     openUserForm: (mode: UserFormMode, userId?: string) => {
       if (userId) {
@@ -863,6 +888,7 @@ export function App() {
             selectedAlert={alerts.find((alert) => alert.id === selectedAlertId) ?? fallbackAlert}
             selectedDevice={devices.find((device) => device.id === selectedDeviceId) ?? fallbackDevice}
             selectedGameAccount={gameAccounts.find((account) => account.accountId === selectedGameAccountId) ?? fallbackGameAccount}
+            gameAccountFormMode={gameAccountFormMode}
             selectedModuleGroup={moduleGroups.find((group) => group.id === selectedModuleGroupId) ?? fallbackModuleGroup}
             selectedTaskModule={taskModules.find((taskModule) => taskModule.id === selectedTaskModuleId) ?? fallbackTaskModule}
             selectedTaskRun={availableTaskRuns.find((taskRun) => taskRun.id === selectedTaskRunId) ?? fallbackTaskRun}
@@ -887,7 +913,9 @@ type AdminActions = {
   goTabs: (nextTab?: MainTab) => void;
   openAlert: (alertId: string) => void;
   openBindDevice: (userId: string) => void;
-  openDevice: (deviceId: string, nextRoute?: 'deviceDetail' | 'deviceAlert') => void;
+  openBindDeviceConfirm: (userId: string) => void;
+  openDevice: (deviceId: string, nextRoute?: 'deviceDetail' | 'deviceActions' | 'deviceUnbind' | 'deviceAlert') => void;
+  openGameAccountForm: (mode: GameAccountFormMode, accountId?: string) => void;
   openLogDetail: (taskRunId?: string, alertId?: string, backRoute?: RouteKey) => void;
   openManagedUser: (userId: string) => void;
   openModuleGroup: (groupId: string) => void;
@@ -897,6 +925,7 @@ type AdminActions = {
   openTaskRun: (taskRunId: string) => void;
   openTaskModule: (moduleId: string) => void;
   openTaskModuleForm: (mode: ModuleFormMode, moduleId?: string) => void;
+  openTaskModuleMove: (moduleId: string) => void;
   openUserForm: (mode: UserFormMode, userId?: string) => void;
   selectTaskAccount: (accountId: string) => void;
   selectTaskDevice: (deviceId: string) => void;
@@ -987,6 +1016,7 @@ function MainScreen({
   actions,
   activeTab,
   deviceFilter,
+  gameAccountFormMode,
   logBackRoute,
   moduleFormMode,
   route,
@@ -1006,6 +1036,7 @@ function MainScreen({
   actions: AdminActions;
   activeTab: MainTab;
   deviceFilter: 'all' | 'online' | 'alert';
+  gameAccountFormMode: GameAccountFormMode;
   logBackRoute: RouteKey;
   moduleFormMode: ModuleFormMode;
   route: RouteKey;
@@ -1038,8 +1069,16 @@ function MainScreen({
     return <BindDeviceScreen actions={actions} theme={theme} user={selectedUser} />;
   }
 
+  if (route === 'bindDeviceConfirm') {
+    return <BindDeviceConfirmScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
   if (route === 'gameAccounts') {
     return <GameAccountsScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'gameAccountForm') {
+    return <GameAccountFormScreen account={selectedGameAccount} actions={actions} mode={gameAccountFormMode} theme={theme} user={selectedUser} />;
   }
 
   if (route === 'userTaskHistory') {
@@ -1068,6 +1107,14 @@ function MainScreen({
 
   if (route === 'taskModuleForm') {
     return <TaskModuleFormScreen actions={actions} group={selectedModuleGroup} mode={moduleFormMode} module={selectedTaskModule} theme={theme} />;
+  }
+
+  if (route === 'taskModuleMove') {
+    return <TaskModuleMoveScreen actions={actions} module={selectedTaskModule} theme={theme} />;
+  }
+
+  if (route === 'taskModuleDelete') {
+    return <TaskModuleDeleteScreen actions={actions} module={selectedTaskModule} theme={theme} />;
   }
 
   if (route === 'taskModuleSort') {
@@ -1114,6 +1161,14 @@ function MainScreen({
 
   if (route === 'taskExecutionDetail') {
     return <TaskExecutionDetailScreen actions={actions} taskRun={selectedTaskRun} theme={theme} />;
+  }
+
+  if (route === 'taskPauseConfirm') {
+    return <TaskPauseConfirmScreen actions={actions} taskRun={selectedTaskRun} theme={theme} />;
+  }
+
+  if (route === 'taskCancelConfirm') {
+    return <TaskCancelConfirmScreen actions={actions} taskRun={selectedTaskRun} theme={theme} />;
   }
 
   if (route === 'taskRetry') {
@@ -1170,6 +1225,14 @@ function MainScreen({
 
   if (route === 'deviceDetail') {
     return <DeviceDetailScreen actions={actions} device={selectedDevice} theme={theme} />;
+  }
+
+  if (route === 'deviceActions') {
+    return <DeviceActionsScreen actions={actions} device={selectedDevice} theme={theme} />;
+  }
+
+  if (route === 'deviceUnbind') {
+    return <DeviceUnbindScreen actions={actions} device={selectedDevice} theme={theme} />;
   }
 
   if (route === 'deviceAlert') {
@@ -1295,7 +1358,7 @@ function DevicesScreen({ actions, filter, theme }: { actions: AdminActions; filt
               <MFRow gap={10}>
                 <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id)} theme={theme} title="详情" variant="secondary" />
                 <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id, 'deviceAlert')} theme={theme} title="异常" variant="ghost" />
-                <MFButton fullWidth={false} onPress={() => actions.openSheet('设备操作', '可重启 Worker、复制设备 ID、查看日志或解绑。危险操作会写入审计。')} theme={theme} title="更多" variant="ghost" />
+                <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id, 'deviceActions')} theme={theme} title="更多" variant="ghost" />
               </MFRow>
             </MFStack>
           </MFCard>
@@ -1599,7 +1662,8 @@ function TaskModuleDetailScreen({ actions, module, theme }: { actions: AdminActi
         </MFCard>
         <MFRow gap={10}>
           <MFButton fullWidth={false} onPress={() => actions.openTaskModuleForm('edit', module.id)} theme={theme} title="编辑任务" variant="secondary" />
-          <MFButton fullWidth={false} onPress={() => actions.openSheet('脚本与模板', '后续会接入脚本、运行模板和视觉资产管理。')} theme={theme} title="脚本模板" variant="ghost" />
+          <MFButton fullWidth={false} onPress={() => actions.openTaskModuleMove(module.id)} theme={theme} title="移动" variant="ghost" />
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskModuleDelete')} theme={theme} title="删除" variant="danger" />
         </MFRow>
       </MFStack>
     </MFScrollPage>
@@ -1661,6 +1725,90 @@ function TaskModuleFormScreen({
           theme={theme}
           title="保存"
         />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskModuleMoveScreen({ actions, module, theme }: { actions: AdminActions; module: GameTaskModule; theme: MFTheme }) {
+  const targetGroups = moduleGroups.filter((group) => group.id !== module.groupId);
+  const currentGroup = moduleGroups.find((group) => group.id === module.groupId) ?? fallbackModuleGroup;
+  const targetGroup = targetGroups[0] ?? fallbackModuleGroup;
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskModuleDetail" subtitle="选择目标分组后更新 groupId 和展示排序" theme={theme} title="移动任务模块" />
+        <MFStatusCard message={`${module.name} 将从 ${currentGroup.name} 移动到 ${targetGroup.name}，移动后 APP 展示顺序需要重新确认。`} theme={theme} title="移动确认" tone="warning" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="当前任务" />
+            <MFKeyValue label="任务" theme={theme} value={module.name} />
+            <MFKeyValue label="当前分组" theme={theme} value={currentGroup.name} />
+            <MFKeyValue label="目标分组" theme={theme} value={targetGroup.name} />
+          </MFStack>
+        </MFCard>
+        {targetGroups.map((group) => (
+          <MFCard key={group.id} theme={theme}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontWeight: '900' }}>
+                  {group.name}
+                </MFText>
+                <MFCaption theme={theme}>
+                  {group.key} · {group.moduleCount} 个模块
+                </MFCaption>
+              </MFStack>
+              <MFBadge label={group.id === targetGroup.id ? '目标' : '可选'} tone={group.id === targetGroup.id ? 'info' : 'success'} theme={theme} />
+            </MFRow>
+          </MFCard>
+        ))}
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskModuleDetail')} theme={theme} title="取消" variant="ghost" />
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast('任务模块已移动');
+              actions.goRoute('taskModules');
+            }}
+            theme={theme}
+            title="确认移动"
+            variant="secondary"
+          />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskModuleDeleteScreen({ actions, module, theme }: { actions: AdminActions; module: GameTaskModule; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskModuleDetail" subtitle="删除前会校验执行中任务和历史引用" theme={theme} title="删除模块确认" />
+        <MFStatusCard message="删除后不可恢复。若模块存在执行中任务，后端会拒绝删除并返回阻断原因。" theme={theme} title="高风险操作" tone="danger" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="模块摘要" />
+            <MFKeyValue label="任务名称" theme={theme} value={module.name} />
+            <MFKeyValue label="任务标识" theme={theme} value={module.key} />
+            <MFKeyValue label="脚本" theme={theme} value={module.script} />
+            <MFKeyValue label="今日成功率" theme={theme} value={module.successRate} />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskModuleDetail')} theme={theme} title="返回" variant="ghost" />
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast('删除请求已提交，等待后端校验');
+              actions.goRoute('taskModules');
+            }}
+            theme={theme}
+            title="确认删除"
+            variant="danger"
+          />
+        </MFRow>
       </MFStack>
     </MFScrollPage>
   );
@@ -1852,13 +2000,42 @@ function BindDeviceScreen({ actions, theme, user }: { actions: AdminActions; the
           </MFCard>
         ))}
         <MFButton
-          onPress={() => {
-            actions.showToast('设备 Token 已下发，绑定完成');
-            actions.goRoute('managedUserDetail');
-          }}
+          onPress={() => actions.openBindDeviceConfirm(user.id)}
           theme={theme}
           title="确认绑定"
         />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function BindDeviceConfirmScreen({ actions, theme, user }: { actions: AdminActions; theme: MFTheme; user: ManagedUser }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="bindDevice" subtitle="确认替换设备后会撤销旧设备 Token" theme={theme} title="更换绑定设备确认" />
+        <MFStatusCard message="新设备会领取后续任务，旧设备将不再 poll / claim。确认操作会写入管理员审计日志。" theme={theme} title="绑定风险" tone="warning" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title={user.name} />
+            <MFKeyValue label="当前设备" theme={theme} value={user.device} />
+            <MFKeyValue label="新设备" theme={theme} value="Pixel 8 · 837291" />
+            <MFKeyValue label="Token 策略" theme={theme} value="撤销旧 Token，下发新 device_token" />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('bindDevice')} theme={theme} title="返回修改" variant="ghost" />
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast('设备 Token 已下发，绑定完成');
+              actions.goRoute('managedUserDetail');
+            }}
+            theme={theme}
+            title="确认更换"
+            variant="secondary"
+          />
+        </MFRow>
       </MFStack>
     </MFScrollPage>
   );
@@ -1884,11 +2061,67 @@ function GameAccountsScreen({ actions, theme, user }: { actions: AdminActions; t
                 <MFBadge label={account.status} tone="success" theme={theme} />
               </MFRow>
               <MFKeyValue label="账号 ID" theme={theme} value={account.accountId} />
-              <MFButton fullWidth={false} onPress={() => actions.openSheet('编辑游戏账号', `${account.name} 表单会在后续接入保存、删除和状态切换。`)} theme={theme} title="编辑" variant="secondary" />
+              <MFButton fullWidth={false} onPress={() => actions.openGameAccountForm('edit', account.accountId)} theme={theme} title="编辑" variant="secondary" />
             </MFStack>
           </MFCard>
         ))}
-        <MFButton onPress={() => actions.openSheet('新建游戏账号', '需要填写账号名称、区服、角色名、备注和状态。')} theme={theme} title="新建游戏账号" />
+        <MFButton onPress={() => actions.openGameAccountForm('create')} theme={theme} title="新建游戏账号" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function GameAccountFormScreen({
+  account,
+  actions,
+  mode,
+  theme,
+  user
+}: {
+  account: GameAccount;
+  actions: AdminActions;
+  mode: GameAccountFormMode;
+  theme: MFTheme;
+  user: ManagedUser;
+}) {
+  const isEdit = mode === 'edit';
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="gameAccounts" subtitle={`${user.name} · 账号名称、区服、角色和状态`} theme={theme} title={isEdit ? '编辑游戏账号' : '新建游戏账号'} />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="账号名称" required theme={theme}>
+              <MFInput defaultValue={isEdit ? account.name : ''} placeholder="例如：王国 01" theme={theme} />
+            </MFFormField>
+            <MFFormField label="区服" required theme={theme}>
+              <MFInput defaultValue={isEdit ? account.server : ''} placeholder="S23-荣耀之巅" theme={theme} />
+            </MFFormField>
+            <MFFormField label="角色名" required theme={theme}>
+              <MFInput defaultValue={isEdit ? account.role : ''} placeholder="战神无双" theme={theme} />
+            </MFFormField>
+            <MFFormField label="备注" theme={theme}>
+              <MFInput placeholder="任务偏好、账号说明或风险提示" theme={theme} />
+            </MFFormField>
+            <MFCheckbox label="启用账号" onValueChange={() => actions.showToast('账号状态已切换')} theme={theme} value={isEdit ? account.status !== '暂停' : true} />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          {isEdit ? (
+            <MFButton fullWidth={false} onPress={() => actions.openSheet('删除游戏账号', `${account.accountId} 删除前会校验是否存在执行中任务，并写入审计日志。`)} theme={theme} title="删除" variant="danger" />
+          ) : null}
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast(isEdit ? '游戏账号已保存' : '游戏账号已创建');
+              actions.goRoute('gameAccounts');
+            }}
+            theme={theme}
+            title="保存"
+            variant="secondary"
+          />
+        </MFRow>
       </MFStack>
     </MFScrollPage>
   );
@@ -2255,9 +2488,75 @@ function TaskExecutionDetailScreen({ actions, taskRun, theme }: { actions: Admin
         </MFCard>
         {evidences.length > 0 ? <EvidenceSection evidences={evidences} theme={theme} /> : null}
         <MFRow gap={10}>
-          <MFButton fullWidth={false} onPress={() => actions.openSheet('暂停任务', '确认暂停后当前进度会保留，并写入管理员审计日志。')} theme={theme} title="暂停" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskPauseConfirm')} theme={theme} title="暂停" variant="secondary" />
           <MFButton fullWidth={false} onPress={() => actions.startTaskRetry(taskRun.id)} theme={theme} title="重试" variant="ghost" />
-          <MFButton fullWidth={false} onPress={() => actions.openSheet('取消任务', '确认取消后本次任务不会继续调度，设备会释放当前执行锁。')} theme={theme} title="取消" variant="danger" />
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskCancelConfirm')} theme={theme} title="取消" variant="danger" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskPauseConfirmScreen({ actions, taskRun, theme }: { actions: AdminActions; taskRun: TaskRun; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskExecutionDetail" subtitle={`${taskRun.id} · 已完成 ${Math.round(taskRun.progress * 100)}%`} theme={theme} title="暂停任务确认" />
+        <MFStatusCard message="确认暂停后当前进度会保留，设备释放执行锁前会先上报最新 report，并写入管理员审计日志。" theme={theme} title="暂停说明" tone="warning" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title={taskRun.title} />
+            <MFKeyValue label="托管用户" theme={theme} value={taskRun.user} />
+            <MFKeyValue label="执行设备" theme={theme} value={taskRun.device} />
+            <MFKeyValue label="当前步骤" theme={theme} value={taskRun.currentStep} />
+            <MFKeyValue label="保留进度" theme={theme} value={`${Math.round(taskRun.progress * 100)}%`} />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskExecutionDetail')} theme={theme} title="返回" variant="ghost" />
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast('任务暂停指令已下发');
+              actions.goRoute('taskExecutionDetail');
+            }}
+            theme={theme}
+            title="确认暂停"
+            variant="secondary"
+          />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCancelConfirmScreen({ actions, taskRun, theme }: { actions: AdminActions; taskRun: TaskRun; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskExecutionDetail" subtitle={`${taskRun.id} · ${taskRun.worker}`} theme={theme} title="取消任务确认" />
+        <MFStatusCard message="取消后本次任务不会继续调度，设备会释放当前执行锁；如解除本次任务，还会清理待领取队列。" theme={theme} title="高风险操作" tone="danger" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title={taskRun.title} />
+            <MFKeyValue label="账号" theme={theme} value={taskRun.account} />
+            <MFKeyValue label="设备" theme={theme} value={taskRun.device} />
+            <MFKeyValue label="当前步骤" theme={theme} value={taskRun.currentStep} />
+            <MFCheckbox label="解除本次任务并释放设备执行锁" onValueChange={() => actions.showToast('取消范围已切换')} theme={theme} value />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('taskExecutionDetail')} theme={theme} title="返回" variant="ghost" />
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast('任务取消请求已提交');
+              actions.goTabs('tasks');
+            }}
+            theme={theme}
+            title="确认取消"
+            variant="danger"
+          />
         </MFRow>
       </MFStack>
     </MFScrollPage>
@@ -2910,6 +3209,78 @@ function DeviceDetailScreen({ actions, device, theme }: { actions: AdminActions;
         <MFRow gap={10}>
           <MFButton fullWidth={false} onPress={() => actions.showToast(`${device.name} 测试连接已下发`)} theme={theme} title="测试连接" variant="secondary" />
           <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id, 'deviceAlert')} theme={theme} title="异常详情" variant="ghost" />
+          <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id, 'deviceActions')} theme={theme} title="更多" variant="ghost" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function DeviceActionsScreen({ actions, device, theme }: { actions: AdminActions; device: DeviceRecord; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="deviceDetail" subtitle={`${device.id} · ${device.worker}`} theme={theme} title="设备操作" />
+        <MFCard glass theme={theme}>
+          <MFStack gap={10}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  {device.name}
+                </MFText>
+                <MFCaption theme={theme}>
+                  {device.user} · APP {device.app}
+                </MFCaption>
+              </MFStack>
+              <MFBadge label={device.status} tone={device.tone} theme={theme} />
+            </MFRow>
+            <MFKeyValue label="ADB 状态" theme={theme} value={device.adb} />
+          </MFStack>
+        </MFCard>
+        <MFCard padded={false} theme={theme}>
+          <MFListItem meta="下发一次连接探测并刷新心跳" onPress={() => actions.showToast(`${device.name} 测试连接已下发`)} theme={theme} title="测试连接" />
+          <MFDivider />
+          <MFListItem meta="重启 Worker 会写入审计日志" onPress={() => actions.showToast(`${device.name} 重启 Worker 指令已下发`)} theme={theme} title="重启 Worker" />
+          <MFDivider />
+          <MFListItem meta={device.id} onPress={() => actions.showToast('设备 ID 已复制')} theme={theme} title="复制设备 ID" />
+          <MFDivider />
+          <MFListItem meta="查看设备异常、任务日志和恢复建议" onPress={() => actions.openDevice(device.id, 'deviceAlert')} theme={theme} title="日志与异常" />
+          <MFDivider />
+          <MFListItem meta="撤销 device_token 并解除托管用户绑定" onPress={() => actions.openDevice(device.id, 'deviceUnbind')} theme={theme} title="解绑设备" />
+        </MFCard>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function DeviceUnbindScreen({ actions, device, theme }: { actions: AdminActions; device: DeviceRecord; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="deviceActions" subtitle={`${device.name} · ${device.user}`} theme={theme} title="设备解绑确认" />
+        <MFStatusCard message="解绑后设备将不再拉取任务，服务端会撤销 device_token，相关任务需要重新分配设备。" theme={theme} title="高风险操作" tone="danger" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="设备摘要" />
+            <MFKeyValue label="设备" theme={theme} value={device.name} />
+            <MFKeyValue label="托管用户" theme={theme} value={device.user} />
+            <MFKeyValue label="APP 版本" theme={theme} value={device.app} />
+            <MFKeyValue label="Worker" theme={theme} value={device.worker} />
+            <MFCheckbox label="确认撤销设备 Token 并写入审计日志" onValueChange={() => actions.showToast('解绑确认状态已切换')} theme={theme} value />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('deviceActions')} theme={theme} title="返回" variant="ghost" />
+          <MFButton
+            fullWidth={false}
+            onPress={() => {
+              actions.showToast('设备解绑请求已提交');
+              actions.goTabs('devices');
+            }}
+            theme={theme}
+            title="确认解绑"
+            variant="danger"
+          />
         </MFRow>
       </MFStack>
     </MFScrollPage>
