@@ -49,12 +49,22 @@ type RouteKey =
   | 'taskModuleDetail'
   | 'taskModuleForm'
   | 'taskModuleSort'
+  | 'taskCreateUser'
+  | 'taskCreateAccount'
+  | 'taskCreateDevice'
+  | 'taskCreateGroup'
+  | 'taskCreateModule'
+  | 'taskCreateParams'
+  | 'taskCreateConfirm'
+  | 'taskExecutionDetail'
+  | 'taskRetry'
   | 'pendingDevices'
   | 'deviceDetail'
   | 'deviceAlert';
 type Tone = 'info' | 'success' | 'warning' | 'danger';
 type UserFormMode = 'create' | 'edit';
 type ModuleFormMode = 'create' | 'edit';
+type TaskRunStatus = 'running' | 'failed' | 'finished';
 
 type ManagedUser = {
   accountCount: number;
@@ -101,6 +111,31 @@ type GameTaskModule = {
   script: string;
   successRate: string;
   timeoutSeconds: number;
+};
+
+type GameAccount = {
+  accountId: string;
+  name: string;
+  role: string;
+  server: string;
+  status: string;
+  userId: string;
+};
+
+type TaskRun = {
+  account: string;
+  currentStep: string;
+  device: string;
+  group: string;
+  id: string;
+  logs: string[];
+  moduleName: string;
+  progress: number;
+  similarity: string;
+  status: TaskRunStatus;
+  title: string;
+  user: string;
+  worker: string;
 };
 
 const theme = createTheme('light');
@@ -185,21 +220,90 @@ const fallbackDevice = devices[0] ?? {
   worker: 'Worker v0.3.2'
 };
 
-const gameAccounts = [
-  { accountId: 'ACCT-10001-0001', name: '王国 01', role: '战神无双', server: 'S23-荣耀之巅', status: '启用' },
-  { accountId: 'ACCT-10001-0002', name: '王国 02', role: '云中游侠', server: 'S24-曙光前线', status: '备用' }
+const gameAccounts: GameAccount[] = [
+  { accountId: 'ACCT-10001-0001', name: '王国 01', role: '战神无双', server: 'S23-荣耀之巅', status: '启用', userId: 'mu-10001' },
+  { accountId: 'ACCT-10001-0002', name: '王国 02', role: '云中游侠', server: 'S24-曙光前线', status: '备用', userId: 'mu-10001' },
+  { accountId: 'ACCT-10004-0001', name: '王国 07', role: '荒野领主', server: 'S31-烈焰高地', status: '启用', userId: 'mu-10004' },
+  { accountId: 'ACCT-10011-0001', name: '王国 09', role: '晨星骑士', server: 'S42-群山之门', status: '暂停', userId: 'mu-10011' }
 ];
+
+const fallbackGameAccount = gameAccounts[0] ?? {
+  accountId: 'ACCT-PLACEHOLDER',
+  name: '王国 01',
+  role: '战神无双',
+  server: 'S23-荣耀之巅',
+  status: '启用',
+  userId: fallbackManagedUser.id
+};
 
 const pendingDevices = [
   { bindingCode: '9X7Q-2M4K-8L3R', name: 'OnePlus 12', status: '等待绑定' },
   { bindingCode: '837291', name: 'Pixel 8', status: '已识别' }
 ];
 
-const taskCards = [
-  { progress: 0.72, status: 'running', title: '随缘打熊', user: '用户 A', worker: 'Pixel 7 Pro' },
-  { progress: 0.06, status: 'failed', title: '王国领奖', user: '用户 F', worker: 'OnePlus 12' },
-  { progress: 1, status: 'finished', title: '联盟签到', user: '用户 Q', worker: 'Redmi K70' }
+const taskRuns: TaskRun[] = [
+  {
+    account: '王国 01',
+    currentStep: '识别野怪并进入战斗',
+    device: 'Pixel 7 Pro',
+    group: '日常活动',
+    id: 'run-20260603-001',
+    logs: ['10:21:12 Worker claim 成功', '10:21:38 截图完成，相似度 0.86', '10:22:04 已进入战斗，等待结算'],
+    moduleName: '随缘打熊',
+    progress: 0.72,
+    similarity: '0.86',
+    status: 'running',
+    title: '随缘打熊 #001',
+    user: '用户 A',
+    worker: 'Worker v0.3.2'
+  },
+  {
+    account: '王国 07',
+    currentStep: '领奖入口识别失败',
+    device: 'OnePlus 12',
+    group: '日常活动',
+    id: 'run-20260603-002',
+    logs: ['09:47:01 Worker claim 成功', '09:47:19 未匹配到领奖按钮', '09:47:23 TASK_EXEC_FAILED: similarity 0.42'],
+    moduleName: '王国领奖',
+    progress: 0.06,
+    similarity: '0.42',
+    status: 'failed',
+    title: '王国领奖 #002',
+    user: '用户 D',
+    worker: 'Worker v0.3.2'
+  },
+  {
+    account: '王国 02',
+    currentStep: 'finish 已上报',
+    device: 'Redmi K70',
+    group: '日常活动',
+    id: 'run-20260603-003',
+    logs: ['08:10:05 Worker claim 成功', '08:10:24 签到按钮已点击', '08:10:31 finish 上报成功'],
+    moduleName: '联盟签到',
+    progress: 1,
+    similarity: '0.93',
+    status: 'finished',
+    title: '联盟签到 #003',
+    user: '用户 A',
+    worker: 'Worker v0.3.2'
+  }
 ];
+
+const fallbackTaskRun = taskRuns[0] ?? {
+  account: fallbackGameAccount.name,
+  currentStep: '等待 Worker claim',
+  device: fallbackDevice.name,
+  group: '日常活动',
+  id: 'run-placeholder',
+  logs: ['任务已创建，等待设备领取。'],
+  moduleName: '随缘打熊',
+  progress: 0,
+  similarity: '0.00',
+  status: 'running' as const,
+  title: '随缘打熊',
+  user: fallbackManagedUser.name,
+  worker: fallbackDevice.worker
+};
 
 const fallbackModuleGroup: ModuleGroup = {
   enabled: true,
@@ -314,6 +418,9 @@ export function App() {
   const [selectedModuleGroupId, setSelectedModuleGroupId] = useState(fallbackModuleGroup.id);
   const [selectedTaskModuleId, setSelectedTaskModuleId] = useState(fallbackTaskModule.id);
   const [selectedUserId, setSelectedUserId] = useState(fallbackManagedUser.id);
+  const [selectedGameAccountId, setSelectedGameAccountId] = useState(fallbackGameAccount.accountId);
+  const [selectedTaskRunId, setSelectedTaskRunId] = useState(fallbackTaskRun.id);
+  const [draftTaskRun, setDraftTaskRun] = useState<TaskRun | null>(null);
   const [taskFilter, setTaskFilter] = useState<'running' | 'failed' | 'finished'>('running');
   const [moduleFormMode, setModuleFormMode] = useState<ModuleFormMode>('create');
   const [userFormMode, setUserFormMode] = useState<UserFormMode>('create');
@@ -344,6 +451,8 @@ export function App() {
     return () => clearTimeout(timer);
   }, [hideToast, toast]);
 
+  const availableTaskRuns = useMemo(() => (draftTaskRun ? [draftTaskRun, ...taskRuns] : taskRuns), [draftTaskRun]);
+
   const actions = {
     goLogin: () => setScreen('login'),
     goMain: (nextTab: MainTab = 'dashboard') => {
@@ -357,6 +466,10 @@ export function App() {
         setTab(nextTab);
       }
       setRoute('tabs');
+    },
+    openTaskRun: (taskRunId: string) => {
+      setSelectedTaskRunId(taskRunId);
+      setRoute('taskExecutionDetail');
     },
     openSheet: (title: string, body: string) => openShellSheet({ body, title }),
     openDevice: (deviceId: string, nextRoute: 'deviceDetail' | 'deviceAlert' = 'deviceDetail') => {
@@ -400,11 +513,80 @@ export function App() {
       setUserFormMode(mode);
       setRoute('managedUserForm');
     },
+    selectTaskAccount: (accountId: string) => {
+      setSelectedGameAccountId(accountId);
+      setRoute('taskCreateDevice');
+    },
+    selectTaskDevice: (deviceId: string) => {
+      setSelectedDeviceId(deviceId);
+      setRoute('taskCreateGroup');
+    },
+    selectTaskGroup: (groupId: string) => {
+      const firstModule = taskModules.find((taskModule) => taskModule.groupId === groupId) ?? fallbackTaskModule;
+      setSelectedModuleGroupId(groupId);
+      setSelectedTaskModuleId(firstModule.id);
+      setRoute('taskCreateModule');
+    },
+    selectTaskModule: (moduleId: string) => {
+      setSelectedTaskModuleId(moduleId);
+      setRoute('taskCreateParams');
+    },
+    selectTaskUser: (userId: string) => {
+      const user = managedUsers.find((managedUser) => managedUser.id === userId) ?? fallbackManagedUser;
+      const account = gameAccounts.find((gameAccount) => gameAccount.userId === user.id) ?? fallbackGameAccount;
+      const device = devices.find((deviceRecord) => deviceRecord.name === user.device) ?? fallbackDevice;
+      setSelectedUserId(user.id);
+      setSelectedGameAccountId(account.accountId);
+      setSelectedDeviceId(device.id);
+      setRoute('taskCreateAccount');
+    },
     setDeviceFilter,
     setRememberLogin,
     setTab,
     setTaskFilter,
-    showToast: (message: string) => showShellToast(message)
+    showToast: (message: string) => showShellToast(message),
+    startTaskCreation: () => {
+      const account = gameAccounts.find((gameAccount) => gameAccount.userId === fallbackManagedUser.id) ?? fallbackGameAccount;
+      const device = devices.find((deviceRecord) => deviceRecord.name === fallbackManagedUser.device) ?? fallbackDevice;
+      setSelectedUserId(fallbackManagedUser.id);
+      setSelectedGameAccountId(account.accountId);
+      setSelectedDeviceId(device.id);
+      setSelectedModuleGroupId(fallbackModuleGroup.id);
+      setSelectedTaskModuleId(fallbackTaskModule.id);
+      setTab('tasks');
+      setRoute('taskCreateUser');
+    },
+    startTaskRetry: (taskRunId: string) => {
+      setSelectedTaskRunId(taskRunId);
+      setRoute('taskRetry');
+    },
+    submitTaskRun: () => {
+      const account = gameAccounts.find((gameAccount) => gameAccount.accountId === selectedGameAccountId) ?? fallbackGameAccount;
+      const device = devices.find((deviceRecord) => deviceRecord.id === selectedDeviceId) ?? fallbackDevice;
+      const group = moduleGroups.find((moduleGroup) => moduleGroup.id === selectedModuleGroupId) ?? fallbackModuleGroup;
+      const taskModule = taskModules.find((module) => module.id === selectedTaskModuleId) ?? fallbackTaskModule;
+      const user = managedUsers.find((managedUser) => managedUser.id === selectedUserId) ?? fallbackManagedUser;
+      const newRun: TaskRun = {
+        account: account.name,
+        currentStep: '等待 Worker claim',
+        device: device.name,
+        group: group.name,
+        id: `run-draft-${Date.now()}`,
+        logs: ['任务已下发，等待设备 poll / claim。'],
+        moduleName: taskModule.name,
+        progress: 0.02,
+        similarity: '0.00',
+        status: 'running',
+        title: `${taskModule.name} #新建`,
+        user: user.name,
+        worker: device.worker
+      };
+      setDraftTaskRun(newRun);
+      setSelectedTaskRunId(newRun.id);
+      setTaskFilter('running');
+      setRoute('taskExecutionDetail');
+      showShellToast('任务已下发，等待设备领取');
+    }
   };
 
   return (
@@ -420,10 +602,13 @@ export function App() {
             moduleFormMode={moduleFormMode}
             route={route}
             selectedDevice={devices.find((device) => device.id === selectedDeviceId) ?? fallbackDevice}
+            selectedGameAccount={gameAccounts.find((account) => account.accountId === selectedGameAccountId) ?? fallbackGameAccount}
             selectedModuleGroup={moduleGroups.find((group) => group.id === selectedModuleGroupId) ?? fallbackModuleGroup}
             selectedTaskModule={taskModules.find((taskModule) => taskModule.id === selectedTaskModuleId) ?? fallbackTaskModule}
+            selectedTaskRun={availableTaskRuns.find((taskRun) => taskRun.id === selectedTaskRunId) ?? fallbackTaskRun}
             selectedUser={managedUsers.find((user) => user.id === selectedUserId) ?? fallbackManagedUser}
             taskFilter={taskFilter}
+            taskRuns={availableTaskRuns}
             theme={theme}
             userFormMode={userFormMode}
           />
@@ -446,14 +631,23 @@ type AdminActions = {
   openModuleGroup: (groupId: string) => void;
   openModuleGroupForm: (mode: ModuleFormMode, groupId?: string) => void;
   openSheet: (title: string, body: string) => void;
+  openTaskRun: (taskRunId: string) => void;
   openTaskModule: (moduleId: string) => void;
   openTaskModuleForm: (mode: ModuleFormMode, moduleId?: string) => void;
   openUserForm: (mode: UserFormMode, userId?: string) => void;
+  selectTaskAccount: (accountId: string) => void;
+  selectTaskDevice: (deviceId: string) => void;
+  selectTaskGroup: (groupId: string) => void;
+  selectTaskModule: (moduleId: string) => void;
+  selectTaskUser: (userId: string) => void;
   setDeviceFilter: (value: 'all' | 'online' | 'alert') => void;
   setRememberLogin: (value: boolean) => void;
   setTab: (value: MainTab) => void;
   setTaskFilter: (value: 'running' | 'failed' | 'finished') => void;
   showToast: (message: string) => void;
+  startTaskCreation: () => void;
+  startTaskRetry: (taskRunId: string) => void;
+  submitTaskRun: () => void;
 };
 
 function SplashScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
@@ -533,10 +727,13 @@ function MainScreen({
   moduleFormMode,
   route,
   selectedDevice,
+  selectedGameAccount,
   selectedModuleGroup,
   selectedTaskModule,
+  selectedTaskRun,
   selectedUser,
   taskFilter,
+  taskRuns,
   theme,
   userFormMode
 }: {
@@ -546,10 +743,13 @@ function MainScreen({
   moduleFormMode: ModuleFormMode;
   route: RouteKey;
   selectedDevice: DeviceRecord;
+  selectedGameAccount: GameAccount;
   selectedModuleGroup: ModuleGroup;
   selectedTaskModule: GameTaskModule;
+  selectedTaskRun: TaskRun;
   selectedUser: ManagedUser;
   taskFilter: 'running' | 'failed' | 'finished';
+  taskRuns: TaskRun[];
   theme: MFTheme;
   userFormMode: UserFormMode;
 }) {
@@ -574,7 +774,7 @@ function MainScreen({
   }
 
   if (route === 'userTaskHistory') {
-    return <UserTaskHistoryScreen actions={actions} theme={theme} user={selectedUser} />;
+    return <UserTaskHistoryScreen actions={actions} taskRuns={taskRuns} theme={theme} user={selectedUser} />;
   }
 
   if (route === 'moduleGroups') {
@@ -605,6 +805,52 @@ function MainScreen({
     return <TaskModuleSortScreen actions={actions} group={selectedModuleGroup} theme={theme} />;
   }
 
+  if (route === 'taskCreateUser') {
+    return <TaskCreateUserScreen actions={actions} selectedUser={selectedUser} theme={theme} />;
+  }
+
+  if (route === 'taskCreateAccount') {
+    return <TaskCreateAccountScreen actions={actions} selectedAccount={selectedGameAccount} selectedUser={selectedUser} theme={theme} />;
+  }
+
+  if (route === 'taskCreateDevice') {
+    return <TaskCreateDeviceScreen actions={actions} selectedDevice={selectedDevice} selectedUser={selectedUser} theme={theme} />;
+  }
+
+  if (route === 'taskCreateGroup') {
+    return <TaskCreateGroupScreen actions={actions} selectedAccount={selectedGameAccount} selectedDevice={selectedDevice} selectedUser={selectedUser} theme={theme} />;
+  }
+
+  if (route === 'taskCreateModule') {
+    return <TaskCreateModuleScreen actions={actions} group={selectedModuleGroup} selectedModule={selectedTaskModule} theme={theme} />;
+  }
+
+  if (route === 'taskCreateParams') {
+    return <TaskCreateParamsScreen actions={actions} module={selectedTaskModule} theme={theme} />;
+  }
+
+  if (route === 'taskCreateConfirm') {
+    return (
+      <TaskCreateConfirmScreen
+        account={selectedGameAccount}
+        actions={actions}
+        device={selectedDevice}
+        group={selectedModuleGroup}
+        module={selectedTaskModule}
+        theme={theme}
+        user={selectedUser}
+      />
+    );
+  }
+
+  if (route === 'taskExecutionDetail') {
+    return <TaskExecutionDetailScreen actions={actions} taskRun={selectedTaskRun} theme={theme} />;
+  }
+
+  if (route === 'taskRetry') {
+    return <TaskRetryScreen actions={actions} device={selectedDevice} taskRun={selectedTaskRun} theme={theme} />;
+  }
+
   if (route === 'pendingDevices') {
     return <PendingDevicesScreen actions={actions} theme={theme} />;
   }
@@ -621,7 +867,7 @@ function MainScreen({
     <View style={{ flex: 1 }}>
       {activeTab === 'dashboard' ? <DashboardScreen actions={actions} theme={theme} /> : null}
       {activeTab === 'devices' ? <DevicesScreen actions={actions} filter={deviceFilter} theme={theme} /> : null}
-      {activeTab === 'tasks' ? <TasksScreen actions={actions} filter={taskFilter} theme={theme} /> : null}
+      {activeTab === 'tasks' ? <TasksScreen actions={actions} filter={taskFilter} taskRuns={taskRuns} theme={theme} /> : null}
       {activeTab === 'manage' ? <ManageScreen actions={actions} theme={theme} /> : null}
       {activeTab === 'profile' ? <ProfileScreen actions={actions} theme={theme} /> : null}
       <MainTabBar actions={actions} activeTab={activeTab} theme={theme} />
@@ -745,13 +991,23 @@ function DevicesScreen({ actions, filter, theme }: { actions: AdminActions; filt
   );
 }
 
-function TasksScreen({ actions, filter, theme }: { actions: AdminActions; filter: 'running' | 'failed' | 'finished'; theme: MFTheme }) {
-  const visibleTasks = taskCards.filter((task) => task.status === filter);
+function TasksScreen({
+  actions,
+  filter,
+  taskRuns,
+  theme
+}: {
+  actions: AdminActions;
+  filter: 'running' | 'failed' | 'finished';
+  taskRuns: TaskRun[];
+  theme: MFTheme;
+}) {
+  const visibleTasks = taskRuns.filter((task) => task.status === filter);
 
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={16}>
-        <Header title="任务" subtitle="新建任务、执行进度、暂停、取消和重试" theme={theme} rightLabel="新建" onRightPress={() => actions.openSheet('新建任务', '流程：选择托管用户、游戏账号、设备、模块分组、具体任务、运行参数并确认下发。')} />
+        <Header title="任务" subtitle="新建任务、执行进度、暂停、取消和重试" theme={theme} rightLabel="新建" onRightPress={actions.startTaskCreation} />
         <MFSegmentedControl
           onChange={actions.setTaskFilter}
           options={[
@@ -763,7 +1019,7 @@ function TasksScreen({ actions, filter, theme }: { actions: AdminActions; filter
           value={filter}
         />
         {visibleTasks.map((task) => (
-          <MFCard key={task.title} theme={theme}>
+          <MFCard key={task.id} theme={theme}>
             <MFStack gap={12}>
               <MFRow style={{ justifyContent: 'space-between' }}>
                 <MFStack gap={4}>
@@ -777,13 +1033,28 @@ function TasksScreen({ actions, filter, theme }: { actions: AdminActions; filter
                 <TaskBadge status={task.status} theme={theme} />
               </MFRow>
               <MFProgress label="执行进度" theme={theme} value={task.progress} />
+              <MFKeyValue label="当前步骤" theme={theme} value={task.currentStep} />
               <MFRow gap={10}>
-                <MFButton fullWidth={false} onPress={() => actions.openSheet('任务执行详情', '后续会接入实时日志、执行链路、相似度、证据截图和取消/暂停操作。')} theme={theme} title="详情" variant="secondary" />
-                <MFButton fullWidth={false} onPress={() => actions.showToast(`${task.title} 操作已加入队列`)} theme={theme} title={task.status === 'failed' ? '重试' : '日志'} variant="ghost" />
+                <MFButton fullWidth={false} onPress={() => actions.openTaskRun(task.id)} theme={theme} title="详情" variant="secondary" />
+                <MFButton
+                  fullWidth={false}
+                  onPress={() => {
+                    if (task.status === 'failed') {
+                      actions.startTaskRetry(task.id);
+                      return;
+                    }
+
+                    actions.openTaskRun(task.id);
+                  }}
+                  theme={theme}
+                  title={task.status === 'failed' ? '重试' : '日志'}
+                  variant="ghost"
+                />
               </MFRow>
             </MFStack>
           </MFCard>
         ))}
+        {visibleTasks.length === 0 ? <MFStatusCard message="当前筛选没有任务记录。" theme={theme} title="暂无任务" tone="info" /> : null}
       </MFStack>
     </MFScrollPage>
   );
@@ -1299,28 +1570,407 @@ function GameAccountsScreen({ actions, theme, user }: { actions: AdminActions; t
   );
 }
 
-function UserTaskHistoryScreen({ actions, theme, user }: { actions: AdminActions; theme: MFTheme; user: ManagedUser }) {
+function UserTaskHistoryScreen({ actions, taskRuns, theme, user }: { actions: AdminActions; taskRuns: TaskRun[]; theme: MFTheme; user: ManagedUser }) {
+  const userRuns = taskRuns.filter((task) => task.user === user.name);
+  const visibleRuns = userRuns.length > 0 ? userRuns : taskRuns;
+
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={16}>
         <BackHeader actions={actions} backRoute="managedUserDetail" subtitle={`${user.name} · 总数 128 · 成功率 85.9%`} theme={theme} title="任务记录" />
-        {taskCards.map((task) => (
-          <MFCard key={`${user.id}-${task.title}`} theme={theme}>
+        {visibleRuns.map((task) => (
+          <MFCard key={`${user.id}-${task.id}`} theme={theme}>
             <MFStack gap={10}>
               <MFRow style={{ justifyContent: 'space-between' }}>
                 <MFStack gap={4}>
                   <MFText theme={theme} style={{ fontWeight: '900' }}>
                     {task.title}
                   </MFText>
-                  <MFCaption theme={theme}>{task.worker}</MFCaption>
+                  <MFCaption theme={theme}>
+                    {task.account} · {task.device}
+                  </MFCaption>
                 </MFStack>
                 <TaskBadge status={task.status} theme={theme} />
               </MFRow>
               <MFProgress label="执行进度" theme={theme} value={task.progress} />
-              <MFButton fullWidth={false} onPress={() => actions.openSheet('任务执行详情', '任务链路、实时日志和证据截图会在 Phase 4/5 接入。')} theme={theme} title="查看详情" variant="secondary" />
+              <MFButton fullWidth={false} onPress={() => actions.openTaskRun(task.id)} theme={theme} title="查看详情" variant="secondary" />
             </MFStack>
           </MFCard>
         ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateUserScreen({ actions, selectedUser, theme }: { actions: AdminActions; selectedUser: ManagedUser; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="tasks" subtitle="选择托管用户后进入游戏账号选择" theme={theme} title="新建任务" />
+        <TaskCreateProgress step={1} theme={theme} />
+        <MFSearchBar placeholder="搜索用户名称、编号或设备" theme={theme} />
+        {managedUsers.map((user) => (
+          <MFCard key={user.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {user.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {user.code} · {user.device}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={selectedUser.id === user.id ? '已选' : user.status} tone={selectedUser.id === user.id ? 'success' : 'info'} theme={theme} />
+              </MFRow>
+              <MFProgress label={user.currentTask} theme={theme} value={user.progress} />
+              <MFButton fullWidth={false} onPress={() => actions.selectTaskUser(user.id)} theme={theme} title="选择并继续" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateAccountScreen({
+  actions,
+  selectedAccount,
+  selectedUser,
+  theme
+}: {
+  actions: AdminActions;
+  selectedAccount: GameAccount;
+  selectedUser: ManagedUser;
+  theme: MFTheme;
+}) {
+  const accounts = gameAccounts.filter((account) => account.userId === selectedUser.id);
+  const visibleAccounts = accounts.length > 0 ? accounts : [selectedAccount];
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskCreateUser" subtitle={`${selectedUser.name} · 选择要执行的游戏账号`} theme={theme} title="选择游戏账号" />
+        <TaskCreateProgress step={2} theme={theme} />
+        <TaskDraftSummary items={[`用户：${selectedUser.name}`, `绑定设备：${selectedUser.device}`]} theme={theme} />
+        {visibleAccounts.map((account) => (
+          <MFCard key={account.accountId} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {account.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {account.server} · {account.role}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={selectedAccount.accountId === account.accountId ? '已选' : account.status} tone="success" theme={theme} />
+              </MFRow>
+              <MFKeyValue label="账号 ID" theme={theme} value={account.accountId} />
+              <MFButton fullWidth={false} onPress={() => actions.selectTaskAccount(account.accountId)} theme={theme} title="选择并继续" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateDeviceScreen({
+  actions,
+  selectedDevice,
+  selectedUser,
+  theme
+}: {
+  actions: AdminActions;
+  selectedDevice: DeviceRecord;
+  selectedUser: ManagedUser;
+  theme: MFTheme;
+}) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskCreateAccount" subtitle="确认执行设备和 ADB / Worker 状态" theme={theme} title="确认设备" />
+        <TaskCreateProgress step={3} theme={theme} />
+        <TaskDraftSummary items={[`用户：${selectedUser.name}`, `推荐设备：${selectedUser.device}`]} theme={theme} />
+        {devices.map((device) => {
+          const blocked = device.status !== '在线';
+          return (
+            <MFCard key={device.id} theme={theme}>
+              <MFStack gap={10}>
+                <MFRow style={{ justifyContent: 'space-between' }}>
+                  <MFStack gap={4}>
+                    <MFText theme={theme} style={{ fontWeight: '900' }}>
+                      {device.name}
+                    </MFText>
+                    <MFCaption theme={theme}>
+                      {device.user} · {device.worker}
+                    </MFCaption>
+                  </MFStack>
+                  <MFBadge label={selectedDevice.id === device.id ? '已选' : device.status} tone={blocked ? 'warning' : 'success'} theme={theme} />
+                </MFRow>
+                <MFKeyValue label="ADB 状态" theme={theme} value={device.adb} />
+                <MFButton
+                  disabled={blocked}
+                  fullWidth={false}
+                  onPress={() => actions.selectTaskDevice(device.id)}
+                  theme={theme}
+                  title={blocked ? '设备不可执行' : '选择并继续'}
+                  variant="secondary"
+                />
+              </MFStack>
+            </MFCard>
+          );
+        })}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateGroupScreen({
+  actions,
+  selectedAccount,
+  selectedDevice,
+  selectedUser,
+  theme
+}: {
+  actions: AdminActions;
+  selectedAccount: GameAccount;
+  selectedDevice: DeviceRecord;
+  selectedUser: ManagedUser;
+  theme: MFTheme;
+}) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskCreateDevice" subtitle="选择模块分组后进入具体任务" theme={theme} title="选择模块分组" />
+        <TaskCreateProgress step={4} theme={theme} />
+        <TaskDraftSummary items={[`用户：${selectedUser.name}`, `账号：${selectedAccount.name}`, `设备：${selectedDevice.name}`]} theme={theme} />
+        {moduleGroups.map((group) => (
+          <MFCard key={group.id} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {group.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {group.key} · {group.moduleCount} 个任务
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={group.enabled ? '启用' : '停用'} tone={group.enabled ? 'success' : 'warning'} theme={theme} />
+              </MFRow>
+              <MFButton disabled={!group.enabled} fullWidth={false} onPress={() => actions.selectTaskGroup(group.id)} theme={theme} title={group.enabled ? '选择分组' : '不可选择'} variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateModuleScreen({
+  actions,
+  group,
+  selectedModule,
+  theme
+}: {
+  actions: AdminActions;
+  group: ModuleGroup;
+  selectedModule: GameTaskModule;
+  theme: MFTheme;
+}) {
+  const modules = taskModules.filter((taskModule) => taskModule.groupId === group.id);
+  const visibleModules = modules.length > 0 ? modules : [selectedModule];
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskCreateGroup" subtitle={`${group.name} · 选择具体任务`} theme={theme} title="选择具体任务" />
+        <TaskCreateProgress step={5} theme={theme} />
+        {visibleModules.map((taskModule) => (
+          <MFCard key={taskModule.id} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {taskModule.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {taskModule.script} · {taskModule.runTemplate}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={selectedModule.id === taskModule.id ? '已选' : taskModule.successRate} tone="info" theme={theme} />
+              </MFRow>
+              <MFKeyValue label="超时" theme={theme} value={`${taskModule.timeoutSeconds} 秒`} />
+              <MFKeyValue label="最大重试" theme={theme} value={`${taskModule.retries} 次`} />
+              <MFButton disabled={!taskModule.enabled} fullWidth={false} onPress={() => actions.selectTaskModule(taskModule.id)} theme={theme} title={taskModule.enabled ? '选择并配置' : '任务已停用'} variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateParamsScreen({ actions, module, theme }: { actions: AdminActions; module: GameTaskModule; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskCreateModule" subtitle={`${module.name} · 次数、间隔、重试和超时`} theme={theme} title="配置运行参数" />
+        <TaskCreateProgress step={6} theme={theme} />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="执行次数" required theme={theme}>
+              <MFInput defaultValue="3" keyboardType="number-pad" placeholder="3" theme={theme} />
+            </MFFormField>
+            <MFFormField label="执行间隔秒数" theme={theme}>
+              <MFInput defaultValue="30" keyboardType="number-pad" placeholder="30" theme={theme} />
+            </MFFormField>
+            <MFFormField label="超时秒数" theme={theme}>
+              <MFInput defaultValue={String(module.timeoutSeconds)} keyboardType="number-pad" placeholder="300" theme={theme} />
+            </MFFormField>
+            <MFCheckbox label="失败时自动重试" onValueChange={() => actions.showToast('自动重试设置已切换')} theme={theme} value />
+            <MFCheckbox label="保留关键截图证据" onValueChange={() => actions.showToast('截图证据设置已切换')} theme={theme} value />
+          </MFStack>
+        </MFCard>
+        <MFButton onPress={() => actions.goRoute('taskCreateConfirm')} theme={theme} title="下一步" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskCreateConfirmScreen({
+  account,
+  actions,
+  device,
+  group,
+  module,
+  theme,
+  user
+}: {
+  account: GameAccount;
+  actions: AdminActions;
+  device: DeviceRecord;
+  group: ModuleGroup;
+  module: GameTaskModule;
+  theme: MFTheme;
+  user: ManagedUser;
+}) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskCreateParams" subtitle="确认后写入任务队列并等待设备领取" theme={theme} title="确认下发" />
+        <TaskCreateProgress step={7} theme={theme} />
+        <MFCard glass theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title={module.name} />
+            <MFKeyValue label="托管用户" theme={theme} value={user.name} />
+            <MFKeyValue label="游戏账号" theme={theme} value={`${account.name} · ${account.server}`} />
+            <MFKeyValue label="执行设备" theme={theme} value={`${device.name} · ${device.adb}`} />
+            <MFKeyValue label="模块分组" theme={theme} value={group.name} />
+            <MFKeyValue label="运行参数" theme={theme} value="3 次 · 间隔 30 秒 · 保留截图" />
+          </MFStack>
+        </MFCard>
+        <MFButton onPress={actions.submitTaskRun} theme={theme} title="确认下发" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskExecutionDetailScreen({ actions, taskRun, theme }: { actions: AdminActions; taskRun: TaskRun; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="tasks" subtitle={`${taskRun.id} · ${taskRun.worker}`} theme={theme} title="任务执行详情" />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  {taskRun.title}
+                </MFText>
+                <MFCaption theme={theme}>
+                  {taskRun.user} · {taskRun.account} · {taskRun.device}
+                </MFCaption>
+              </MFStack>
+              <TaskBadge status={taskRun.status} theme={theme} />
+            </MFRow>
+            <MFProgress label={taskRun.currentStep} theme={theme} value={taskRun.progress} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="关联对象" />
+            <MFKeyValue label="分组" theme={theme} value={taskRun.group} />
+            <MFKeyValue label="具体任务" theme={theme} value={taskRun.moduleName} />
+            <MFKeyValue label="相似度" theme={theme} value={taskRun.similarity} />
+            <MFKeyValue label="Worker" theme={theme} value={taskRun.worker} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={8}>
+            <SectionTitle theme={theme} title="执行链路" />
+            {['create', 'poll', 'claim', 'report', taskRun.status === 'finished' ? 'finish' : 'waiting'].map((step, index) => (
+              <MFKeyValue key={`${taskRun.id}-${step}`} label={`${index + 1}`} theme={theme} value={step} />
+            ))}
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={8}>
+            <SectionTitle action="全部日志" onAction={() => actions.showToast('日志分页会在实时网关接入后启用')} theme={theme} title="实时日志" />
+            {taskRun.logs.map((line) => (
+              <MFCaption key={line} theme={theme}>
+                {line}
+              </MFCaption>
+            ))}
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.openSheet('暂停任务', '确认暂停后当前进度会保留，并写入管理员审计日志。')} theme={theme} title="暂停" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.startTaskRetry(taskRun.id)} theme={theme} title="重试" variant="ghost" />
+          <MFButton fullWidth={false} onPress={() => actions.openSheet('取消任务', '确认取消后本次任务不会继续调度，设备会释放当前执行锁。')} theme={theme} title="取消" variant="danger" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskRetryScreen({ actions, device, taskRun, theme }: { actions: AdminActions; device: DeviceRecord; taskRun: TaskRun; theme: MFTheme }) {
+  const [retryMode, setRetryMode] = useState<'same' | 'reset'>('same');
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskExecutionDetail" subtitle={`${taskRun.title} · 选择重试方式`} theme={theme} title="重试任务" />
+        <MFStatusCard message={`${taskRun.currentStep}，最近相似度 ${taskRun.similarity}。`} theme={theme} title={taskRun.status === 'failed' ? '上次执行失败' : '创建重试任务'} tone={taskRun.status === 'failed' ? 'danger' : 'info'} />
+        <MFSegmentedControl
+          onChange={setRetryMode}
+          options={[
+            { label: '原参数', value: 'same' },
+            { label: '重置次数', value: 'reset' }
+          ]}
+          theme={theme}
+          value={retryMode}
+        />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="重试配置" />
+            <MFKeyValue label="任务" theme={theme} value={taskRun.moduleName} />
+            <MFKeyValue label="设备" theme={theme} value={`${device.name} · ${device.adb}`} />
+            <MFKeyValue label="参数" theme={theme} value={retryMode === 'same' ? '沿用原参数' : '次数重置为 1，保留截图'} />
+            <MFCheckbox label="重试前重启 Worker" onValueChange={() => actions.showToast('重启 Worker 设置已切换')} theme={theme} value />
+          </MFStack>
+        </MFCard>
+        <MFButton
+          onPress={() => {
+            actions.showToast('重试任务已创建');
+            actions.goRoute('taskExecutionDetail');
+          }}
+          theme={theme}
+          title="开始重试"
+        />
       </MFStack>
     </MFScrollPage>
   );
@@ -1533,6 +2183,40 @@ function SectionTitle({
         </Pressable>
       ) : null}
     </MFRow>
+  );
+}
+
+function TaskCreateProgress({ step, theme }: { step: number; theme: MFTheme }) {
+  const labels = ['选用户', '选账号', '确认设备', '选分组', '选任务', '配参数', '确认'];
+  const label = labels[step - 1] ?? '新建任务';
+
+  return (
+    <MFCard theme={theme}>
+      <MFStack gap={10}>
+        <MFRow style={{ justifyContent: 'space-between' }}>
+          <MFText theme={theme} style={{ fontWeight: '900' }}>
+            {label}
+          </MFText>
+          <MFBadge label={`${step}/7`} tone="info" theme={theme} />
+        </MFRow>
+        <MFProgress label="新建进度" theme={theme} value={step / 7} />
+      </MFStack>
+    </MFCard>
+  );
+}
+
+function TaskDraftSummary({ items, theme }: { items: string[]; theme: MFTheme }) {
+  return (
+    <MFCard theme={theme}>
+      <MFStack gap={8}>
+        <SectionTitle theme={theme} title="已选摘要" />
+        {items.map((item) => (
+          <MFCaption key={item} theme={theme}>
+            {item}
+          </MFCaption>
+        ))}
+      </MFStack>
+    </MFCard>
   );
 }
 
