@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { PermissionGate, canAccess, useAdminSession, type AdminPermission } from '@mobile-frame/auth-admin';
@@ -6,8 +7,11 @@ import {
   AdminBoundaryCard,
   AdminPageHeader,
   EntityListItem,
+  FilterSheet,
+  InfiniteList,
   LogViewer,
   ManagementEntryList,
+  SegmentTabs,
   StatCard,
   StatusBadge,
   TaskProgressCard,
@@ -85,6 +89,33 @@ type PermissionDeniedScreenProps = {
   title: string;
 };
 
+type DeviceListSegment = 'all' | 'online' | 'attention';
+type TaskListSegment = 'all' | TaskRecord['status'];
+
+const listPageSize = 2;
+const deviceFilterOptions = [
+  { count: devices.filter((device) => device.status === 'online').length, label: 'Online', value: 'online' },
+  { count: devices.filter((device) => device.status === 'warning').length, label: 'Warning', value: 'warning' },
+  { count: devices.filter((device) => device.status === 'offline').length, label: 'Offline', value: 'offline' }
+] satisfies Array<{ count: number; label: string; value: DeviceRecord['status'] }>;
+const deviceSegmentOptions = [
+  { label: `All ${devices.length}`, value: 'all' },
+  { label: `Online ${devices.filter((device) => device.status === 'online').length}`, value: 'online' },
+  { label: `Attention ${devices.filter((device) => device.status !== 'online').length}`, value: 'attention' }
+] satisfies Array<{ label: string; value: DeviceListSegment }>;
+const taskFilterOptions = [
+  { count: tasks.filter((task) => task.status === 'running').length, label: 'Running', value: 'running' },
+  { count: tasks.filter((task) => task.status === 'failed').length, label: 'Failed', value: 'failed' },
+  { count: tasks.filter((task) => task.status === 'queued').length, label: 'Queued', value: 'queued' },
+  { count: tasks.filter((task) => task.status === 'paused').length, label: 'Paused', value: 'paused' },
+  { count: tasks.filter((task) => task.status === 'completed').length, label: 'Completed', value: 'completed' }
+] satisfies Array<{ count: number; label: string; value: TaskRecord['status'] }>;
+const taskSegmentOptions = [
+  { label: `All ${tasks.length}`, value: 'all' },
+  { label: `Running ${tasks.filter((task) => task.status === 'running').length}`, value: 'running' },
+  { label: `Failed ${tasks.filter((task) => task.status === 'failed').length}`, value: 'failed' }
+] satisfies Array<{ label: string; value: TaskListSegment }>;
+
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
     <MFPage centered theme={appTheme}>
@@ -160,6 +191,30 @@ export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenPro
 }
 
 export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [selectedStatuses, setSelectedStatuses] = useState<DeviceRecord['status'][]>([]);
+  const [segment, setSegment] = useState<DeviceListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const filteredDevices = filterDevices(devices, segment, selectedStatuses);
+  const visibleDevices = filteredDevices.slice(0, visibleCount);
+
+  const changeSegment = (value: DeviceListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: DeviceRecord['status']) => {
+    setSelectedStatuses((current) => (current.includes(status) ? current.filter((item) => item !== status) : [...current, status]));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
   return (
     <MFScrollPage theme={appTheme}>
       <MFStack gap={appTheme.spacing.lg}>
@@ -170,16 +225,36 @@ export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
           title="Device fleet"
         />
         <MFSearchBar placeholder="Search device, user, or app version" theme={appTheme} value="" />
-        <MFRow gap={appTheme.spacing.sm}>
-          <StatusBadge label="All 3" theme={appTheme} tone="info" />
-          <StatusBadge label="Online 1" theme={appTheme} tone="success" />
-          <StatusBadge label="Attention 2" theme={appTheme} tone="warning" />
+        <SegmentTabs onChange={changeSegment} options={deviceSegmentOptions} theme={appTheme} value={segment} />
+        <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
+          <StatusBadge label={`Showing ${filteredDevices.length}`} theme={appTheme} tone="info" />
+          <StatusBadge label={`Filters ${selectedStatuses.length}`} theme={appTheme} tone={selectedStatuses.length > 0 ? 'warning' : 'neutral'} />
+          <MFButton fullWidth={false} onPress={() => setFilterSheetVisible(true)} theme={appTheme} title="Filters" variant="outline" />
         </MFRow>
-        <MFStack gap={appTheme.spacing.md}>
-          {devices.map((device) => (
-            <DeviceListItem device={device} key={device.id} onPress={() => onOpenDevice(device.id)} />
-          ))}
-        </MFStack>
+        <InfiniteList
+          emptyMessage="No devices match the current status filters."
+          emptyTitle="No devices"
+          hasMore={visibleCount < filteredDevices.length}
+          items={visibleDevices}
+          keyExtractor={(device) => device.id}
+          loadMoreLabel="Load more devices"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, filteredDevices.length))}
+          renderItem={(device) => <DeviceListItem device={device} onPress={() => onOpenDevice(device.id)} />}
+          summary={`Showing ${visibleDevices.length} of ${filteredDevices.length} devices`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={deviceFilterOptions}
+          selectedValues={selectedStatuses}
+          subtitle="Combine status filters for the mobile device fleet list."
+          theme={appTheme}
+          title="Filter devices"
+          visible={filterSheetVisible}
+        />
       </MFStack>
     </MFScrollPage>
   );
@@ -241,7 +316,7 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
             </MFText>
           )}
         </MFStack>
-        <MFRow gap={appTheme.spacing.sm}>
+        <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
           <PermissionGate permission="device.bind">
             <MFButton fullWidth={false} theme={appTheme} title="Scan bind" variant="secondary" />
           </PermissionGate>
@@ -253,6 +328,30 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
 }
 
 export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [selectedStatuses, setSelectedStatuses] = useState<TaskRecord['status'][]>([]);
+  const [segment, setSegment] = useState<TaskListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const filteredTasks = filterTasks(tasks, segment, selectedStatuses);
+  const visibleTasks = filteredTasks.slice(0, visibleCount);
+
+  const changeSegment = (value: TaskListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: TaskRecord['status']) => {
+    setSelectedStatuses((current) => (current.includes(status) ? current.filter((item) => item !== status) : [...current, status]));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
   return (
     <MFScrollPage theme={appTheme}>
       <MFStack gap={appTheme.spacing.lg}>
@@ -263,16 +362,36 @@ export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
           title="Task queue"
         />
         <MFSearchBar placeholder="Search task, user, or device" theme={appTheme} value="" />
-        <MFRow gap={appTheme.spacing.sm}>
-          <StatusBadge label="Running" theme={appTheme} tone="info" />
-          <StatusBadge label="Failed" theme={appTheme} tone="danger" />
-          <StatusBadge label="Queued" theme={appTheme} tone="warning" />
+        <SegmentTabs onChange={changeSegment} options={taskSegmentOptions} theme={appTheme} value={segment} />
+        <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
+          <StatusBadge label={`Showing ${filteredTasks.length}`} theme={appTheme} tone="info" />
+          <StatusBadge label={`Filters ${selectedStatuses.length}`} theme={appTheme} tone={selectedStatuses.length > 0 ? 'warning' : 'neutral'} />
+          <MFButton fullWidth={false} onPress={() => setFilterSheetVisible(true)} theme={appTheme} title="Filters" variant="outline" />
         </MFRow>
-        <MFStack gap={appTheme.spacing.md}>
-          {tasks.map((task) => (
-            <TaskListItem key={task.id} onPress={() => onOpenTask(task.id)} task={task} />
-          ))}
-        </MFStack>
+        <InfiniteList
+          emptyMessage="No tasks match the current status filters."
+          emptyTitle="No tasks"
+          hasMore={visibleCount < filteredTasks.length}
+          items={visibleTasks}
+          keyExtractor={(task) => task.id}
+          loadMoreLabel="Load more tasks"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, filteredTasks.length))}
+          renderItem={(task) => <TaskListItem onPress={() => onOpenTask(task.id)} task={task} />}
+          summary={`Showing ${visibleTasks.length} of ${filteredTasks.length} tasks`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={taskFilterOptions}
+          selectedValues={selectedStatuses}
+          subtitle="Combine status filters for task monitoring and triage."
+          theme={appTheme}
+          title="Filter tasks"
+          visible={filterSheetVisible}
+        />
       </MFStack>
     </MFScrollPage>
   );
@@ -545,6 +664,34 @@ function connectionTone(status: RealtimeConnectionSnapshot['status']) {
     default:
       return 'info';
   }
+}
+
+function filterDevices(devicesToFilter: DeviceRecord[], segment: DeviceListSegment, selectedStatuses: DeviceRecord['status'][]): DeviceRecord[] {
+  if (selectedStatuses.length > 0) {
+    return devicesToFilter.filter((device) => selectedStatuses.includes(device.status));
+  }
+
+  switch (segment) {
+    case 'online':
+      return devicesToFilter.filter((device) => device.status === 'online');
+    case 'attention':
+      return devicesToFilter.filter((device) => device.status !== 'online');
+    case 'all':
+    default:
+      return devicesToFilter;
+  }
+}
+
+function filterTasks(tasksToFilter: TaskRecord[], segment: TaskListSegment, selectedStatuses: TaskRecord['status'][]): TaskRecord[] {
+  if (selectedStatuses.length > 0) {
+    return tasksToFilter.filter((task) => selectedStatuses.includes(task.status));
+  }
+
+  if (segment === 'all') {
+    return tasksToFilter;
+  }
+
+  return tasksToFilter.filter((task) => task.status === segment);
 }
 
 function mergeRealtimeLog(logs: TaskRecord['logs'], latestLog: TaskRealtimeLogEntry | undefined): TaskRecord['logs'] {

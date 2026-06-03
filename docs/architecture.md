@@ -15,7 +15,7 @@ apps/showcase                  Showcase 预览 App 和原生模板来源
 packages/design-tokens         色彩、间距、圆角、字体、阴影、动效
 packages/ui-core               平台无关主题和组件状态类型
 packages/ui-native             React Native 通用 UI 组件
-packages/ui-admin              后台管理移动端通用组件
+packages/ui-admin              后台管理移动端通用组件、筛选和分页列表
 packages/auth-admin            后台管理移动端鉴权、Token 映射和权限门禁
 packages/realtime              后台管理移动端实时订阅、WebSocket 传输和轮询降级契约
 packages/app-shell             App Provider、主题、Toast、Sheet、模块挂载状态

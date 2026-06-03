@@ -7,9 +7,13 @@ type RequiredAdminExports = Pick<
   UiAdminExports,
   | 'AdminBoundaryCard'
   | 'AdminPageHeader'
+  | 'EmptyState'
   | 'EntityListItem'
+  | 'FilterSheet'
+  | 'InfiniteList'
   | 'LogViewer'
   | 'ManagementEntryList'
+  | 'SegmentTabs'
   | 'StatCard'
   | 'StatusBadge'
   | 'TaskProgressCard'
@@ -21,9 +25,13 @@ describe('ui-admin exports', () => {
     const expectedExports: Array<keyof RequiredAdminExports> = [
       'AdminBoundaryCard',
       'AdminPageHeader',
+      'EmptyState',
       'EntityListItem',
+      'FilterSheet',
+      'InfiniteList',
       'LogViewer',
       'ManagementEntryList',
+      'SegmentTabs',
       'StatCard',
       'StatusBadge',
       'TaskProgressCard',
@@ -33,9 +41,13 @@ describe('ui-admin exports', () => {
     expect(expectedExports).toEqual([
       'AdminBoundaryCard',
       'AdminPageHeader',
+      'EmptyState',
       'EntityListItem',
+      'FilterSheet',
+      'InfiniteList',
       'LogViewer',
       'ManagementEntryList',
+      'SegmentTabs',
       'StatCard',
       'StatusBadge',
       'TaskProgressCard',

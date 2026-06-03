@@ -6,13 +6,17 @@ import {
   MFBanner,
   MFButton,
   MFCard,
+  MFEmptyState,
+  MFFilterSheet,
   MFHeading,
   MFPageHeader,
   MFProgress,
   MFRow,
+  MFSegmentedControl,
   MFStack,
   MFStatusPill,
-  MFText
+  MFText,
+  type MFFilterOption
 } from '@mobile-frame/ui-native';
 
 const defaultTheme = createTheme('light');
@@ -127,6 +131,136 @@ export function EntityListItem({
         {actionLabel && onPress ? <MFButton fullWidth={false} onPress={onPress} theme={theme} title={actionLabel} variant="ghost" /> : null}
       </MFStack>
     </MFCard>
+  );
+}
+
+export type SegmentTabOption<TValue extends string = string> = {
+  label: string;
+  value: TValue;
+};
+
+export function SegmentTabs<TValue extends string>({
+  onChange,
+  options,
+  theme = defaultTheme,
+  value
+}: {
+  onChange: (value: TValue) => void;
+  options: Array<SegmentTabOption<TValue>>;
+  theme?: MFTheme;
+  value: TValue;
+}) {
+  return <MFSegmentedControl onChange={onChange} options={options} theme={theme} value={value} />;
+}
+
+export type AdminFilterOption<TValue extends string = string> = MFFilterOption<TValue>;
+
+export function FilterSheet<TValue extends string = string>({
+  applyLabel = 'Apply filters',
+  onApply,
+  onClose,
+  onReset,
+  onToggle,
+  options,
+  resetLabel = 'Reset',
+  selectedValues,
+  subtitle,
+  theme = defaultTheme,
+  title = 'Filters',
+  visible
+}: {
+  applyLabel?: string;
+  onApply?: () => void;
+  onClose: () => void;
+  onReset?: () => void;
+  onToggle?: (value: TValue) => void;
+  options: Array<AdminFilterOption<TValue>>;
+  resetLabel?: string;
+  selectedValues: TValue[];
+  subtitle?: string;
+  theme?: MFTheme;
+  title?: string;
+  visible: boolean;
+}) {
+  return (
+    <MFFilterSheet
+      applyLabel={applyLabel}
+      onApply={onApply}
+      onClose={onClose}
+      onReset={onReset}
+      onToggle={onToggle}
+      options={options}
+      resetLabel={resetLabel}
+      selectedValues={selectedValues}
+      subtitle={subtitle}
+      theme={theme}
+      title={title}
+      visible={visible}
+    />
+  );
+}
+
+export function EmptyState({
+  actionLabel,
+  message,
+  onAction,
+  theme = defaultTheme,
+  title = 'No results'
+}: {
+  actionLabel?: string;
+  message?: string;
+  onAction?: () => void;
+  theme?: MFTheme;
+  title?: string;
+}) {
+  return <MFEmptyState actionLabel={actionLabel} message={message} onAction={onAction} theme={theme} title={title} />;
+}
+
+export function InfiniteList<TItem>({
+  emptyMessage = 'Try changing filters or search terms.',
+  emptyTitle = 'No results',
+  hasMore = false,
+  items,
+  keyExtractor,
+  loadMoreLabel = 'Load more',
+  loading = false,
+  loadingLabel = 'Loading more',
+  onLoadMore,
+  renderItem,
+  summary,
+  theme = defaultTheme
+}: {
+  emptyMessage?: string;
+  emptyTitle?: string;
+  hasMore?: boolean;
+  items: TItem[];
+  keyExtractor?: (item: TItem, index: number) => string;
+  loadMoreLabel?: string;
+  loading?: boolean;
+  loadingLabel?: string;
+  onLoadMore?: () => void;
+  renderItem: (item: TItem, index: number) => ReactNode;
+  summary?: string;
+  theme?: MFTheme;
+}) {
+  if (items.length === 0) {
+    return <EmptyState message={emptyMessage} theme={theme} title={emptyTitle} />;
+  }
+
+  return (
+    <MFStack gap={theme.spacing.md}>
+      {summary ? <InfoText theme={theme}>{summary}</InfoText> : null}
+      {items.map((item, index) => (
+        <MFStack key={keyExtractor?.(item, index) ?? String(index)} gap={0}>
+          {renderItem(item, index)}
+        </MFStack>
+      ))}
+      {hasMore || loading ? (
+        <MFRow style={{ justifyContent: 'center' }}>
+          <MFButton disabled={loading} fullWidth={false} onPress={onLoadMore} theme={theme} title={loading ? loadingLabel : loadMoreLabel} variant="outline" />
+        </MFRow>
+      ) : null}
+    </MFStack>
   );
 }
 

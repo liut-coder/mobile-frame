@@ -10,7 +10,7 @@ MobileFrame is a React Native bare monorepo scaffold for reusable mobile app fou
 - `packages/design-tokens`: shared design tokens.
 - `packages/ui-core`: platform-neutral UI types and behavior helpers.
 - `packages/ui-native`: React Native UI components and native capability compatibility exports.
-- `packages/ui-admin`: reusable administrator mobile components for status badges, stats, entity lists, task progress, timelines, log viewing, and management entry lists.
+- `packages/ui-admin`: reusable administrator mobile components for status badges, stats, segmented tabs, filter sheets, infinite lists, empty states, entity lists, task progress, timelines, log viewing, and management entry lists.
 - `packages/auth-admin`: reusable administrator token mapping, permission checks, secure-token-store contract, route guards, and action gates.
 - `packages/realtime`: reusable realtime subscription contracts, fixture-backed replay, WebSocket envelope parsing, reconnect delay handling, and polling fallback support.
 - `packages/app-shell`: app shell state, module mounting, theme, toast, and sheet primitives.
@@ -167,7 +167,7 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 - Android runtime install/launch has been proven by GitHub Actions run `26906180713`, which produced `mobile-frame-showcase-runtime-evidence` with install, launch, and foreground-window evidence on `emulator-5554`.
 - `docs/game-helper-admin-mobile-mobile-frame-adaptation.md` has been added as the plan source for a separate `game-helper-admin-mobile` app based on the `admin-mobile` preset.
 - `apps/game-helper-admin-mobile` now exists as an independent React Native bare app generated from the `admin-mobile` preset with Android/iOS scaffolds, local five-tab navigation, login, dashboard, device list/detail, task list/detail, management, and profile surfaces.
-- `packages/ui-admin` is wired into `game-helper-admin-mobile` for reusable admin page headers, status badges, stat cards, entity list items, task progress, timelines, log viewing, management entry lists, and execution boundary cards.
+- `packages/ui-admin` is wired into `game-helper-admin-mobile` for reusable admin page headers, status badges, stat cards, segmented tabs, filter sheets, infinite lists, empty states, entity list items, task progress, timelines, log viewing, management entry lists, and execution boundary cards.
 - `packages/auth-admin` is wired into `game-helper-admin-mobile` for mobile BFF token payload normalization, route-level `ProtectedScreen` checks, action-level `PermissionGate` checks, management-entry filtering, and Keychain/Keystore-only storage assertions.
 - `packages/realtime` is wired into `game-helper-admin-mobile` for fixture-backed global alert, device status, and task progress subscriptions; the app now shows realtime connection state and applies snapshots to overview alerts, device heartbeats/status, task progress, timelines, and logs.
 
@@ -175,7 +175,7 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 
 - iOS native build is not proven on this Windows host. It needs macOS, Xcode, and CocoaPods.
 - Production Android Release signing still needs business keystore/secrets and a production evidence run; the Android template and build script now support injected `MF_ANDROID_RELEASE_*` signing values without committing secrets.
-- `game-helper-admin-mobile` still uses local fixture data. It needs real WebSocket/BFF transport integration, scanner/clipboard/share wrappers, pagination/filtering data flows, and real `/api/v1/mobile` BFF integration.
+- `game-helper-admin-mobile` still uses local fixture data. It needs real WebSocket/BFF transport integration, scanner/clipboard/share wrappers, server-backed pagination/search data flows, and real `/api/v1/mobile` BFF integration.
 - The global `JAVA_HOME` mismatch can confuse future Android commands if the temporary JDK 17 environment is not applied.
 - Generated build outputs and Gradle caches should not be committed.
 - Some older Chinese planning documents in the repository appear to have encoding issues; prefer these newer UTF-8 docs for handoff and product context.
@@ -184,6 +184,6 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 
 1. On macOS, run iOS preflight and a real iOS simulator build.
 2. Inject real Android release signing secrets with `MF_ANDROID_RELEASE_*`, run a production release build, and capture production Release evidence.
-3. Continue the `game-helper-admin-mobile` adaptation by replacing fixture realtime with the real WebSocket/BFF transport, adding scanner/clipboard/share wrappers, pagination/filtering data flows, and real `/api/v1/mobile` API clients behind the current fixture-backed screens.
+3. Continue the `game-helper-admin-mobile` adaptation by replacing fixture realtime with the real WebSocket/BFF transport, adding scanner/clipboard/share wrappers, server-backed pagination/search data flows, and real `/api/v1/mobile` API clients behind the current fixture-backed screens.
 4. Decide whether to update the persistent user `JAVA_HOME` to JDK 17.
 5. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.
