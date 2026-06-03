@@ -2,13 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 
 import {
   createFixtureRealtimeClient,
+  createWebSocketRealtimeClient,
   type DeviceRealtimeSnapshot,
+  type RealtimeClient,
   type RealtimeConnectionSnapshot,
   type RealtimeGlobalAlert,
-  type TaskProgressSnapshot
+  type TaskProgressSnapshot,
+  type WebSocketLike
 } from '@mobile-frame/realtime';
+import type { MobileBffClient, MobileBffDevice, MobileBffTask } from '@mobile-frame/mobile-bff';
 
+import { adminMobileBffClient } from './mobile-bff';
 import { dashboardAlerts, devices, tasks } from '../store';
+
+export type AdminRealtimeMode = 'fixture' | 'websocket';
+export type AdminRealtimeClientOptions = {
+  createSocket?: (url: string) => WebSocketLike;
+  mode?: AdminRealtimeMode;
+  now?: () => string;
+  pollingIntervalMs?: number;
+  websocketUrl?: string;
+};
 
 const initialConnection: RealtimeConnectionSnapshot = {
   attempt: 0,
@@ -54,11 +68,80 @@ const globalAlerts = dashboardAlerts.map((alert, index) => ({
   tone: alert.tone
 })) satisfies RealtimeGlobalAlert[];
 
-export const adminRealtimeClient = createFixtureRealtimeClient({
+export const adminFixtureRealtimeClient = createFixtureRealtimeClient({
   deviceStatus,
   globalAlerts,
   taskProgress
 });
+
+export const adminRealtimeClient = createAdminRealtimeClient();
+
+export function createAdminRealtimeClient(options: AdminRealtimeClientOptions = {}): RealtimeClient {
+  if (options.mode !== 'websocket' || !options.websocketUrl || !options.createSocket) {
+    return adminFixtureRealtimeClient;
+  }
+
+  return createWebSocketRealtimeClient({
+    createSocket: options.createSocket,
+    polling: {
+      ...createAdminRealtimePolling({ now: options.now }),
+      intervalMs: options.pollingIntervalMs
+    },
+    url: options.websocketUrl
+  });
+}
+
+export function createAdminRealtimePolling({
+  client = adminMobileBffClient,
+  now = () => new Date().toISOString()
+}: {
+  client?: Pick<MobileBffClient, 'getDashboard' | 'getDevice' | 'getTask'>;
+  now?: () => string;
+} = {}) {
+  return {
+    deviceStatus: async (deviceId: string) => {
+      const device = await client.getDevice(deviceId);
+
+      return device ? mapDeviceToRealtimeSnapshot(device, now()) : null;
+    },
+    globalAlerts: async () => {
+      const dashboard = await client.getDashboard();
+
+      return dashboard.alerts;
+    },
+    taskProgress: async (taskId: string) => {
+      const task = await client.getTask(taskId);
+
+      return task ? mapTaskToProgressSnapshot(task, now()) : null;
+    }
+  };
+}
+
+export function mapDeviceToRealtimeSnapshot(device: MobileBffDevice, timestamp: string): DeviceRealtimeSnapshot {
+  return {
+    appVersion: device.appVersion,
+    deviceId: device.id,
+    heartbeat: device.heartbeat,
+    risk: device.risk,
+    status: device.status,
+    timestamp,
+    worker: device.worker
+  };
+}
+
+export function mapTaskToProgressSnapshot(task: MobileBffTask, timestamp: string): TaskProgressSnapshot {
+  const latestLog = task.logs[task.logs.length - 1];
+
+  return {
+    currentStep: task.currentStep,
+    ...(latestLog ? { log: latestLog } : {}),
+    progress: task.progress,
+    status: task.status,
+    steps: task.steps,
+    taskId: task.id,
+    timestamp
+  };
+}
 
 export function useRealtimeDeviceStatus(deviceId: string) {
   const [connection, setConnection] = useState<RealtimeConnectionSnapshot>(initialConnection);

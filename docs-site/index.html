@@ -1361,7 +1361,7 @@ App 管理
   <ul>
   <li>[ ] iOS Release 流程稳定；已提供统一 <code>mf:ios-build:debug</code>/<code>mf:ios-build:release</code> 构建入口和 <code>mf:ios-export</code> IPA 导出入口，可执行 iOS strict preflight、<code>pod install</code>、<code>xcodebuild build/archive</code>、<code>.app</code>/<code>.xcarchive</code> 校验、<code>xcodebuild -exportArchive</code>、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 与签名配置跑出真实 Release/IPA 证据。</li>
   <li>[x] <code>game-helper-admin-mobile</code> 第一阶段适配；已按 <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code> 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，并通过执行边界说明避免引入 OCR/OpenCV/Worker/脚本执行能力。</li>
-  <li>[ ] 后台管理端通用能力；<code>packages/ui-admin</code> 已提供状态、统计、<code>SegmentTabs</code>、<code>FilterSheet</code>、<code>InfiniteList</code>、空状态、实体列表、任务进度、Timeline、<code>LogViewer</code>、管理入口和执行边界组件，<code>packages/auth-admin</code> 已提供管理员 Token 映射、权限判断、路由级 <code>ProtectedScreen</code>、动作级 <code>PermissionGate</code> 和 Keychain/Keystore 存储断言，<code>packages/realtime</code> 已提供实时订阅契约、fixture replay、WebSocket envelope 解析、重连延迟和轮询降级支持并接入当前管理端页面，<code>packages/mobile-bff</code> 已提供 <code>/api/v1/mobile</code> typed client、fixture/http transport、分页筛选和动作回执并接入当前管理端页面，扫码/复制/分享/打开链接已通过 <code>@mobile-frame/core/native-modules</code> mock 契约和 <code>game-helper-admin-mobile</code> 服务层首轮接入。真实 WebSocket 传输、真实后端 BFF 切换和真实 Android/iOS 原生实现仍待接入。</li>
+  <li>[ ] 后台管理端通用能力；<code>packages/ui-admin</code> 已提供状态、统计、<code>SegmentTabs</code>、<code>FilterSheet</code>、<code>InfiniteList</code>、空状态、实体列表、任务进度、Timeline、<code>LogViewer</code>、管理入口和执行边界组件，<code>packages/auth-admin</code> 已提供管理员 Token 映射、权限判断、路由级 <code>ProtectedScreen</code>、动作级 <code>PermissionGate</code> 和 Keychain/Keystore 存储断言，<code>packages/realtime</code> 已提供实时订阅契约、fixture replay、WebSocket envelope 解析、重连延迟和轮询降级支持并接入当前管理端页面，且 admin app 服务层已支持可配置 WebSocket transport 和 BFF polling fallback，<code>packages/mobile-bff</code> 已提供 <code>/api/v1/mobile</code> typed client、fixture/http transport、分页筛选和动作回执并接入当前管理端页面，扫码/复制/分享/打开链接已通过 <code>@mobile-frame/core/native-modules</code> mock 契约和 <code>game-helper-admin-mobile</code> 服务层首轮接入。真实 WebSocket URL/socket 注入、真实后端 BFF 切换和真实 Android/iOS 原生实现仍待接入。</li>
   <li>[x] 暗色主题；<code>design-tokens</code>、<code>ui-core</code>、<code>app-shell</code> 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。</li>
   <li>[x] 组件快照测试；<code>packages/ui-native/src/component-snapshots.test.tsx</code> 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。</li>
   <li>[x] 文档站点；已提供无额外依赖的 <code>docs-site/index.html</code> 静态入口，并通过 <code>mf:docs-site:check</code> 接入 <code>mf:validate</code>。</li>
@@ -1893,7 +1893,7 @@ App 管理
 7. LogViewer
 8. 扫码、复制、分享封装
 9. /api/v1/mobile BFF</code></pre>
-  <p>当前落地状态更新于 2026-06-03：<code>admin-mobile</code> preset、底部 5 个导航、<code>ui-admin</code> 组件包、管理员 Token/权限控制、<code>InfiniteList</code>/<code>FilterSheet</code>/<code>SegmentTabs</code>、<code>packages/realtime</code> 实时订阅契约、<code>LogViewer</code>、扫码/复制/分享/打开链接 mock 契约、<code>packages/mobile-bff</code> typed client 和 admin app 服务层已完成首轮接入；真实 WebSocket 传输、真实 <code>/api/v1/mobile</code> 后端切换和真实 Android/iOS 原生实现仍待继续推进。</p>
+  <p>当前落地状态更新于 2026-06-03：<code>admin-mobile</code> preset、底部 5 个导航、<code>ui-admin</code> 组件包、管理员 Token/权限控制、<code>InfiniteList</code>/<code>FilterSheet</code>/<code>SegmentTabs</code>、<code>packages/realtime</code> 实时订阅契约、<code>LogViewer</code>、扫码/复制/分享/打开链接 mock 契约、<code>packages/mobile-bff</code> typed client 和 admin app 服务层已完成首轮接入；<code>src/services/realtime.ts</code> 已支持默认 fixture、可配置 WebSocket transport 和 <code>/api/v1/mobile</code> polling fallback。真实 WebSocket URL/socket 注入、真实 <code>/api/v1/mobile</code> 后端切换和真实 Android/iOS 原生实现仍待继续推进。</p>
   <p>不要第一阶段就加入：</p>
   <pre><code class="language-text">复杂审批流
 完整视觉资产编辑器
@@ -1975,7 +1975,7 @@ App 管理
   <pre><code class="language-text">可以通过 preset 创建后台管理移动端项目
 可以复用后台管理组件
 可以接入管理员权限（已通过 `packages/auth-admin` 首轮接入）
-可以接入 WebSocket（已通过 `packages/realtime` 提供首轮传输契约和 fixture 订阅）
+可以接入 WebSocket（已通过 `packages/realtime` 提供传输契约，并在 admin app 服务层支持可配置 WebSocket 和 BFF 轮询降级；当前 demo 默认 fixture）
 可以分页加载列表（已通过 `ui-admin` 的 `InfiniteList`、`FilterSheet` 和 `SegmentTabs` 首轮接入）
 可以查看实时日志
 可以扫码、复制、分享（已通过 native mock 契约和 `game-helper-admin-mobile` 服务层首轮接入）</code></pre>
@@ -2673,7 +2673,7 @@ git diff --check</code></pre>
   <li>Add a native capability without changing unrelated app code.</li>
   <li>Reuse the same app shell and UI system across multiple app products.</li>
   </ul>
-  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run <code>26906180713</code>, the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>, reusable admin-mobile permission gates through <code>packages/auth-admin</code>, fixture-backed realtime subscriptions through <code>packages/realtime</code>, mobile list filtering/pagination components through <code>packages/ui-admin</code>, <code>/api/v1/mobile</code> typed client contracts through <code>packages/mobile-bff</code>, and scanner/clipboard/share/browser action wrappers through the native mock contract. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.</p>
+  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run <code>26906180713</code>, the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>, reusable admin-mobile permission gates through <code>packages/auth-admin</code>, configurable realtime subscriptions through <code>packages/realtime</code>, mobile list filtering/pagination components through <code>packages/ui-admin</code>, <code>/api/v1/mobile</code> typed client contracts through <code>packages/mobile-bff</code>, and scanner/clipboard/share/browser action wrappers through the native mock contract. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.</p>
 </article>
 <article class="doc-article" id="doc-docs-mobile-frame-landing-plan">
   <div class="article-meta">

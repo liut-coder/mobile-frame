@@ -856,7 +856,7 @@ App 管理
 9. /api/v1/mobile BFF
 ```
 
-当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约、`packages/mobile-bff` typed client 和 admin app 服务层已完成首轮接入；真实 WebSocket 传输、真实 `/api/v1/mobile` 后端切换和真实 Android/iOS 原生实现仍待继续推进。
+当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约、`packages/mobile-bff` typed client 和 admin app 服务层已完成首轮接入；`src/services/realtime.ts` 已支持默认 fixture、可配置 WebSocket transport 和 `/api/v1/mobile` polling fallback。真实 WebSocket URL/socket 注入、真实 `/api/v1/mobile` 后端切换和真实 Android/iOS 原生实现仍待继续推进。
 
 不要第一阶段就加入：
 
@@ -975,7 +975,7 @@ App 管理
 可以通过 preset 创建后台管理移动端项目
 可以复用后台管理组件
 可以接入管理员权限（已通过 `packages/auth-admin` 首轮接入）
-可以接入 WebSocket（已通过 `packages/realtime` 提供首轮传输契约和 fixture 订阅）
+可以接入 WebSocket（已通过 `packages/realtime` 提供传输契约，并在 admin app 服务层支持可配置 WebSocket 和 BFF 轮询降级；当前 demo 默认 fixture）
 可以分页加载列表（已通过 `ui-admin` 的 `InfiniteList`、`FilterSheet` 和 `SegmentTabs` 首轮接入）
 可以查看实时日志
 可以扫码、复制、分享（已通过 native mock 契约和 `game-helper-admin-mobile` 服务层首轮接入）
