@@ -79,7 +79,7 @@ pnpm mf:create-native-module SSHSession
 pnpm mf:create-preset field-ops
 ```
 
-`pnpm validate` and `pnpm mf:validate` both run the same closed validation chain through `scripts/mf-validate.mjs`. The chain starts with `pnpm mf:workspace-check`, which verifies workspace package imports, dependencies, TypeScript project references, root references, and subpath aliases. It also runs `pnpm mf:native-readiness` to verify iOS/Android project files, `pnpm mf:native-build-preflight` to report local Android/iOS build-tool availability, `pnpm mf:android-runtime-preflight` to report Android APK/ADB/device readiness, `pnpm mf:runtime-evidence` to summarize native build/runtime evidence without failing by default, `pnpm mf:source-control-preflight` to report Git/push readiness and generated native-output ignore coverage, `pnpm mf:docs-site:check` to keep `docs-site/index.html` synchronized with the markdown docs, and `pnpm mf:ci-workflow-check` to guard the GitHub Actions source-validation, Showcase Android debug APK, and Showcase Android emulator runtime jobs. Use `pnpm mf:native-readiness:strict` for native project file evidence, `pnpm mf:native-build-preflight:strict` as the local native build environment gate before running real iOS/Android builds, `pnpm mf:android-runtime-preflight:strict` before installing or launching the Android APK, `pnpm mf:runtime-evidence:strict` as the final native evidence gate, `pnpm mf:source-control-preflight:strict` before committing or pushing from a real Git repository, and `pnpm mf:docs-site` after editing documentation.
+`pnpm validate` and `pnpm mf:validate` both run the same closed validation chain through `scripts/mf-validate.mjs`. The chain starts with `pnpm mf:workspace-check`, which verifies workspace package imports, dependencies, TypeScript project references, root references, and subpath aliases. It also runs `pnpm mf:native-readiness` to verify iOS/Android project files, `pnpm mf:native-build-preflight` to report local Android/iOS build-tool availability, `pnpm mf:android-runtime-preflight` to report Android APK/ADB/device readiness, `pnpm mf:runtime-evidence` to summarize native build/runtime evidence without failing by default, `pnpm mf:source-control-preflight` to report Git/push readiness and generated native-output ignore coverage, `pnpm mf:docs-site:check` to keep `docs-site/index.html` synchronized with the markdown docs, and `pnpm mf:ci-workflow-check` to guard the GitHub Actions source-validation, Showcase Android debug APK, Showcase Android release APK, and Showcase Android emulator runtime jobs. Use `pnpm mf:native-readiness:strict` for native project file evidence, `pnpm mf:native-build-preflight:strict` as the local native build environment gate before running real iOS/Android builds, `pnpm mf:android-runtime-preflight:strict` before installing or launching the Android APK, `pnpm mf:runtime-evidence:strict` as the final native evidence gate, `pnpm mf:source-control-preflight:strict` before committing or pushing from a real Git repository, and `pnpm mf:docs-site` after editing documentation.
 
 ## Native Build Evidence
 
@@ -90,6 +90,14 @@ pnpm mf:android-build:debug
 ```
 
 The resulting debug APK is written to `apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk`, and build evidence is written under `data/runtime-evidence/android/`.
+
+For scaffold Release validation, use the explicit debug-signing allowance:
+
+```bash
+pnpm mf:android-build:release -- --allow-debug-release-signing
+```
+
+That command writes Release build evidence under `data/runtime-evidence/android/`. Production apps must replace the scaffold debug signing config with real release signing.
 
 Older direct Gradle invocation still works after strict preflight passes:
 

@@ -192,6 +192,14 @@ $env:PATH="$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH"
 corepack pnpm mf:android-build:debug
 ```
 
+如需验证 scaffold Release 构建流程，需要显式允许当前模板使用 debug signingConfig：
+
+```powershell
+corepack pnpm mf:android-build:release -- --allow-debug-release-signing
+```
+
+正式业务 App 不应使用该参数，应先配置真实 release signing。
+
 如需直接调用 Gradle，先执行 Android 构建环境严格预检：
 
 ```powershell
@@ -227,7 +235,7 @@ corepack pnpm mf:runtime-evidence
 corepack pnpm mf:runtime-evidence:strict
 ```
 
-非严格模式只报告缺失项；严格模式用于最终原生验收门禁。CI 中也可以使用 `--require <evidence-id>` 只强制当前 job 应产出的证据，例如 `android.debug-build-evidence` 或 `android.runtime-evidence`。
+非严格模式只报告缺失项；严格模式用于最终原生验收门禁。CI 中也可以使用 `--require <evidence-id>` 只强制当前 job 应产出的证据，例如 `android.debug-build-evidence`、`android.release-build-evidence` 或 `android.runtime-evidence`。
 
 ## 9. iOS 构建与运行
 
@@ -304,7 +312,7 @@ git commit -m "docs: add usage guide"
 git push
 ```
 
-推送到 `main` 或 `game-helper-app` 后，GitHub Actions 会运行源码验证、Showcase debug APK 构建和 Android emulator runtime 校验。远端成功时应能看到 `mobile-frame-showcase-debug-apk` artifact，以及包含 `data/runtime-evidence/android/apps-showcase-runtime-evidence.json` 的 `mobile-frame-showcase-runtime-evidence` artifact。
+推送到 `main` 或 `game-helper-app` 后，GitHub Actions 会运行源码验证、Showcase debug APK 构建、Showcase release APK scaffold 构建和 Android emulator runtime 校验。远端成功时应能看到 `mobile-frame-showcase-debug-apk`、`mobile-frame-showcase-release-apk` 和包含 `data/runtime-evidence/android/apps-showcase-runtime-evidence.json` 的 `mobile-frame-showcase-runtime-evidence` artifacts。
 
 如果 `mf:source-control-preflight:strict` 报告没有 Git worktree 或 remote，需要先把项目放入正确仓库，或执行 `git init` 后添加远端：
 

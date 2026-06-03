@@ -161,11 +161,12 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 - Real React Native bare iOS/Android folders exist under `apps/showcase`.
 - Android debug APK assembly has been proven by GitHub Actions run `26904447920`, which produced `mobile-frame-showcase-debug-apk`.
 - Android runtime install/launch has been proven by GitHub Actions run `26904447920`, which produced `mobile-frame-showcase-runtime-evidence` with install, launch, and foreground-window evidence on `emulator-5554`.
+- Android Release scaffold validation is configured in GitHub Actions through `showcase-android-release`; it still needs a remote run after this workflow change to produce release evidence.
 
 ## Open Risks And Gaps
 
 - iOS native build is not proven on this Windows host. It needs macOS, Xcode, and CocoaPods.
-- Android Release still needs business signing configuration or explicit scaffold release validation.
+- Android Release still needs either a successful `showcase-android-release` run for scaffold evidence or business signing configuration for production evidence.
 - The global `JAVA_HOME` mismatch can confuse future Android commands if the temporary JDK 17 environment is not applied.
 - Generated build outputs and Gradle caches should not be committed.
 - Some older Chinese planning documents in the repository appear to have encoding issues; prefer these newer UTF-8 docs for handoff and product context.
@@ -173,6 +174,6 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 ## Recommended Next Steps
 
 1. On macOS, run iOS preflight and a real iOS simulator build.
-2. Produce Android Release evidence with real signing config, or run the scaffold release validation flow explicitly.
+2. Verify the next GitHub Actions run produces `mobile-frame-showcase-release-apk`, then replace scaffold debug signing with real release signing for production apps.
 3. Decide whether to update the persistent user `JAVA_HOME` to JDK 17.
 4. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.

@@ -731,7 +731,7 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 
 ## 12. 验收清单
 
-> 当前推进状态更新于 2026-06-03。源码级验证已通过 `typecheck`、`lint`、`test`、`mf:generator-smoke`、`mf:workspace-check`、`mf:docs-site:check`、`mf:ci-workflow-check`、非严格 `mf:runtime-evidence` 和非严格 `mf:validate`。GitHub Actions run `26904447920` 已证明 Android debug APK 自动构建和 Android emulator runtime 安装/启动闭环。Android Release、iOS Debug/Release 和 iOS IPA 导出仍需要具备 Android 签名/发布配置、macOS/Xcode/CocoaPods、`ExportOptions.plist` 或相应 CI 环境继续验证。
+> 当前推进状态更新于 2026-06-03。源码级验证已通过 `typecheck`、`lint`、`test`、`mf:generator-smoke`、`mf:workspace-check`、`mf:docs-site:check`、`mf:ci-workflow-check`、非严格 `mf:runtime-evidence` 和非严格 `mf:validate`。GitHub Actions run `26904447920` 已证明 Android debug APK 自动构建和 Android emulator runtime 安装/启动闭环。Android Release scaffold CI job 已配置，等待下一次远端 Actions 产出 release evidence；iOS Debug/Release 和 iOS IPA 导出仍需要具备 macOS/Xcode/CocoaPods、`ExportOptions.plist` 或相应 CI 环境继续验证。
 
 ### P0
 
@@ -740,7 +740,7 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 - [x] 组件库可独立预览；Showcase 已覆盖组件、模板和 Native mock 能力入口。
 - [x] 页面模板可复用；`packages/screen-templates` 已提供通用模板并被 `create-screen`/Showcase 使用。
 - [x] 所有原生能力有 mock adapter；`@mobile-frame/core/native-modules` 已覆盖设备信息、权限、已安装应用、浮窗、安全存储、网络和 legacy mock。
-- [ ] Android Debug / Release 可打包；Debug 已由 GitHub Actions run `26904447920` 的 `showcase-android-debug` job 证明，artifact 包含 debug APK、APK metadata 和 `apps-showcase-debug-build-evidence.json`。Release 仍需业务侧签名配置或显式 scaffold 验证参数继续产出 release build evidence。
+- [ ] Android Debug / Release 可打包；Debug 已由 GitHub Actions run `26904447920` 的 `showcase-android-debug` job 证明，artifact 包含 debug APK、APK metadata 和 `apps-showcase-debug-build-evidence.json`。Release scaffold job `showcase-android-release` 已配置，会显式运行 `mf:android-build:release -- --allow-debug-release-signing` 并用 `mf:runtime-evidence --require android.release-build-evidence` 强制校验 release build evidence；仍需下一次远端 Actions 成功记录证明 artifact 产出，正式业务 Release 签名仍需业务侧配置。
 
 ### P1
 

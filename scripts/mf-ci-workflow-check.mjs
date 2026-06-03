@@ -128,6 +128,41 @@ const checks = [
       hasLine(source, 'if-no-files-found: error')
   },
   {
+    id: 'ci.android-release-job',
+    message: 'showcase Android release APK job is configured',
+    pass: (source) => hasLine(source, 'showcase-android-release:')
+  },
+  {
+    id: 'ci.android-release-needs-source-validation',
+    message: 'Android release APK job depends on source-validation',
+    pass: (source) => hasLine(source, 'needs: source-validation')
+  },
+  {
+    id: 'ci.android-release-build-script',
+    message: 'Showcase release APK job uses the unified Android release build script with explicit scaffold signing allowance',
+    pass: (source) => hasLine(source, 'run: pnpm run mf:android-build:release -- --allow-debug-release-signing')
+  },
+  {
+    id: 'ci.android-release-evidence-report',
+    message: 'Showcase Android release APK job requires release build evidence and writes a summary report',
+    pass: (source) =>
+      hasLine(
+        source,
+        'run: pnpm run mf:runtime-evidence -- --require android.release-build-evidence --report data/runtime-evidence/runtime-evidence-report.json'
+      )
+  },
+  {
+    id: 'ci.android-release-artifact',
+    message: 'release APK and build evidence artifact upload is configured',
+    pass: (source) =>
+      hasLine(source, 'name: mobile-frame-showcase-release-apk') &&
+      hasLine(source, 'apps/showcase/android/app/build/outputs/apk/release/*.apk') &&
+      hasLine(source, 'apps/showcase/android/app/build/outputs/apk/release/output-metadata.json') &&
+      hasLine(source, 'data/runtime-evidence/android/*-release-build-evidence.json') &&
+      hasLine(source, 'data/runtime-evidence/runtime-evidence-report.json') &&
+      hasLine(source, 'if-no-files-found: error')
+  },
+  {
     id: 'ci.android-runtime-job',
     message: 'showcase Android emulator runtime job is configured',
     pass: (source) => hasLine(source, 'showcase-android-runtime:')

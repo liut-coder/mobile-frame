@@ -94,6 +94,66 @@ jobs:
             data/runtime-evidence/runtime-evidence-report.json
           if-no-files-found: error
 
+  showcase-android-release:
+    name: Showcase Android release APK
+    runs-on: ubuntu-latest
+    needs: source-validation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+
+      - name: Prime Gradle wrapper
+        working-directory: apps/showcase/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --version --no-daemon
+
+      - name: Build release APK scaffold
+        run: pnpm run mf:android-build:release -- --allow-debug-release-signing
+
+      - name: Summarize runtime evidence
+        run: pnpm run mf:runtime-evidence -- --require android.release-build-evidence --report data/runtime-evidence/runtime-evidence-report.json
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-frame-showcase-release-apk
+          path: |
+            apps/showcase/android/app/build/outputs/apk/release/*.apk
+            apps/showcase/android/app/build/outputs/apk/release/output-metadata.json
+            data/runtime-evidence/android/*-release-build-evidence.json
+            data/runtime-evidence/runtime-evidence-report.json
+          if-no-files-found: error
+
   showcase-android-runtime:
     name: Showcase Android emulator runtime
     runs-on: ubuntu-latest

@@ -62,11 +62,12 @@ Current product scope:
 - Native readiness and native build preflight scripts.
 - Android debug APK build evidence.
 - Android emulator runtime evidence from GitHub Actions run `26904447920`.
+- Android Release scaffold evidence channel through GitHub Actions.
 
 Planned product scope:
 
 - iOS simulator build evidence on macOS.
-- Android Release build evidence with signing configuration.
+- Successful Android Release scaffold evidence from a remote run, then production signing evidence.
 - Real platform implementations for selected native capability modules.
 - More complete reusable page templates.
 - More complete module catalog and preset coverage.
@@ -93,4 +94,4 @@ The scaffold is successful when a team can:
 - Add a native capability without changing unrelated app code.
 - Reuse the same app shell and UI system across multiple app products.
 
-The current milestone has reached source-level validation, Android debug APK assembly proof, and Android emulator runtime proof through GitHub Actions run `26904447920`. The next closure milestone is Android Release evidence and native build/runtime proof on iOS.
+The current milestone has reached source-level validation, Android debug APK assembly proof, Android emulator runtime proof through GitHub Actions run `26904447920`, and a configured Android Release scaffold evidence job. The next closure milestone is remote Android Release evidence and native build/runtime proof on iOS.

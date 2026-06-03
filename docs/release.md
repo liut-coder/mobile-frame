@@ -38,10 +38,11 @@ pnpm run mf:runtime-evidence:strict
 
 ## GitHub Actions
 
-仓库提供 `.github/workflows/mobile-frame.yml`，当前包含三个 job：
+仓库提供 `.github/workflows/mobile-frame.yml`，当前包含四个 job：
 
 - `source-validation`：在 Ubuntu + Node 22 + pnpm 11.5.0 上安装依赖并运行 `pnpm run mf:validate`；
 - `showcase-android-debug`：在源码验证通过后安装 JDK 17、Android SDK platform 36、build-tools 36.0.0、NDK 27.1.12297006，通过 `pnpm run mf:android-build:debug` 执行 Android strict preflight、构建 Showcase debug APK，再运行 `pnpm run mf:runtime-evidence -- --require android.debug-build-evidence --report data/runtime-evidence/runtime-evidence-report.json` 强制校验 debug build evidence 并生成证据汇总报告，然后上传 APK、APK metadata、build evidence JSON 与 runtime evidence report；
+- `showcase-android-release`：在同样的 Android 工具链上运行 `pnpm run mf:android-build:release -- --allow-debug-release-signing`，只用于 scaffold Release 构建验证，再用 `pnpm run mf:runtime-evidence -- --require android.release-build-evidence --report data/runtime-evidence/runtime-evidence-report.json` 强制校验 release build evidence，并上传 Release APK、APK metadata、release build evidence JSON 与 runtime evidence report；
 - `showcase-android-runtime`：下载 debug APK artifact，启用 KVM，启动 Android API 35 x86_64 emulator，执行 `pnpm run mf:android-runtime-run` 安装并启动 Showcase，再运行 `pnpm run mf:runtime-evidence -- --require android.runtime-evidence --report data/runtime-evidence/runtime-evidence-report.json` 强制校验 Android runtime evidence，并上传 Android runtime evidence 和汇总报告。
 
 触发方式：
@@ -50,7 +51,7 @@ pnpm run mf:runtime-evidence:strict
 - push 到 `main` 或 `game-helper-app`；
 - 手动 `workflow_dispatch`。
 
-远端 GitHub Actions run `26904447920` 已在 2026-06-03 跑通 `source-validation`、`showcase-android-debug` 和 `showcase-android-runtime`。该 run 的 `mobile-frame-showcase-debug-apk` artifact 包含 debug APK、`output-metadata.json`、`apps-showcase-debug-build-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.debug-build-evidence` 的 `requiredPassed` 为 `true`。`mobile-frame-showcase-runtime-evidence` artifact 包含 `apps-showcase-runtime-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.runtime-evidence` 的 `requiredPassed` 为 `true`，并记录了 `emulator-5554` 上的安装、启动和前台窗口校验。Android Release、iOS Debug/Release 和 iOS IPA 导出仍需要相应平台/签名环境继续产出证据。
+远端 GitHub Actions run `26904447920` 已在 2026-06-03 跑通 `source-validation`、`showcase-android-debug` 和 `showcase-android-runtime`。该 run 的 `mobile-frame-showcase-debug-apk` artifact 包含 debug APK、`output-metadata.json`、`apps-showcase-debug-build-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.debug-build-evidence` 的 `requiredPassed` 为 `true`。`mobile-frame-showcase-runtime-evidence` artifact 包含 `apps-showcase-runtime-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.runtime-evidence` 的 `requiredPassed` 为 `true`，并记录了 `emulator-5554` 上的安装、启动和前台窗口校验。Android Release scaffold job 已配置，等待下一次远端 Actions 产出 `mobile-frame-showcase-release-apk` artifact 证明；iOS Debug/Release 和 iOS IPA 导出仍需要相应平台/签名环境继续产出证据。
 
 本地使用以下命令守住 workflow 结构：
 
@@ -58,7 +59,7 @@ pnpm run mf:runtime-evidence:strict
 pnpm run mf:ci-workflow-check
 ```
 
-它会检查 pull request、`main`、`game-helper-app` 和手动触发配置，以及源码验证、Android SDK 安装、统一 Android 构建脚本、strict Android preflight、Showcase debug APK 构建、debug build evidence 必需门禁、runtime evidence report 生成、APK/evidence artifact 上传、emulator runtime job、KVM 配置、debug APK artifact 下载、`mf:android-runtime-run` 安装/启动校验、Android runtime evidence 必需门禁和 runtime evidence artifact 上传步骤是否仍在。
+它会检查 pull request、`main`、`game-helper-app` 和手动触发配置，以及源码验证、Android SDK 安装、统一 Android 构建脚本、strict Android preflight、Showcase debug APK 构建、debug build evidence 必需门禁、Release scaffold APK 构建、release build evidence 必需门禁、runtime evidence report 生成、APK/evidence artifact 上传、emulator runtime job、KVM 配置、debug APK artifact 下载、`mf:android-runtime-run` 安装/启动校验、Android runtime evidence 必需门禁和 runtime evidence artifact 上传步骤是否仍在。
 
 ## 文档站点
 
