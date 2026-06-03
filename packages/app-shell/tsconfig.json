@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../design-tokens" },
+    { "path": "../module-sdk" },
+    { "path": "../ui-core" }
+  ]
+}

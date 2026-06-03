@@ -1,0 +1,28 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "isolatedModules": true,
+    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
+    "noEmit": false,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@mobile-frame/app-shell": ["packages/app-shell/src/index.ts"],
+      "@mobile-frame/core": ["packages/core/src/index.ts"],
+      "@mobile-frame/core/native-modules": ["packages/core/src/native-modules.ts"],
+      "@mobile-frame/design-tokens": ["packages/design-tokens/src/index.ts"],
+      "@mobile-frame/module-sdk": ["packages/module-sdk/src/index.ts"],
+      "@mobile-frame/presets": ["packages/presets/src/index.ts"],
+      "@mobile-frame/ui-core": ["packages/ui-core/src/index.ts"],
+      "@mobile-frame/ui-native": ["packages/ui-native/src/index.ts"],
+      "@mobile-frame/ui-native/native-modules": ["packages/ui-native/src/native-modules.ts"]
+    },
+    "rootDir": ".",
+    "strict": true
+  }
+}

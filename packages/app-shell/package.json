@@ -1,0 +1,17 @@
+{
+  "name": "@mobile-frame/app-shell",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@mobile-frame/design-tokens": "workspace:*",
+    "@mobile-frame/module-sdk": "workspace:*",
+    "@mobile-frame/ui-core": "workspace:*",
+    "zustand": "^5.0.8"
+  },
+  "peerDependencies": {
+    "react": "19.2.3"
+  }
+}

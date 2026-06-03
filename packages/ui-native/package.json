@@ -1,0 +1,21 @@
+{
+  "name": "@mobile-frame/ui-native",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./native-modules": "./src/native-modules.ts"
+  },
+  "dependencies": {
+    "@mobile-frame/core": "workspace:*",
+    "@mobile-frame/ui-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-safe-area-context": "^5.6.2"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/design-tokens"
+    },
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/module-sdk"
+    },
+    {
+      "path": "./packages/ui-core"
+    },
+    {
+      "path": "./packages/ui-native"
+    },
+    {
+      "path": "./packages/app-shell"
+    },
+    {
+      "path": "./packages/presets"
+    },
+    {
+      "path": "./apps/showcase"
+    }
+  ]
+}

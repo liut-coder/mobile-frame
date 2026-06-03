@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MobileFrame 交互原型</title>
+<style>
+:root{
+  --bg:#eef5ff;
+  --bg2:#ffffff;
+  --panel:rgba(255,255,255,.70);
+  --panel-strong:rgba(255,255,255,.88);
+  --line:rgba(100,130,170,.16);
+  --text:#111827;
+  --muted:#7a8798;
+  --brand:#2f7cff;
+  --brand2:#0f5ee9;
+  --danger:#ff5b63;
+  --success:#22b573;
+  --shadow:0 14px 38px rgba(71,112,166,.18);
+  --blur:blur(22px);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:
+    radial-gradient(circle at 15% 15%,rgba(90,160,255,.24),transparent 30%),
+    radial-gradient(circle at 85% 85%,rgba(175,210,255,.30),transparent 32%),
+    linear-gradient(135deg,#f8fbff,#edf5ff 55%,#f7fbff);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  padding:28px 16px;
+}
+body.dark{
+  --bg:#0d1727;
+  --bg2:#101b2e;
+  --panel:rgba(24,38,59,.72);
+  --panel-strong:rgba(26,43,69,.90);
+  --line:rgba(180,205,240,.14);
+  --text:#f5f8ff;
+  --muted:#9db0c8;
+  --shadow:0 16px 38px rgba(0,0,0,.30);
+  background:
+    radial-gradient(circle at 15% 15%,rgba(36,99,190,.32),transparent 30%),
+    radial-gradient(circle at 85% 85%,rgba(34,66,110,.35),transparent 30%),
+    linear-gradient(135deg,#0c1522,#111c2e);
+}
+.shell{display:flex;gap:22px;align-items:flex-start}
+.sidebar{
+  width:230px;
+  background:var(--panel);
+  backdrop-filter:var(--blur);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  border-radius:24px;
+  padding:18px;
+  position:sticky;top:20px
+}
+.sidebar h2{margin:0 0 6px;font-size:19px}
+.sidebar p{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.6}
+.nav-list{display:flex;flex-direction:column;gap:8px}
+.nav-list button{
+  border:0;background:transparent;color:var(--text);text-align:left;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:14px
+}
+.nav-list button:hover,.nav-list button.active{background:rgba(47,124,255,.12);color:var(--brand);font-weight:700}
+.phone{
+  width:390px;height:844px;
+  border-radius:42px;
+  padding:12px;
+  background:linear-gradient(150deg,#ffffff,#dfe9f7);
+  box-shadow:0 26px 60px rgba(65,92,130,.30);
+  position:relative;
+}
+.phone::before{
+  content:"";position:absolute;left:50%;transform:translateX(-50%);top:10px;width:118px;height:28px;border-radius:18px;background:#0a0a0b;z-index:9
+}
+.screen{
+  width:100%;height:100%;border-radius:32px;overflow:hidden;
+  background:
+    radial-gradient(circle at 12% 12%,rgba(186,216,255,.26),transparent 26%),
+    radial-gradient(circle at 90% 88%,rgba(176,211,255,.28),transparent 28%),
+    rgba(255,255,255,.86);
+  position:relative;
+}
+.dark .screen{
+  background:
+    radial-gradient(circle at 12% 12%,rgba(46,107,188,.26),transparent 26%),
+    radial-gradient(circle at 90% 88%,rgba(31,79,142,.24),transparent 28%),
+    #101c2e;
+}
+.statusbar{
+  height:48px;padding:14px 20px 0;display:flex;justify-content:space-between;font-weight:700;font-size:14px;position:relative;z-index:3
+}
+.status-icons{letter-spacing:2px;font-size:12px}
+.content{height:calc(100% - 48px);padding:12px 18px 86px;overflow:auto}
+.page{display:none;animation:fade .22s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+.glass{
+  background:var(--panel);backdrop-filter:var(--blur);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:20px
+}
+.title{font-size:28px;font-weight:800;margin:4px 0 6px}
+.subtitle{font-size:14px;color:var(--muted);margin-bottom:18px}
+.center{text-align:center}
+.logo{
+  width:74px;height:74px;border-radius:22px;margin:0 auto 18px;display:grid;place-items:center;
+  font-size:34px;font-weight:900;color:white;background:linear-gradient(145deg,#72c5ff,#2f7cff 55%,#1d50d9);box-shadow:0 12px 28px rgba(47,124,255,.30)
+}
+.hero-spacer{height:88px}
+.btn{
+  width:100%;border:0;border-radius:17px;padding:15px 18px;font-size:16px;font-weight:800;cursor:pointer;
+  background:linear-gradient(135deg,#58adff,#1764eb);color:white;box-shadow:0 12px 24px rgba(47,124,255,.28)
+}
+.btn.secondary{background:var(--panel);color:var(--brand);border:1px solid rgba(47,124,255,.22);box-shadow:none}
+.btn.text{background:transparent;color:var(--brand);box-shadow:none;padding:8px;font-size:14px}
+.row{display:flex;align-items:center;gap:12px}
+.between{justify-content:space-between}
+.card{padding:15px;margin-bottom:12px}
+.feature{padding:13px 14px;margin-bottom:10px}
+.feature b{display:block;font-size:15px;margin-bottom:4px}
+.feature span{font-size:12px;color:var(--muted)}
+.input{
+  width:100%;border:1px solid var(--line);background:var(--panel-strong);color:var(--text);padding:15px 16px;border-radius:16px;margin-bottom:12px;outline:none;font-size:15px
+}
+.small{font-size:13px;color:var(--muted)}
+.section-title{font-size:15px;font-weight:800;margin:18px 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{padding:15px}
+.stat .n{font-size:32px;color:var(--brand);font-weight:800;margin-top:8px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.quick .q{padding:10px 4px;text-align:center;font-size:12px;cursor:pointer}
+.icon{
+  width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(47,124,255,.12);color:var(--brand);font-size:18px;flex:none
+}
+.list{overflow:hidden}
+.item{display:flex;align-items:center;gap:12px;padding:14px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.item:last-child{border-bottom:0}
+.item:hover{background:rgba(47,124,255,.06)}
+.chev{margin-left:auto;color:var(--muted);font-size:22px}
+.tabbar{
+  position:absolute;left:12px;right:12px;bottom:12px;height:68px;border-radius:22px;
+  background:var(--panel-strong);backdrop-filter:var(--blur);border:1px solid var(--line);box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-around;padding:0 6px;z-index:6
+}
+.tab{border:0;background:transparent;color:var(--muted);font-size:11px;display:flex;flex-direction:column;gap:4px;align-items:center;cursor:pointer}
+.tab b{font-size:18px}
+.tab.active{color:var(--brand);font-weight:800}
+.topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.back{border:0;background:transparent;color:var(--text);font-size:30px;cursor:pointer;padding:0 4px}
+.page-title{font-size:22px;font-weight:800}
+.toggle{width:50px;height:28px;background:#c9d2df;border-radius:99px;padding:3px;cursor:pointer;transition:.2s}
+.toggle span{display:block;width:22px;height:22px;border-radius:50%;background:white;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.toggle.on{background:var(--brand)}
+.toggle.on span{transform:translateX(22px)}
+.badge{padding:5px 10px;border-radius:99px;background:rgba(47,124,255,.12);color:var(--brand);font-size:12px;font-weight:700}
+.avatar{
+  width:68px;height:68px;border-radius:50%;display:grid;place-items:center;font-size:32px;
+  background:linear-gradient(145deg,#e5f1ff,#bddeff);border:4px solid rgba(255,255,255,.8)
+}
+.toast{
+  position:absolute;left:50%;bottom:98px;transform:translateX(-50%) translateY(15px);
+  background:rgba(19,33,53,.92);color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:15
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-mask{position:absolute;inset:0;background:rgba(7,14,24,.25);display:none;align-items:flex-end;z-index:10}
+.modal-mask.show{display:flex}
+.sheet{width:100%;background:var(--panel-strong);backdrop-filter:var(--blur);border-radius:24px 24px 0 0;padding:18px}
+.sheet h3{margin:0 0 8px}
+.sheet p{color:var(--muted);font-size:13px;line-height:1.6}
+.segment{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px}
+.segment button{padding:12px 6px;border:0;border-radius:12px;background:transparent;color:var(--muted);cursor:pointer}
+.segment button.active{background:rgba(47,124,255,.14);color:var(--brand);font-weight:800}
+.code{
+  white-space:pre-wrap;background:rgba(20,33,54,.94);color:#d9e8ff;border-radius:16px;padding:14px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.6
+}
+footer.note{font-size:12px;color:var(--muted);text-align:center;margin-top:14px}
+@media(max-width:760px){
+  body{padding:0;background:#dfeafa}
+  .shell{display:block}
+  .sidebar{display:none}
+  .phone{width:100vw;height:100vh;border-radius:0;padding:0;box-shadow:none;background:none}
+  .phone::before{top:8px}
+  .screen{border-radius:0}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <h2>MobileFrame</h2>
+    <p>可交互原型。左侧可直接切换页面，手机内按钮也已绑定跳转与状态。</p>
+    <div class="nav-list" id="sideNav"></div>
+  </aside>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ◉ ▰</span></div>
+      <main class="content">
+
+        <section class="page active" data-page="splash">
+          <div class="hero-spacer"></div>
+          <div class="logo">M</div>
+          <div class="center">
+            <div class="title">MobileFrame</div>
+            <div class="subtitle">通用移动端原生脚手架</div>
+          </div>
+          <div style="height:255px"></div>
+          <button class="btn" onclick="go('onboarding')">开始体验</button>
+        </section>
+
+        <section class="page" data-page="onboarding">
+          <div class="center">
+            <div class="title">原生体验</div>
+            <div class="subtitle">统一壳层，双端原生组件</div>
+          </div>
+          <div class="glass card center" style="padding:28px 14px">
+            <div style="font-size:86px">📱</div>
+            <div class="small">React Native 壳层 · Swift · Kotlin Compose</div>
+          </div>
+          <div class="glass feature"><b>🎨 统一设计系统</b><span>一致的视觉语言，流畅的交互体验</span></div>
+          <div class="glass feature"><b>🧩 模块化扩展</b><span>按需组合模块，快速构建业务功能</span></div>
+          <div class="glass feature"><b>🛡 原生能力封装</b><span>封装系统能力，安全稳定更高效</span></div>
+          <div class="center small" style="margin:16px 0">● ○ ○</div>
+          <button class="btn" onclick="go('login')">下一步</button>
+        </section>
+
+        <section class="page" data-page="login">
+          <div class="hero-spacer" style="height:48px"></div>
+          <div class="logo" style="width:62px;height:62px;font-size:28px">▤</div>
+          <div class="center">
+            <div class="title">欢迎回来</div>
+            <div class="subtitle">登录你的账号</div>
+          </div>
+          <input class="input" placeholder="手机号 / 邮箱">
+          <input class="input" id="loginPass" type="password" placeholder="输入密码">
+          <div class="row between" style="margin-top:-4px;margin-bottom:12px">
+            <span></span><button class="btn text" onclick="toast('找回密码流程暂未接入')">忘记密码</button>
+          </div>
+          <button class="btn" onclick="toast('登录成功');setTimeout(()=>go('home'),450)">登录</button>
+          <div class="center small" style="margin:24px 0 14px">────── 其他登录方式 ──────</div>
+          <div class="row" style="justify-content:center;font-size:26px;gap:34px">
+            <span onclick="toast('唤起微信登录')" style="cursor:pointer">🟢</span>
+            <span onclick="toast('唤起 QQ 登录')" style="cursor:pointer">🔵</span>
+            <span onclick="toast('唤起 Apple ID 登录')" style="cursor:pointer"></span>
+          </div>
+          <div class="center small" style="margin-top:88px">还没有账号？ <a onclick="go('register')" style="color:var(--brand);cursor:pointer">注册</a></div>
+        </section>
+
+        <section class="page" data-page="register">
+          <div class="title">创建账号</div>
+          <div class="subtitle">填写你的信息</div>
+          <input class="input" placeholder="手机号">
+          <div class="row" style="gap:8px"><input class="input" placeholder="验证码"><button class="btn secondary" style="width:120px;margin-bottom:12px;padding:14px 8px" onclick="countdown(this)">获取验证码</button></div>
+          <input class="input" type="password" placeholder="设置密码">
+          <input class="input" type="password" placeholder="确认密码">
+          <label class="small"><input type="checkbox" id="agree"> 我已阅读并同意 <span style="color:var(--brand)">用户协议</span> 与 <span style="color:var(--brand)">隐私政策</span></label>
+          <div style="height:18px"></div>
+          <button class="btn" onclick="register()">注册</button>
+          <div class="center small" style="margin-top:18px">已有账号？ <a onclick="go('login')" style="color:var(--brand);cursor:pointer">去登录</a></div>
+        </section>
+
+        <section class="page" data-page="home">
+          <div class="row between">
+            <div><div class="title" style="font-size:25px">你好，开发者👋</div><div class="subtitle">欢迎使用 MobileFrame</div></div>
+            <div class="icon" onclick="toast('暂无新通知')" style="cursor:pointer">🔔</div>
+          </div>
+          <input class="input" placeholder="搜索组件、原生能力、模板或模块...">
+          <div class="grid2">
+            <div class="glass stat" onclick="toast('进入组件列表')"><b>🧩 组件</b><div class="n">32</div><span class="small">个组件</span></div>
+            <div class="glass stat" onclick="toast('进入原生能力列表')"><b>📦 原生能力</b><div class="n">28</div><span class="small">个能力</span></div>
+            <div class="glass stat" onclick="toast('进入模板列表')"><b>📄 页面模板</b><div class="n">16</div><span class="small">个模板</span></div>
+            <div class="glass stat" onclick="toast('进入模块列表')"><b>🧱 模块</b><div class="n">12</div><span class="small">个模块</span></div>
+          </div>
+          <div class="section-title">快捷操作</div>
+          <div class="quick">
+            <div class="glass q" onclick="toast('新建页面')">➕<br>新建页面</div>
+            <div class="glass q" onclick="toast('新建组件')">🧩<br>新建组件</div>
+            <div class="glass q" onclick="toast('新建模块')">🧱<br>新建模块</div>
+            <div class="glass q" onclick="toast('打开文件选择器')">☁️<br>导入项目</div>
+          </div>
+          <div class="section-title">项目状态</div>
+          <div class="glass card">
+            <div class="row between"><b>运行环境</b><span class="badge">开发环境</span></div>
+            <div class="row between" style="margin-top:12px"><span class="small">当前版本</span><b style="color:var(--brand)">v1.2.0</b></div>
+          </div>
+        </section>
+
+        <section class="page" data-page="profile">
+          <div class="row" style="margin-top:10px;margin-bottom:16px">
+            <div class="avatar">👨🏻‍💻</div>
+            <div><div class="title" style="font-size:24px">张三</div><div class="subtitle" style="margin:0">产品经理</div></div>
+          </div>
+          <div class="grid2" style="grid-template-columns:repeat(3,1fr)">
+            <div class="glass stat center"><div class="n" style="font-size:26px">12</div><span class="small">任务</span></div>
+            <div class="glass stat center"><div class="n" style="font-size:26px">8</div><span class="small">组件</span></div>
+            <div class="glass stat center"><div class="n" style="font-size:26px">5</div><span class="small">文档</span></div>
+          </div>
+          <div class="glass list" style="margin-top:16px">
+            <div class="item" onclick="go('personal')"><span class="icon">👤</span><b>个人信息</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('账号安全页面预留')"><span class="icon">🔐</span><b>账号安全</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('通知设置页面预留')"><span class="icon">🔔</span><b>通知设置</b><span class="chev">›</span></div>
+            <div class="item" onclick="go('general')"><span class="icon">⚙️</span><b>通用设置</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('帮助与反馈页面预留')"><span class="icon">❓</span><b>帮助与反馈</b><span class="chev">›</span></div>
+            <div class="item" onclick="go('about')"><span class="icon">ℹ️</span><b>关于我们</b><span class="chev">›</span></div>
+          </div>
+        </section>
+
+        <section class="page" data-page="settings">
+          <div class="topline"><button class="back" onclick="go('profile')">‹</button><div class="page-title">设置</div><span></span></div>
+          <div class="section-title">外观</div>
+          <div class="glass segment">
+            <button class="active" onclick="theme('light',this)">☀️ 浅色</button>
+            <button onclick="theme('dark',this)">🌙 深色</button>
+            <button onclick="theme('system',this)">🖥 系统</button>
+          </div>
+          <div class="section-title">系统</div>
+          <div class="glass list">
+            <div class="item" onclick="go('permissions')"><span class="icon">🔐</span><b>权限管理</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('安全与隐私页面预留')"><span class="icon">🛡</span><b>安全与隐私</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('网络状态：Wi-Fi 已连接')"><span class="icon">📡</span><b>网络状态</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('已开启生物识别')"><span class="icon">👆</span><b>生物识别</b><span class="chev">›</span></div>
+          </div>
+          <div class="section-title">关于</div>
+          <div class="glass list"><div class="item" onclick="go('about')"><span class="icon">ℹ️</span><b>关于</b><span class="chev">›</span></div></div>
+          <div class="section-title">系统状态</div>
+          <div class="glass card row between small"><span>📡 Wi-Fi</span><span>💾 128GB 可用</span><span>🧠 2.1GB</span></div>
+        </section>
+
+        <section class="page" data-page="permissions">
+          <div class="topline"><button class="back" onclick="go('settings')">‹</button><div class="page-title">权限管理</div><span></span></div>
+          <div class="section-title">已授权</div>
+          <div class="glass list">
+            <div class="item" onclick="sheet('相机权限','用于拍照、扫码和视频通话。')"><span class="icon">📷</span><b>相机</b><span class="badge">已允许</span><span class="chev">›</span></div>
+            <div class="item" onclick="sheet('相册权限','用于上传图片和保存文件。')"><span class="icon">🖼</span><b>相册</b><span class="badge">已允许</span><span class="chev">›</span></div>
+            <div class="item" onclick="sheet('麦克风权限','用于语音输入与语音通话。')"><span class="icon">🎙</span><b>麦克风</b><span class="badge">已允许</span><span class="chev">›</span></div>
+            <div class="item" onclick="sheet('通知权限','用于接收消息与系统提醒。')"><span class="icon">🔔</span><b>通知</b><span class="badge">已允许</span><span class="chev">›</span></div>
+          </div>
+          <div class="section-title">需手动开启</div>
+          <div class="glass list">
+            <div class="item" onclick="toast('跳转系统设置开启剪贴板权限')"><span class="icon">📋</span><b>剪贴板</b><span class="small">未开启</span><span class="chev">›</span></div>
+            <div class="item" onclick="toast('跳转系统设置开启文件访问权限')"><span class="icon">📁</span><b>文件访问</b><span class="small">未开启</span><span class="chev">›</span></div>
+          </div>
+          <div class="glass card small" style="margin-top:14px">ℹ️ 我们仅在需要时使用权限，您可随时在本页管理各项权限。</div>
+        </section>
+
+        <section class="page" data-page="personal">
+          <div class="topline"><button class="back" onclick="go('profile')">‹</button><div class="page-title">个人信息</div><span></span></div>
+          <div class="glass card row between">
+            <div class="row"><div class="avatar">👨🏻‍💻</div><div><b style="font-size:22px">张三</b><div class="small">产品经理</div></div></div>
+            <button class="btn text" onclick="toast('打开头像修改 Sheet')">编辑</button>
+          </div>
+          <div class="glass list">
+            <div class="item"><b>手机号</b><span class="small">138 **** 5678</span><span class="chev">›</span></div>
+            <div class="item"><b>邮箱</b><span class="small">zhangsan@example.com</span><span class="chev">›</span></div>
+            <div class="item"><b>部门</b><span class="small">产品部</span><span class="chev">›</span></div>
+            <div class="item"><b>职位</b><span class="small">产品经理</span><span class="chev">›</span></div>
+            <div class="item"><b>地区</b><span class="small">中国 · 北京</span><span class="chev">›</span></div>
+            <div class="item"><b>个性签名</b><span class="small">专注产品，创造价值。</span><span class="chev">›</span></div>
+          </div>
+          <div class="section-title">账号绑定</div>
+          <div class="glass list">
+            <div class="item"><b>微信</b><span class="badge">已绑定</span><span class="chev">›</span></div>
+            <div class="item"><b>Apple ID</b><span class="badge">已绑定</span><span class="chev">›</span></div>
+            <div class="item"><b>邮箱状态</b><span class="small">已验证</span><span class="chev">›</span></div>
+          </div>
+          <button class="btn" style="margin-top:14px" onclick="toast('保存成功')">保存修改</button>
+        </section>
+
+        <section class="page" data-page="general">
+          <div class="topline"><button class="back" onclick="go('profile')">‹</button><div class="page-title">通用设置</div><span></span></div>
+          <div class="glass list">
+            <div class="item" onclick="toast('选择语言与地区')"><span class="icon">🌐</span><b>语言与地区</b><span class="small">简体中文</span><span class="chev">›</span></div>
+            <div class="item" onclick="toast('选择字体大小')"><span class="icon">Aa</span><b>字体大小</b><span class="small">标准</span><span class="chev">›</span></div>
+            <div class="item" onclick="toast('选择默认首页')"><span class="icon">🏠</span><b>默认首页</b><span class="small">首页</span><span class="chev">›</span></div>
+          </div>
+          <div class="section-title"></div>
+          <div class="glass list">
+            <div class="item" onclick="toast('缓存占用 128 MB')"><span class="icon">📦</span><b>缓存管理</b><span class="small">128 MB</span><span class="chev">›</span></div>
+            <div class="item"><span class="icon">☁️</span><b>自动更新</b><span class="chev"></span><div class="toggle on" onclick="toggle(this)"><span></span></div></div>
+            <div class="item"><span class="icon">🌙</span><b>深色模式跟随系统</b><span class="chev"></span><div class="toggle on" onclick="toggle(this)"><span></span></div></div>
+            <div class="item"><span class="icon">✨</span><b>动画效果</b><span class="chev"></span><div class="toggle on" onclick="toggle(this)"><span></span></div></div>
+            <div class="item"><span class="icon">🔊</span><b>声音与触感</b><span class="chev"></span><div class="toggle on" onclick="toggle(this)"><span></span></div></div>
+          </div>
+          <div class="section-title"></div>
+          <div class="glass list">
+            <div class="item" onclick="toast('数据同步：已开启')"><span class="icon">🔄</span><b>数据同步</b><span class="small">已开启</span><span class="chev">›</span></div>
+            <div class="item" onclick="sheet('清理存储空间','可释放 2.4 GB 临时文件。是否继续？',true)"><span class="icon">🧹</span><b>存储空间清理</b><span class="small">2.4 GB</span><span class="chev">›</span></div>
+          </div>
+          <div class="glass card row between small" style="margin-top:14px"><span>版本 2.3.1</span><span>缓存 128 MB</span><span>已同步</span></div>
+        </section>
+
+        <section class="page" data-page="about">
+          <div class="topline"><button class="back" onclick="go('profile')">‹</button><div class="page-title">关于</div><span></span></div>
+          <div class="glass card center">
+            <div class="logo" style="width:62px;height:62px;font-size:28px">M</div>
+            <div class="title" style="font-size:25px">MobileFrame</div>
+            <div class="subtitle" style="margin-bottom:0">通用移动端原生脚手架</div>
+          </div>
+          <div class="glass list">
+            <div class="item"><span class="icon">ℹ️</span><b>当前版本</b><span class="small">1.0.0</span></div>
+            <div class="item"><span class="icon">&lt;&gt;</span><b>构建号</b><span class="small">100</span></div>
+          </div>
+          <div class="section-title"></div>
+          <div class="glass list">
+            <div class="item" onclick="toast('打开官方网站')"><span class="icon">🌐</span><b>官方网站</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('打开开源协议')"><span class="icon">⚖️</span><b>开源协议</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('打开隐私政策')"><span class="icon">🛡</span><b>隐私政策</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('打开用户协议')"><span class="icon">📄</span><b>用户协议</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('打开更新日志')"><span class="icon">🕘</span><b>更新日志</b><span class="chev">›</span></div>
+            <div class="item" onclick="toast('联系我们：support@example.com')"><span class="icon">🎧</span><b>联系我们</b><span class="chev">›</span></div>
+          </div>
+          <footer class="note">© 2026 MobileFrame 团队<br>保留所有权利</footer>
+          <button class="btn secondary" style="margin-top:12px" onclick="toast('当前已是最新版本')">检查更新</button>
+        </section>
+
+      </main>
+
+      <nav class="tabbar" id="tabs">
+        <button class="tab" data-tab="home" onclick="go('home')"><b>⌂</b>首页</button>
+        <button class="tab" data-tab="components" onclick="toast('组件页面为扩展入口')"><b>🧩</b>组件</button>
+        <button class="tab" data-tab="native" onclick="toast('原生能力页面为扩展入口')"><b>📦</b>原生能力</button>
+        <button class="tab" data-tab="template" onclick="toast('模板页面为扩展入口')"><b>📄</b>模板</button>
+        <button class="tab" data-tab="profile" onclick="go('profile')"><b>👤</b>我的</button>
+      </nav>
+
+      <div class="toast" id="toast"></div>
+      <div class="modal-mask" id="mask" onclick="closeSheet(event)">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <h3 id="sheetTitle">提示</h3>
+          <p id="sheetText"></p>
+          <button class="btn" id="sheetOk" onclick="closeSheet()">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const pages=[
+  ['splash','启动页'],['onboarding','引导页'],['login','登录页'],['register','注册页'],
+  ['home','首页'],['profile','个人中心'],['settings','设置页'],['permissions','权限管理'],
+  ['personal','个人信息'],['general','通用设置'],['about','关于页']
+];
+const side=document.getElementById('sideNav');
+pages.forEach(([id,name])=>{
+  const b=document.createElement('button');b.textContent=name;b.dataset.page=id;b.onclick=()=>go(id);side.appendChild(b);
+});
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.dataset.page===id));
+  document.querySelectorAll('#sideNav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+  const tabMap={home:'home',profile:'profile'};
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabMap[id]));
+  document.getElementById('tabs').style.display=['splash','onboarding','login','register','settings','permissions','personal','general','about'].includes(id)?'none':'flex';
+  document.querySelector('.content').scrollTop=0;
+}
+go('splash');
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.remove('show'),1700);
+}
+function countdown(btn){
+  let n=60;btn.disabled=true;btn.textContent=n+'s';
+  const timer=setInterval(()=>{n--;btn.textContent=n+'s';if(n<=0){clearInterval(timer);btn.disabled=false;btn.textContent='获取验证码'}},1000)
+}
+function register(){
+  if(!document.getElementById('agree').checked){toast('请先阅读并同意用户协议');return}
+  toast('注册成功');setTimeout(()=>go('home'),450)
+}
+function toggle(el){el.classList.toggle('on');toast(el.classList.contains('on')?'已开启':'已关闭')}
+function theme(mode,btn){
+  document.querySelectorAll('.segment button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  if(mode==='dark')document.body.classList.add('dark');else document.body.classList.remove('dark');
+  toast(mode==='system'?'已跟随系统':'主题已切换')
+}
+function sheet(title,text,danger=false){
+  document.getElementById('sheetTitle').textContent=title;
+  document.getElementById('sheetText').textContent=text;
+  const ok=document.getElementById('sheetOk');ok.textContent=danger?'确认清理':'确定';
+  ok.onclick=()=>{closeSheet();toast(danger?'清理完成':'已确认')};
+  document.getElementById('mask').classList.add('show');
+}
+function closeSheet(e){if(e&&e.target!==document.getElementById('mask'))return;document.getElementById('mask').classList.remove('show')}
+</script>
+</body>
+</html>

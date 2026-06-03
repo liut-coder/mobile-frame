@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mobile-frame 原型包一键打包下载器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { iosBlue: '#007AFF', iosBg: '#F2F2F7' },
+                    borderRadius: { 'ios': '20px' },
+                    boxShadow: { 'ios-soft': '0 8px 32px 0 rgba(0, 122, 255, 0.06)' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-center font-sans antialiased p-4">
+
+    <div class="w-full max-w-md bg-white p-8 rounded-ios shadow-ios-soft border border-white/20 text-center space-y-6">
+        <div class="w-16 h-16 bg-blue-50 text-iosBlue rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V4a2 2 0 012-2h6l2 2h7a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
+        
+        <div>
+            <h1 class="text-xl font-bold text-gray-900 tracking-tight">mobile-frame 交互原型资源包</h1>
+            <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">白色简约 • 轻量毛玻璃 • 浅蓝主色 • iOS原生组件库</p>
+        </div>
+
+        <div class="bg-iosBg/70 rounded-xl p-4 text-left text-xs text-gray-600 space-y-2 font-medium">
+            <div class="flex items-center justify-between">
+                <span class="flex items-center">📄 index.html</span>
+                <span class="text-gray-400 font-normal">高保真可运行 App + UI 组件库</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="flex items-center">📝 interaction_doc.md</span>
+                <span class="text-gray-400 font-normal">L0-L4 级全套组件交互说明书</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="flex items-center">ℹ️ README.md</span>
+                <span class="text-gray-400 font-normal">脚手架快速上手与技术审查指南</span>
+            </div>
+        </div>
+
+        <button onclick="generateAndDownloadZip()" id="dl-btn" class="w-full py-3.5 bg-iosBlue hover:bg-blue-600 text-white font-semibold rounded-xl shadow-md active:scale-[0.99] transition-all text-sm tracking-wide flex items-center justify-center space-x-2">
+            <span>一键打包并下载 ZIP 压缩包</span>
+        </button>
+        
+        <p id="status-text" class="text-xxs text-gray-400 font-medium animate-pulse hidden">正在本地构建高保真资源，请稍候...</p>
+    </div>
+
+    <textarea id="file-index" class="hidden">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mobile-frame 核心交互原型系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        iosBlue: '#007AFF',
+                        iosGreen: '#34C759',
+                        iosBg: '#F2F2F7',
+                        iosCard: 'rgba(255, 255, 255, 0.75)'
+                    },
+                    borderRadius: { 'ios-card': '24px', 'ios-btn': '14px' },
+                    boxShadow: {
+                        'ios-soft': '0 8px 32px 0 rgba(0, 122, 255, 0.04), 0 4px 16px 0 rgba(0, 0, 0, 0.02)',
+                        'ios-toast': '0 12px 36px 0 rgba(0, 0, 0, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .backdrop-blur-ios { backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center font-sans antialiased text-gray-900 p-4">
+    <div class="relative w-[375px] h-[812px] bg-iosBg rounded-[52px] shadow-2xl border-[12px] border-gray-800 overflow-hidden flex flex-col">
+        <div class="absolute top-0 left-0 right-0 h-11 z-50 flex items-center justify-between px-8 text-xs font-bold">
+            <span id="current-time">09:41</span>
+            <div class="w-24 h-4 bg-black rounded-full absolute left-1/2 transform -translate-x-1/2 top-3"></div>
+            <div class="flex items-center space-x-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 16 16"><path d="M2 11.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg><div class="w-5 h-2.5 border border-black rounded-sm p-0.5 flex items-center"><div class="w-3.5 h-full bg-black rounded-2xs"></div></div></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pt-12 pb-24">
+            <div id="view-home" class="p-5 space-y-5">
+                <div class="flex justify-between items-end pt-4">
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">MOBILE-FRAME</p>
+                        <h2 class="text-2xl font-black text-gray-900 tracking-tight">控制台首页</h2>
+                    </div>
+                </div>
+
+                <div class="bg-iosCard backdrop-blur-ios p-5 rounded-ios-card shadow-ios-soft border border-white/60">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold bg-blue-50 text-iosBlue px-2.5 py-0.5 rounded-full uppercase tracking-wider">MFStatCard</span>
+                        <span class="text-xs text-iosGreen font-semibold flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-iosGreen mr-1 animate-pulse"></span>正常就绪</span>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-3xl font-black text-gray-900 tracking-tight">99.98%</span>
+                        <h3 class="text-xs font-medium text-gray-400 mt-0.5">混合容器核心就绪率 (Turbo Modules)</h3>
+                    </div>
+                    <div class="w-full bg-gray-200/60 h-1.5 rounded-full mt-4 overflow-hidden">
+                        <div class="bg-iosBlue h-full rounded-full" style="width: 99.98%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div onclick="openSheet('SecureVault')" class="bg-white p-4 rounded-ios-card shadow-ios-soft border border-white/50 active:scale-95 transition-transform cursor-pointer">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-iosBlue mb-3">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <h4 class="text-xs font-bold text-gray-800">硬件密钥库</h4>
+                        <p class="text-[9px] text-gray-400">SecureVault</p>
+                    </div>
+
+                    <div onclick="triggerBiometrics()" class="bg-white p-4 rounded-ios-card shadow-ios-soft border border-white/50 active:scale-95 transition-transform cursor-pointer">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-iosBlue mb-3">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11.5V10m.458-4.11a5.002 5.002 0 00-9.458 2.001v.067c0 .441.162.862.457 1.189l.893.992c.295.327.457.748.457 1.189v1.986c0 .187.031.373.09.55l1.62 4.86a1.5 1.5 0 002.852-.386l.83-2.49A2 2 0 0113.5 16h-.121m-2.141-6a2.5 2.5 0 11-4.99 0 2.5 2.5 0 014.99 0z"></path></svg>
+                        </div>
+                        <h4 class="text-xs font-bold text-gray-800">生物识别盾</h4>
+                        <p class="text-[9px] text-gray-400">Biometric</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-components" class="p-5 space-y-5 hidden">
+                <div class="pt-4">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">UI 原子组件库</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">高品质白色简约基础物料包</p>
+                </div>
+
+                <div class="space-y-2.5">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">MFButton 基础样式</h3>
+                    <button onclick="showToast('主干点击反馈触发')" class="w-full py-3 bg-iosBlue text-white text-xs font-bold rounded-ios-btn shadow-md active:opacity-90 active:scale-[0.99] transition-all">主行动按钮 (Primary Action)</button>
+                    <button onclick="showToast('次级边框点击反馈触发')" class="w-full py-3 bg-white text-iosBlue border border-blue-50 text-xs font-bold rounded-ios-btn shadow-ios-soft active:bg-gray-50 transition-colors">次级卡片按钮 (Secondary)</button>
+                </div>
+
+                <div class="space-y-2.5">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">MFFormField 结构</h3>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-500 pl-1">硬件级别密码输入框 (MFPasswordInput)</label>
+                        <input type="password" value="••••••••••••" class="w-full px-4 py-3 bg-white border border-gray-100 rounded-ios-btn text-xs focus:outline-none focus:border-iosBlue focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-settings" class="p-5 space-y-5 hidden">
+                <div class="pt-4">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">基座配置</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">原生安全隔离与审计阻断</p>
+                </div>
+                <div class="bg-white rounded-ios-card shadow-ios-soft border border-white/50 overflow-hidden divide-y divide-gray-100">
+                    <div class="p-4 flex justify-between items-center" onclick="showToast('安全脱敏机制已强制锁死')">
+                        <span class="text-xs font-bold text-gray-700">沙盒核心日志全自动脱敏</span>
+                        <span class="text-[10px] font-bold text-gray-400 flex items-center">已开启<svg class="w-3.5 h-3.5 ml-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 h-20 bg-white/75 backdrop-blur-ios border-t border-gray-200/40 flex items-center justify-around pb-4 pt-1 z-40 px-4">
+            <button id="tab-home" onclick="switchView('home')" class="flex flex-col items-center space-y-0.5 text-iosBlue">
+                <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path></svg>
+                <span class="text-[9px] font-bold">首页</span>
+            </button>
+            <button id="tab-components" onclick="switchView('components')" class="flex flex-col items-center space-y-0.5 text-gray-400">
+                <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-.84-1.875-1.875-1.875h-.75c-1.036 0-1.875.84-1.875 1.875 0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c-.186-.019-.367-.006-.55.057a1.916 1.916 0 00-1.222 1.222c-.063.183-.076.364-.057.55.127 1.385.227 2.778.3 4.163.006.126-.07.236-.194.27a8.587 8.587 0 00-3.028 1.414c-.156.113-.243.303-.243.496v.105c0 .324.234.603.553.655a47.76 47.76 0 016.174.984c.245.056.49.122.731.198a2.17 2.17 0 002.433-1.611 25.13 25.13 0 01.376-1.503c.068-.242.29-.403.541-.403h.142c.252 0 .473.161.541.403.1.353.226.702.376 1.503a2.17 2.17 0 002.433 1.611c.241-.076.486-.142.731-.198a47.76 47.76 0 016.174-.984c.319-.052.553-.331.553-.655v-.105c0-.193-.087-.383-.243-.496a8.586 8.586 0 00-3.028-1.414.288.288 0 01-.194-.27c.073-1.385.173-2.778.3-4.163.019-.186.006-.367-.057-.55a1.916 1.916 0 00-1.222-1.222c-.183-.063-.364-.076-.55-.057a48.391 48.391 0 01-4.163.3.64.64 0 01-.657-.643v0z"></path></svg>
+                <span class="text-[9px] font-bold">组件库</span>
+            </button>
+            <button id="tab-settings" onclick="switchView('settings')" class="flex flex-col items-center space-y-0.5 text-gray-400">
+                <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.767c-.293.225-.438.589-.411.956.004.058.006.115.006.173 0 .058-.002.115-.006.173-.027.367.118.73.411.956l1.003.767a1.125 1.125 0 01.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.216-.456c-.356-.133-.751-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.767c.292-.225.437-.589.41-.956a4.836 4.836 0 01-.006-.173c0-.058.002-.115.006-.173.027-.367-.118-.73-.41-.956l-1.004-.767a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="text-[9px] font-bold">设置</span>
+            </button>
+        </div>
+        <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-34 h-1 bg-black rounded-full z-50"></div>
+
+        <div id="toast" class="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black/85 text-white text-xxs py-2 px-4 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 font-medium"></div>
+
+        <div id="sheet" class="absolute inset-0 bg-black/20 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[28px] p-6 pt-2 transform translate-y-full transition-transform duration-300 space-y-3 shadow-2xl">
+                <div class="w-9 h-1 bg-gray-300 rounded-full mx-auto my-1"></div>
+                <div class="flex justify-between items-center">
+                    <h3 id="sheet-title" class="text-sm font-black text-gray-900">异步授权面板</h3>
+                    <button onclick="closeSheet()" class="text-xs font-bold text-iosBlue">完成</button>
+                </div>
+                <p class="text-xxs text-gray-400 leading-relaxed">该页面已无缝挂载在 `mobile-frame` L4 层级中，密钥回传已遵循 Keychain 硬件物理隔离保护。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const d = new Date();
+            document.getElementById('current-time').innerText = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+        setInterval(updateClock, 1000) || updateClock();
+
+        function switchView(target) {
+            ['home', 'components', 'settings'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`tab-${v}`).classList.replace('text-iosBlue', 'text-gray-400');
+            });
+            document.getElementById(`view-${target}`).classList.remove('hidden');
+            document.getElementById(`tab-${target}`).classList.replace('text-gray-400', 'text-iosBlue');
+        }
+
+        let tTimer;
+        function showToast(m) {
+            const t = document.getElementById('toast'); t.innerText = m; t.classList.replace('opacity-0', 'opacity-100');
+            clearTimeout(tTimer); tTimer = setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 1500);
+        }
+
+        function openSheet(t) {
+            document.getElementById('sheet-title').innerText = t + " 原生安全通道";
+            document.getElementById('sheet').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('sheet').querySelector('div').classList.remove('translate-y-full');
+        }
+        function closeSheet() {
+            document.getElementById('sheet').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('sheet').querySelector('div').classList.add('translate-y-full');
+        }
+        function triggerBiometrics() {
+            showToast('🔄 正在调起 FaceID 硬件级鉴权...');
+            setTimeout(() => showToast('🟢 FaceID 校验通过，解密就绪'), 1000);
+        }
+    </script>
+</body>
+</html>
+    </textarea>
+
+    <textarea id="file-doc" class="hidden">
+# mobile-frame 交互与原子组件库开发设计规范 (v1.0)
+
+本交互文档严格基于 `mobile-frame` 基座设计原则编制，作为 L0~L4 层级组件研发及原生能力对接的唯一交互与视觉表现准则。
+
+## 1. 视觉皮肤与全局 Tokens 规范 (L0 层)
+* **主体风格：** 纯白简约主义 (Minimalism White Premium)。
+* **毛玻璃滤镜 (Frosted Glass)：** 全局非安全区及固定遮罩容器叠加 `blur(25px)` 滤镜，用于状态栏与底部导航条 `MFTabBar`。
+* **主色调与强调色：** 浅蓝色 `#007AFF` (iOS Core Blue Standard)。
+* **大圆角卡片：** 页面容器、组件卡片（`MFCard` / `MFStatCard`）圆角统一约束为 `24px`。
+* **低饱和柔和阴影：** `box-shadow: 0 8px 32px 0 rgba(0, 122, 255, 0.04);`，严格杜绝脏色，保证底色纯净。
+
+## 2. 核心原子组件交互行为 (L2 级)
+### MFToast (吐司反馈)
+* **交互唤醒：** 居顶向下淡入，常态保持 `1500ms` 后淡出，不可阻断用户屏幕操作。
+### MFSheet (半屏抽屉)
+* **交互唤醒：** 点击高敏原生授权或高级配置项时从底部拉出，附带黑色 `20%` 阻尼遮罩层。
+
+## 3. 安全合规红线 (L12 级)
+* 密码、Token、私钥只准进入本地原生底层 Keychain 隔离区。
+* 严禁将业务层敏感字段直接落盘在普通 `AsyncStorage` 中。
+    </textarea>
+
+    <textarea id="file-readme" class="hidden">
+# mobile-frame 原型资源包快速上手指南
+
+祝贺！您已成功解压由 AI 自动装配的 `mobile-frame` 高保真原型资源包。
+
+## 📁 目录包文件清单说明：
+1. `index.html`：**核心高保真原型流转文件**。集成了白色简约皮肤、毛玻璃图层、浅蓝按钮及抽屉交互。双击即可在任意现代浏览器中完美呈现 App 模拟环境。
+2. `interaction_doc.md`：配合原型组件的**设计与交互开发规范说明书**。
+3. `README.md`：本导向速查说明。
+
+## 🛠️ 技术底座与亮点：
+* **免去配置痛苦**：原生集成 Tailwind CSS 主干引擎，支持全端一键复用。
+* **开箱即用交互**：完美模拟了 FaceID 原生硬件验证流和底座沙盒安全阻断。
+    </textarea>
+
+
+    <script>
+        function generateAndDownloadZip() {
+            const btn = document.getElementById('dl-btn');
+            const status = document.getElementById('status-text');
+            
+            // 改变状态样式，增强交互信任感
+            btn.disabled = true;
+            btn.classList.replace('bg-iosBlue', 'bg-gray-400');
+            status.classList.remove('hidden');
+
+            // 初始化 JSZip 对象
+            const zip = new JSZip();
+
+            // 从本地安全的隐藏 textarea 媒介中提取完好的多层文件内容
+            const indexContent = document.getElementById('file-index').value;
+            const docContent = document.getElementById('file-doc').value;
+            const readmeContent = document.getElementById('file-readme').value;
+
+            // 将各层高价值文件塞入压缩包容器
+            zip.file("index.html", indexContent);
+            zip.file("interaction_doc.md", docContent);
+            zip.file("README.md", readmeContent);
+
+            // 纯前端异步高保真生成 ZIP 二进制大对象
+            zip.generateAsync({ type: "blob" }).then(function(blob) {
+                // 巧妙利用 HTML5 原生 Blob URL 机制触发纯正浏览器本地下载行为
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = downloadUrl;
+                a.download = "mobile-frame-prototype.zip"; // 锁定标准 ZIP 拓展名
+                document.body.appendChild(a);
+                a.click();
+                
+                // 释放无用内存
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+
+                // 恢复下载按钮可用状态
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.classList.replace('bg-gray-400', 'bg-iosBlue');
+                    status.classList.add('hidden');
+                }, 1000);
+            }).catch(function(err) {
+                alert("ZIP包打包发生内部故障: " + err);
+            });
+        }
+    </script>
+</body>
+</html>

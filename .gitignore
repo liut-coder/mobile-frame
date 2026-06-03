@@ -1,0 +1,23 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+.DS_Store
+Thumbs.db
+
+.env
+.env.*
+!.env.example
+
+# Native dependency and build outputs
+**/ios/Pods/
+**/ios/build/
+**/android/.gradle/
+**/android/.kotlin/
+**/android/app/.cxx/
+**/android/build/
+**/android/app/build/
+
+# Local runtime validation captures
+data/runtime-evidence/
+data/live_validation/
