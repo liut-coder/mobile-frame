@@ -119,8 +119,8 @@ function androidChecks() {
     },
     {
       id: 'android.hermes-compiler',
-      message: 'Hermes compiler package is installed for release bundling',
-      pass: () => isDirectory('node_modules/.pnpm/node_modules/hermes-compiler/hermesc')
+      message: 'Hermes compiler command resolves from the React Native app root for release bundling',
+      pass: () => hermesCompilerCommandAvailable()
     }
   ];
 }
@@ -276,6 +276,44 @@ function getAndroidBuildValue(name) {
 
   const numeric = source.match(new RegExp(`${name}\\s*=\\s*(\\d+)`));
   return numeric?.[1] ?? null;
+}
+
+function hermesCompilerCommandAvailable() {
+  const command = getAndroidAppBuildStringValue('hermesCommand');
+  if (!command) {
+    return isDirectory('node_modules/.pnpm/node_modules/hermes-compiler/hermesc');
+  }
+
+  const osAwareCommand = command.replace('%OS-BIN%', getHermesOSBin()).replace(/\$\{hermescBinary\}|\$hermescBinary/g, getHermesCBin());
+  const resolvedCommand = path.isAbsolute(osAwareCommand) ? osAwareCommand : path.resolve(resolve(appPath), osAwareCommand);
+
+  return isFile(resolvedCommand, true);
+}
+
+function getAndroidAppBuildStringValue(name) {
+  const target = resolve(`${appPath}/android/app/build.gradle`);
+  if (!fs.existsSync(target)) {
+    return null;
+  }
+
+  const source = fs.readFileSync(target, 'utf8');
+  return source.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`))?.[1] ?? null;
+}
+
+function getHermesOSBin() {
+  if (process.platform === 'win32') {
+    return 'win64-bin';
+  }
+
+  if (process.platform === 'darwin') {
+    return 'osx-bin';
+  }
+
+  return 'linux64-bin';
+}
+
+function getHermesCBin() {
+  return process.platform === 'win32' ? 'hermesc.exe' : 'hermesc';
 }
 
 function hasGradleWrapperDistribution() {

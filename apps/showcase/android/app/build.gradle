@@ -2,6 +2,8 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+def hermescBinary = System.getProperty("os.name").toLowerCase().contains("windows") ? "hermesc.exe" : "hermesc"
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -11,7 +13,8 @@ react {
     reactNativeDir = file("../../../../node_modules/react-native")
     codegenDir = file("../../../../node_modules/.pnpm/node_modules/@react-native/codegen")
     cliFile = file("../../../../node_modules/@react-native-community/cli/build/bin.js")
-    hermesCommand = "../../../../node_modules/.pnpm/node_modules/hermes-compiler/hermesc/%OS-BIN%/hermesc"
+    // Hermes is executed from react.root (apps/showcase), not from android/app.
+    hermesCommand = "../../node_modules/.pnpm/node_modules/hermes-compiler/hermesc/%OS-BIN%/${hermescBinary}"
     bundleConfig = file("../../metro.config.cjs")
 
     /* Folders */

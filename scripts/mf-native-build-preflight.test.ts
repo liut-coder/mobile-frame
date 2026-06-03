@@ -101,6 +101,37 @@ describe('mf-native-build-preflight', () => {
     });
   });
 
+  it('fails strict Android mode when the configured Hermes command does not resolve from the app root', () => {
+    withWorkspace((workspaceRoot) => {
+      const binPath = path.join(workspaceRoot, 'bin');
+      const androidSdkPath = path.join(workspaceRoot, 'android-sdk');
+
+      writeMinimalNativeBuildWorkspace(workspaceRoot);
+      writeAndroidSdkFixture(androidSdkPath);
+      writeGradleDistributionFixture(path.join(workspaceRoot, 'gradle-home'));
+      writeCommand(binPath, 'java');
+      writeCommand(binPath, 'gradle');
+      writeFile(
+        workspaceRoot,
+        'apps/showcase/android/app/build.gradle',
+        'react { hermesCommand = "../../../../node_modules/.pnpm/node_modules/hermes-compiler/hermesc/%OS-BIN%/${hermescBinary}" }\n'
+      );
+
+      const result = runPreflight(workspaceRoot, ['--platform', 'android', '--strict'], {
+        ANDROID_HOME: androidSdkPath,
+        ANDROID_SDK_ROOT: '',
+        GRADLE_USER_HOME: path.join(workspaceRoot, 'gradle-home'),
+        JAVA_HOME: '',
+        PATH: appendPath(binPath)
+      });
+      const output = `${result.stdout}\n${result.stderr}`;
+
+      expect(result.status).toBe(1);
+      expect(output).toContain('android.hermes-compiler');
+      expect(output).toContain('native build preflight strict mode failed');
+    });
+  });
+
   it('discovers the default Windows Android SDK path when SDK env vars are unset', () => {
     withWorkspace((workspaceRoot) => {
       const binPath = path.join(workspaceRoot, 'bin');
@@ -167,9 +198,17 @@ function writeMinimalNativeBuildWorkspace(workspaceRoot: string) {
     'apps/showcase/android/gradle/wrapper/gradle-wrapper.properties',
     'distributionUrl=https\\://services.gradle.org/distributions/gradle-9.3.1-bin.zip\n'
   );
+  writeFile(
+    workspaceRoot,
+    'apps/showcase/android/app/build.gradle',
+    'react { hermesCommand = "../../node_modules/.pnpm/node_modules/hermes-compiler/hermesc/%OS-BIN%/${hermescBinary}" }\n'
+  );
   writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/@react-native/gradle-plugin/package.json', '{}\n');
   writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/@react-native/codegen/package.json', '{}\n');
-  writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/hermes-compiler/hermesc/.keep', '\n');
+  writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc', '\n');
+  writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/hermes-compiler/hermesc/osx-bin/hermesc', '\n');
+  writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/hermes-compiler/hermesc/win64-bin/hermesc', '\n');
+  writeFile(workspaceRoot, 'node_modules/.pnpm/node_modules/hermes-compiler/hermesc/win64-bin/hermesc.exe', '\n');
 }
 
 function writeAndroidSdkFixture(androidSdkPath: string) {
