@@ -61,12 +61,12 @@ Current product scope:
 - Code generators.
 - Native readiness and native build preflight scripts.
 - Android debug APK build evidence.
-- Android emulator runtime evidence path through local ADB scripts and GitHub Actions.
+- Android emulator runtime evidence from GitHub Actions run `26904447920`.
 
 Planned product scope:
 
 - iOS simulator build evidence on macOS.
-- Successful Android emulator or physical-device runtime evidence from a real local or remote run.
+- Android Release build evidence with signing configuration.
 - Real platform implementations for selected native capability modules.
 - More complete reusable page templates.
 - More complete module catalog and preset coverage.
@@ -93,4 +93,4 @@ The scaffold is successful when a team can:
 - Add a native capability without changing unrelated app code.
 - Reuse the same app shell and UI system across multiple app products.
 
-The current milestone has reached source-level validation, Android APK assembly scripting, and an Android emulator runtime evidence channel. The next closure milestone is real local or remote runtime proof on Android and native build/runtime proof on iOS.
+The current milestone has reached source-level validation, Android debug APK assembly proof, and Android emulator runtime proof through GitHub Actions run `26904447920`. The next closure milestone is Android Release evidence and native build/runtime proof on iOS.

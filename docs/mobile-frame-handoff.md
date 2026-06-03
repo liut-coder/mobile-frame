@@ -159,13 +159,13 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 - Generators exist for apps, modules, screens, native components, and native modules.
 - Generator smoke tests cover positive generation, dry-run behavior, duplicate protection, generated TypeScript builds, and invalid argument failures.
 - Real React Native bare iOS/Android folders exist under `apps/showcase`.
-- Android debug APK assembly has been proven locally.
-- Android runtime install/launch evidence is scripted locally and configured in GitHub Actions through the `showcase-android-runtime` emulator job.
+- Android debug APK assembly has been proven by GitHub Actions run `26904447920`, which produced `mobile-frame-showcase-debug-apk`.
+- Android runtime install/launch has been proven by GitHub Actions run `26904447920`, which produced `mobile-frame-showcase-runtime-evidence` with install, launch, and foreground-window evidence on `emulator-5554`.
 
 ## Open Risks And Gaps
 
 - iOS native build is not proven on this Windows host. It needs macOS, Xcode, and CocoaPods.
-- Android real-device or emulator launch is not closed until a local device run or remote GitHub Actions run produces runtime evidence.
+- Android Release still needs business signing configuration or explicit scaffold release validation.
 - The global `JAVA_HOME` mismatch can confuse future Android commands if the temporary JDK 17 environment is not applied.
 - Generated build outputs and Gradle caches should not be committed.
 - Some older Chinese planning documents in the repository appear to have encoding issues; prefer these newer UTF-8 docs for handoff and product context.
@@ -173,6 +173,6 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 ## Recommended Next Steps
 
 1. On macOS, run iOS preflight and a real iOS simulator build.
-2. On Windows, install or connect an Android emulator/device and run the assembled debug APK, or use a remote GitHub Actions run to prove the emulator runtime job.
+2. Produce Android Release evidence with real signing config, or run the scaffold release validation flow explicitly.
 3. Decide whether to update the persistent user `JAVA_HOME` to JDK 17.
 4. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.

@@ -1299,15 +1299,15 @@ OCR 失败
   </ul>
   <hr />
   <h2 id="doc-docs-mobile-frame-app-heading-54">12. 验收清单</h2>
-  <blockquote>当前推进状态更新于 2026-06-03。源码级验证已通过 <code>typecheck</code>、<code>lint</code>、<code>test</code>、<code>mf:generator-smoke</code>、<code>mf:workspace-check</code>、<code>mf:docs-site:check</code>、<code>mf:ci-workflow-check</code>、非严格 <code>mf:runtime-evidence</code> 和非严格 <code>mf:validate</code>。原生 Debug/Release、远端示例 App 自动构建与真机/模拟器运行仍需要具备 Android SDK、ADB、Gradle wrapper distribution、macOS/Xcode/CocoaPods 或 GitHub Actions 成功记录继续验证；仓库内已配置 Android debug APK 和 emulator runtime 两段 CI 证据通道。</blockquote>
+  <blockquote>当前推进状态更新于 2026-06-03。源码级验证已通过 <code>typecheck</code>、<code>lint</code>、<code>test</code>、<code>mf:generator-smoke</code>、<code>mf:workspace-check</code>、<code>mf:docs-site:check</code>、<code>mf:ci-workflow-check</code>、非严格 <code>mf:runtime-evidence</code> 和非严格 <code>mf:validate</code>。GitHub Actions run <code>26904447920</code> 已证明 Android debug APK 自动构建和 Android emulator runtime 安装/启动闭环。Android Release、iOS Debug/Release 和 iOS IPA 导出仍需要具备 Android 签名/发布配置、macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 或相应 CI 环境继续验证。</blockquote>
   <h3 id="doc-docs-mobile-frame-app-heading-55">P0</h3>
   <ul>
-  <li>[ ] Showcase 可运行；源码和 Showcase 集成已通过校验，Android runtime 已提供 <code>mf:android-runtime-run</code> 安装/启动/前台校验与 runtime evidence 输出，并已配置 <code>showcase-android-runtime</code> GitHub Actions emulator job 下载 debug APK、启动 Android emulator、运行安装/启动校验并上传 runtime evidence。当前环境缺 APK、ADB 和在线设备，仍需本地真机/模拟器或远端 Actions 成功记录闭环。</li>
+  <li>[x] Showcase 可在 Android emulator 运行；GitHub Actions run <code>26904447920</code> 的 <code>showcase-android-runtime</code> job 已下载 debug APK、启动 Android emulator、运行 <code>mf:android-runtime-run</code>，并上传 <code>apps-showcase-runtime-evidence.json</code>。证据记录 <code>emulator-5554</code> 上安装、启动和前台窗口校验均通过。</li>
   <li>[x] Design Tokens 可统一引用；<code>packages/design-tokens</code>、<code>ui-core</code> 和 <code>ui-native</code> 已接入。</li>
   <li>[x] 组件库可独立预览；Showcase 已覆盖组件、模板和 Native mock 能力入口。</li>
   <li>[x] 页面模板可复用；<code>packages/screen-templates</code> 已提供通用模板并被 <code>create-screen</code>/Showcase 使用。</li>
   <li>[x] 所有原生能力有 mock adapter；<code>@mobile-frame/core/native-modules</code> 已覆盖设备信息、权限、已安装应用、浮窗、安全存储、网络和 legacy mock。</li>
-  <li>[ ] Android Debug / Release 可打包；已提供统一 <code>mf:android-build:debug</code>/<code>mf:android-build:release</code> 构建入口，可执行 strict preflight、Gradle assemble、APK metadata 校验和 build evidence 输出。当前环境缺 Android SDK/Gradle/ADB，Release 签名也需业务侧配置或显式 scaffold 验证参数。</li>
+  <li>[ ] Android Debug / Release 可打包；Debug 已由 GitHub Actions run <code>26904447920</code> 的 <code>showcase-android-debug</code> job 证明，artifact 包含 debug APK、APK metadata 和 <code>apps-showcase-debug-build-evidence.json</code>。Release 仍需业务侧签名配置或显式 scaffold 验证参数继续产出 release build evidence。</li>
   </ul>
   <h3 id="doc-docs-mobile-frame-app-heading-56">P1</h3>
   <ul>
@@ -1324,7 +1324,7 @@ OCR 失败
   <li>[x] 暗色主题；<code>design-tokens</code>、<code>ui-core</code>、<code>app-shell</code> 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。</li>
   <li>[x] 组件快照测试；<code>packages/ui-native/src/component-snapshots.test.tsx</code> 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。</li>
   <li>[x] 文档站点；已提供无额外依赖的 <code>docs-site/index.html</code> 静态入口，并通过 <code>mf:docs-site:check</code> 接入 <code>mf:validate</code>。</li>
-  <li>[ ] 示例 App 自动构建；<code>.github/workflows/mobile-frame.yml</code> 已配置 <code>source-validation</code>、<code>showcase-android-debug</code> 和 <code>showcase-android-runtime</code>，debug job 通过 <code>mf:android-build:debug</code> 构建并用 <code>mf:runtime-evidence --require android.debug-build-evidence</code> 强制校验 build evidence，runtime job 下载 APK、启动 Android emulator、执行 <code>mf:android-runtime-run</code> 并用 <code>mf:runtime-evidence --require android.runtime-evidence</code> 强制校验 runtime evidence，且通过 <code>mf:ci-workflow-check</code> 做本地结构校验。仍需远端 GitHub Actions 成功记录证明 APK 和 runtime evidence artifact 产出。</li>
+  <li>[x] 示例 App 自动构建；GitHub Actions run <code>26904447920</code> 已跑通 <code>source-validation</code>、<code>showcase-android-debug</code> 和 <code>showcase-android-runtime</code>。<code>mobile-frame-showcase-debug-apk</code> artifact 已产出 debug APK、APK metadata、debug build evidence 和 report；<code>mobile-frame-showcase-runtime-evidence</code> artifact 已产出 Android runtime evidence 和 report。</li>
   </ul>
   <hr />
   <h2 id="doc-docs-mobile-frame-app-heading-58">13. 最终交付</h2>
@@ -1771,7 +1771,7 @@ git diff --check</code></pre>
   <li>push 到 <code>main</code> 或 <code>game-helper-app</code>；</li>
   <li>手动 <code>workflow_dispatch</code>。</li>
   </ul>
-  <p>这代表示例 App 自动构建与 emulator runtime 流程已配置到仓库。是否真正完成验收，还需要远端 GitHub Actions 运行记录证明 <code>showcase-android-debug</code> 成功产出 <code>mobile-frame-showcase-debug-apk</code>，并证明 <code>showcase-android-runtime</code> 成功产出 <code>mobile-frame-showcase-runtime-evidence</code>，其中应包含 Android runtime evidence 和 <code>runtime-evidence-report.json</code>。</p>
+  <p>远端 GitHub Actions run <code>26904447920</code> 已在 2026-06-03 跑通 <code>source-validation</code>、<code>showcase-android-debug</code> 和 <code>showcase-android-runtime</code>。该 run 的 <code>mobile-frame-showcase-debug-apk</code> artifact 包含 debug APK、<code>output-metadata.json</code>、<code>apps-showcase-debug-build-evidence.json</code> 和 <code>runtime-evidence-report.json</code>，其中 <code>android.debug-build-evidence</code> 的 <code>requiredPassed</code> 为 <code>true</code>。<code>mobile-frame-showcase-runtime-evidence</code> artifact 包含 <code>apps-showcase-runtime-evidence.json</code> 和 <code>runtime-evidence-report.json</code>，其中 <code>android.runtime-evidence</code> 的 <code>requiredPassed</code> 为 <code>true</code>，并记录了 <code>emulator-5554</code> 上的安装、启动和前台窗口校验。Android Release、iOS Debug/Release 和 iOS IPA 导出仍需要相应平台/签名环境继续产出证据。</p>
   <p>本地使用以下命令守住 workflow 结构：</p>
   <pre><code class="language-bash">pnpm run mf:ci-workflow-check</code></pre>
   <p>它会检查 pull request、<code>main</code>、<code>game-helper-app</code> 和手动触发配置，以及源码验证、Android SDK 安装、统一 Android 构建脚本、strict Android preflight、Showcase debug APK 构建、debug build evidence 必需门禁、runtime evidence report 生成、APK/evidence artifact 上传、emulator runtime job、KVM 配置、debug APK artifact 下载、<code>mf:android-runtime-run</code> 安装/启动校验、Android runtime evidence 必需门禁和 runtime evidence artifact 上传步骤是否仍在。</p>
@@ -1925,12 +1925,12 @@ git diff --check</code></pre>
   <li>Code generators.</li>
   <li>Native readiness and native build preflight scripts.</li>
   <li>Android debug APK build evidence.</li>
-  <li>Android emulator runtime evidence path through local ADB scripts and GitHub Actions.</li>
+  <li>Android emulator runtime evidence from GitHub Actions run <code>26904447920</code>.</li>
   </ul>
   <p>Planned product scope:</p>
   <ul>
   <li>iOS simulator build evidence on macOS.</li>
-  <li>Successful Android emulator or physical-device runtime evidence from a real local or remote run.</li>
+  <li>Android Release build evidence with signing configuration.</li>
   <li>Real platform implementations for selected native capability modules.</li>
   <li>More complete reusable page templates.</li>
   <li>More complete module catalog and preset coverage.</li>
@@ -1954,7 +1954,7 @@ git diff --check</code></pre>
   <li>Add a native capability without changing unrelated app code.</li>
   <li>Reuse the same app shell and UI system across multiple app products.</li>
   </ul>
-  <p>The current milestone has reached source-level validation, Android APK assembly scripting, and an Android emulator runtime evidence channel. The next closure milestone is real local or remote runtime proof on Android and native build/runtime proof on iOS.</p>
+  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, and Android emulator runtime proof through GitHub Actions run <code>26904447920</code>. The next closure milestone is Android Release evidence and native build/runtime proof on iOS.</p>
 </article>
 <article class="doc-article" id="doc-docs-mobile-frame-landing-plan">
   <div class="article-meta">

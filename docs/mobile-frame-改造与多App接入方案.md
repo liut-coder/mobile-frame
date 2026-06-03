@@ -731,16 +731,16 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 
 ## 12. 验收清单
 
-> 当前推进状态更新于 2026-06-03。源码级验证已通过 `typecheck`、`lint`、`test`、`mf:generator-smoke`、`mf:workspace-check`、`mf:docs-site:check`、`mf:ci-workflow-check`、非严格 `mf:runtime-evidence` 和非严格 `mf:validate`。原生 Debug/Release、远端示例 App 自动构建与真机/模拟器运行仍需要具备 Android SDK、ADB、Gradle wrapper distribution、macOS/Xcode/CocoaPods 或 GitHub Actions 成功记录继续验证；仓库内已配置 Android debug APK 和 emulator runtime 两段 CI 证据通道。
+> 当前推进状态更新于 2026-06-03。源码级验证已通过 `typecheck`、`lint`、`test`、`mf:generator-smoke`、`mf:workspace-check`、`mf:docs-site:check`、`mf:ci-workflow-check`、非严格 `mf:runtime-evidence` 和非严格 `mf:validate`。GitHub Actions run `26904447920` 已证明 Android debug APK 自动构建和 Android emulator runtime 安装/启动闭环。Android Release、iOS Debug/Release 和 iOS IPA 导出仍需要具备 Android 签名/发布配置、macOS/Xcode/CocoaPods、`ExportOptions.plist` 或相应 CI 环境继续验证。
 
 ### P0
 
-- [ ] Showcase 可运行；源码和 Showcase 集成已通过校验，Android runtime 已提供 `mf:android-runtime-run` 安装/启动/前台校验与 runtime evidence 输出，并已配置 `showcase-android-runtime` GitHub Actions emulator job 下载 debug APK、启动 Android emulator、运行安装/启动校验并上传 runtime evidence。当前环境缺 APK、ADB 和在线设备，仍需本地真机/模拟器或远端 Actions 成功记录闭环。
+- [x] Showcase 可在 Android emulator 运行；GitHub Actions run `26904447920` 的 `showcase-android-runtime` job 已下载 debug APK、启动 Android emulator、运行 `mf:android-runtime-run`，并上传 `apps-showcase-runtime-evidence.json`。证据记录 `emulator-5554` 上安装、启动和前台窗口校验均通过。
 - [x] Design Tokens 可统一引用；`packages/design-tokens`、`ui-core` 和 `ui-native` 已接入。
 - [x] 组件库可独立预览；Showcase 已覆盖组件、模板和 Native mock 能力入口。
 - [x] 页面模板可复用；`packages/screen-templates` 已提供通用模板并被 `create-screen`/Showcase 使用。
 - [x] 所有原生能力有 mock adapter；`@mobile-frame/core/native-modules` 已覆盖设备信息、权限、已安装应用、浮窗、安全存储、网络和 legacy mock。
-- [ ] Android Debug / Release 可打包；已提供统一 `mf:android-build:debug`/`mf:android-build:release` 构建入口，可执行 strict preflight、Gradle assemble、APK metadata 校验和 build evidence 输出。当前环境缺 Android SDK/Gradle/ADB，Release 签名也需业务侧配置或显式 scaffold 验证参数。
+- [ ] Android Debug / Release 可打包；Debug 已由 GitHub Actions run `26904447920` 的 `showcase-android-debug` job 证明，artifact 包含 debug APK、APK metadata 和 `apps-showcase-debug-build-evidence.json`。Release 仍需业务侧签名配置或显式 scaffold 验证参数继续产出 release build evidence。
 
 ### P1
 
@@ -757,7 +757,7 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 - [x] 暗色主题；`design-tokens`、`ui-core`、`app-shell` 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。
 - [x] 组件快照测试；`packages/ui-native/src/component-snapshots.test.tsx` 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。
 - [x] 文档站点；已提供无额外依赖的 `docs-site/index.html` 静态入口，并通过 `mf:docs-site:check` 接入 `mf:validate`。
-- [ ] 示例 App 自动构建；`.github/workflows/mobile-frame.yml` 已配置 `source-validation`、`showcase-android-debug` 和 `showcase-android-runtime`，debug job 通过 `mf:android-build:debug` 构建并用 `mf:runtime-evidence --require android.debug-build-evidence` 强制校验 build evidence，runtime job 下载 APK、启动 Android emulator、执行 `mf:android-runtime-run` 并用 `mf:runtime-evidence --require android.runtime-evidence` 强制校验 runtime evidence，且通过 `mf:ci-workflow-check` 做本地结构校验。仍需远端 GitHub Actions 成功记录证明 APK 和 runtime evidence artifact 产出。
+- [x] 示例 App 自动构建；GitHub Actions run `26904447920` 已跑通 `source-validation`、`showcase-android-debug` 和 `showcase-android-runtime`。`mobile-frame-showcase-debug-apk` artifact 已产出 debug APK、APK metadata、debug build evidence 和 report；`mobile-frame-showcase-runtime-evidence` artifact 已产出 Android runtime evidence 和 report。
 
 ---
 
