@@ -61,6 +61,9 @@ type RouteKey =
   | 'alerts'
   | 'alertDetail'
   | 'logDetail'
+  | 'releases'
+  | 'releaseDetail'
+  | 'releaseTargets'
   | 'pendingDevices'
   | 'deviceDetail'
   | 'deviceAlert';
@@ -162,6 +165,32 @@ type EvidenceRecord = {
   label: string;
   similarity: string;
   taskRunId: string;
+};
+
+type ReleaseRecord = {
+  channel: string;
+  checksum: string;
+  failed: number;
+  id: string;
+  progress: number;
+  rollout: string;
+  size: string;
+  status: string;
+  summary: string;
+  total: number;
+  upgraded: number;
+  version: string;
+};
+
+type ReleaseTarget = {
+  deviceId: string;
+  deviceName: string;
+  id: string;
+  progress: number;
+  releaseId: string;
+  status: string;
+  tone: Tone;
+  updatedAt: string;
 };
 
 const theme = createTheme('light');
@@ -485,6 +514,58 @@ const evidenceRecords: EvidenceRecord[] = [
   { capturedAt: '10:21:38', id: 'ev-run-001-match', label: '野怪识别截图', similarity: '0.86', taskRunId: 'run-20260603-001' }
 ];
 
+const releases: ReleaseRecord[] = [
+  {
+    channel: '正式',
+    checksum: 'sha256:9f7c...21ab',
+    failed: 2,
+    id: 'rel-0-3-3',
+    progress: 0.875,
+    rollout: '灰度 20%',
+    size: '89.6 MB',
+    status: '灰度中',
+    summary: '优化 Worker 心跳、任务日志上报和截图证据上传。',
+    total: 112,
+    upgraded: 98,
+    version: 'v0.3.3'
+  },
+  {
+    channel: '正式',
+    checksum: 'sha256:71aa...08df',
+    failed: 0,
+    id: 'rel-0-3-2',
+    progress: 1,
+    rollout: '全量',
+    size: '87.2 MB',
+    status: '线上版本',
+    summary: '稳定版，支持任务调度、设备绑定和基础日志。',
+    total: 112,
+    upgraded: 112,
+    version: 'v0.3.2'
+  }
+];
+
+const fallbackRelease = releases[0] ?? {
+  channel: '正式',
+  checksum: 'sha256:placeholder',
+  failed: 0,
+  id: 'rel-placeholder',
+  progress: 0,
+  rollout: '测试',
+  size: '0 MB',
+  status: '草稿',
+  summary: '待上传安装包。',
+  total: 0,
+  upgraded: 0,
+  version: 'v0.0.0'
+};
+
+const releaseTargets: ReleaseTarget[] = [
+  { deviceId: 'dev-pixel-7-pro', deviceName: 'Pixel 7 Pro', id: 'target-pixel-7-pro', progress: 1, releaseId: 'rel-0-3-3', status: '已升级', tone: 'success', updatedAt: '10:08' },
+  { deviceId: 'dev-redmi-k70', deviceName: 'Redmi K70', id: 'target-redmi-k70', progress: 0.36, releaseId: 'rel-0-3-3', status: '安装失败', tone: 'danger', updatedAt: '10:18' },
+  { deviceId: 'dev-galaxy-s24', deviceName: 'Galaxy S24', id: 'target-galaxy-s24', progress: 0.64, releaseId: 'rel-0-3-3', status: '下载中', tone: 'warning', updatedAt: '10:20' }
+];
+
 export function App() {
   const [screen, setScreen] = useState<ScreenKey>('splash');
   const [tab, setTab] = useState<MainTab>('dashboard');
@@ -498,6 +579,7 @@ export function App() {
   const [selectedGameAccountId, setSelectedGameAccountId] = useState(fallbackGameAccount.accountId);
   const [selectedTaskRunId, setSelectedTaskRunId] = useState(fallbackTaskRun.id);
   const [selectedAlertId, setSelectedAlertId] = useState(fallbackAlert.id);
+  const [selectedReleaseId, setSelectedReleaseId] = useState(fallbackRelease.id);
   const [logBackRoute, setLogBackRoute] = useState<RouteKey>('taskExecutionDetail');
   const [draftTaskRun, setDraftTaskRun] = useState<TaskRun | null>(null);
   const [taskFilter, setTaskFilter] = useState<'running' | 'failed' | 'finished'>('running');
@@ -594,6 +676,10 @@ export function App() {
       }
       setModuleFormMode(mode);
       setRoute('moduleGroupForm');
+    },
+    openRelease: (releaseId: string) => {
+      setSelectedReleaseId(releaseId);
+      setRoute('releaseDetail');
     },
     openTaskModule: (moduleId: string) => {
       setSelectedTaskModuleId(moduleId);
@@ -702,6 +788,7 @@ export function App() {
             moduleFormMode={moduleFormMode}
             logBackRoute={logBackRoute}
             route={route}
+            selectedRelease={releases.find((release) => release.id === selectedReleaseId) ?? fallbackRelease}
             selectedAlert={alerts.find((alert) => alert.id === selectedAlertId) ?? fallbackAlert}
             selectedDevice={devices.find((device) => device.id === selectedDeviceId) ?? fallbackDevice}
             selectedGameAccount={gameAccounts.find((account) => account.accountId === selectedGameAccountId) ?? fallbackGameAccount}
@@ -734,6 +821,7 @@ type AdminActions = {
   openManagedUser: (userId: string) => void;
   openModuleGroup: (groupId: string) => void;
   openModuleGroupForm: (mode: ModuleFormMode, groupId?: string) => void;
+  openRelease: (releaseId: string) => void;
   openSheet: (title: string, body: string) => void;
   openTaskRun: (taskRunId: string) => void;
   openTaskModule: (moduleId: string) => void;
@@ -835,6 +923,7 @@ function MainScreen({
   selectedDevice,
   selectedGameAccount,
   selectedModuleGroup,
+  selectedRelease,
   selectedTaskModule,
   selectedTaskRun,
   selectedUser,
@@ -853,6 +942,7 @@ function MainScreen({
   selectedDevice: DeviceRecord;
   selectedGameAccount: GameAccount;
   selectedModuleGroup: ModuleGroup;
+  selectedRelease: ReleaseRecord;
   selectedTaskModule: GameTaskModule;
   selectedTaskRun: TaskRun;
   selectedUser: ManagedUser;
@@ -971,6 +1061,18 @@ function MainScreen({
     return <LogDetailScreen actions={actions} alert={selectedAlert} backRoute={logBackRoute} taskRun={selectedTaskRun} theme={theme} />;
   }
 
+  if (route === 'releases') {
+    return <ReleasesScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'releaseDetail') {
+    return <ReleaseDetailScreen actions={actions} release={selectedRelease} theme={theme} />;
+  }
+
+  if (route === 'releaseTargets') {
+    return <ReleaseTargetsScreen actions={actions} release={selectedRelease} theme={theme} />;
+  }
+
   if (route === 'pendingDevices') {
     return <PendingDevicesScreen actions={actions} theme={theme} />;
   }
@@ -1024,7 +1126,7 @@ function DashboardScreen({ actions, theme }: { actions: AdminActions; theme: MFT
             <MFStatCard key={metric.label} label={metric.label} onPress={() => actions.setTab(metric.tab)} theme={theme} value={metric.value} />
           ))}
         </MFRow>
-        <SectionTitle action="查看发版" onAction={() => actions.openSheet('APP 发版中心', '线上 v0.3.2，待发布 v0.3.3。后续 Phase 6 会接入发布记录、灰度和回滚。')} theme={theme} title="发版状态" />
+        <SectionTitle action="查看发版" onAction={() => actions.goRoute('releases')} theme={theme} title="发版状态" />
         <MFCard theme={theme}>
           <MFStack gap={12}>
             <MFRow style={{ justifyContent: 'space-between' }}>
@@ -1037,6 +1139,7 @@ function DashboardScreen({ actions, theme }: { actions: AdminActions; theme: MFT
               <MFBadge label="87.5%" tone="warning" theme={theme} />
             </MFRow>
             <MFProgress theme={theme} value={0.875} />
+            <MFButton fullWidth={false} onPress={() => actions.openRelease(fallbackRelease.id)} theme={theme} title="版本详情" variant="secondary" />
           </MFStack>
         </MFCard>
         <SectionTitle action="全部任务" onAction={() => actions.setTab('tasks')} theme={theme} title="执行中任务" />
@@ -1198,6 +1301,11 @@ function ManageScreen({ actions, theme }: { actions: AdminActions; theme: MFThem
 
                   if (entry.title === '游戏模块') {
                     actions.goRoute('moduleGroups');
+                    return;
+                  }
+
+                  if (entry.title === 'APP 管理 / 发版中心') {
+                    actions.goRoute('releases');
                     return;
                   }
 
@@ -2255,6 +2363,185 @@ function TaskRetryScreen({ actions, device, taskRun, theme }: { actions: AdminAc
   );
 }
 
+function ReleasesScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  const onlineRelease = releases.find((release) => release.status === '线上版本') ?? releases[0] ?? fallbackRelease;
+  const activeRelease = releases.find((release) => release.status !== '线上版本') ?? fallbackRelease;
+  const failedTargets = releaseTargets.filter((target) => target.tone === 'danger');
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="manage" subtitle="安装包、灰度发布、升级状态和失败设备" theme={theme} title="APP 发版中心" />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  当前线上 {onlineRelease.version}
+                </MFText>
+                <MFCaption theme={theme}>
+                  {onlineRelease.channel} · {onlineRelease.size} · {onlineRelease.checksum}
+                </MFCaption>
+              </MFStack>
+              <MFBadge label={onlineRelease.status} tone="success" theme={theme} />
+            </MFRow>
+            <MFStatusCard message={onlineRelease.summary} theme={theme} title="稳定版本" tone="success" />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                  {activeRelease.version} {activeRelease.status}
+                </MFText>
+                <MFCaption theme={theme}>
+                  {activeRelease.rollout} · 已升级 {activeRelease.upgraded} / {activeRelease.total} · 失败 {activeRelease.failed}
+                </MFCaption>
+              </MFStack>
+              <MFBadge label={`${Math.round(activeRelease.progress * 100)}%`} tone={activeRelease.failed > 0 ? 'warning' : 'info'} theme={theme} />
+            </MFRow>
+            <MFProgress label="灰度进度" theme={theme} value={activeRelease.progress} />
+            <MFRow gap={10}>
+              <MFButton fullWidth={false} onPress={() => actions.openRelease(activeRelease.id)} theme={theme} title="版本详情" variant="secondary" />
+              <MFButton fullWidth={false} onPress={() => actions.goRoute('releaseTargets')} theme={theme} title="设备状态" variant="ghost" />
+            </MFRow>
+          </MFStack>
+        </MFCard>
+        <MFRow gap={12}>
+          <MFStatCard label="安装包" theme={theme} value={String(releases.length)} />
+          <MFStatCard label="失败设备" onPress={() => actions.goRoute('releaseTargets')} theme={theme} value={String(failedTargets.length)} />
+          <MFStatCard label="灰度覆盖" theme={theme} value={activeRelease.rollout} />
+        </MFRow>
+        <MFCard padded={false} theme={theme}>
+          <MFListItem meta="上传 APK、校验 checksum、填写版本说明" onPress={() => actions.openSheet('上传安装包', '正式接入后会选择 APK 文件、自动计算 checksum，并生成待发布草稿。')} theme={theme} title="上传 APK" />
+          <MFDivider />
+          <MFListItem meta="选择目标、灰度比例、强制升级策略" onPress={() => actions.openSheet('新建发布', '发布前需要确认渠道、版本号、灰度范围和回滚策略。')} theme={theme} title="新建发布" />
+          <MFDivider />
+          <MFListItem meta="查看发布审计和版本变更记录" onPress={() => actions.showToast('发布记录将在接口接入后同步')} theme={theme} title="发布记录" />
+        </MFCard>
+        <SectionTitle theme={theme} title="版本列表" />
+        {releases.map((release) => (
+          <MFCard key={release.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {release.version}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {release.channel} · {release.rollout} · {release.size}
+                  </MFCaption>
+                </MFStack>
+                <ReleaseStatusBadge status={release.status} theme={theme} />
+              </MFRow>
+              <MFCaption theme={theme}>{release.summary}</MFCaption>
+              <MFProgress label="升级进度" theme={theme} value={release.progress} />
+              <MFButton fullWidth={false} onPress={() => actions.openRelease(release.id)} theme={theme} title="查看详情" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ReleaseDetailScreen({ actions, release, theme }: { actions: AdminActions; release: ReleaseRecord; theme: MFTheme }) {
+  const relatedTargets = releaseTargets.filter((target) => target.releaseId === release.id);
+  const failedCount = relatedTargets.filter((target) => target.tone === 'danger').length || release.failed;
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="releases" subtitle={`${release.channel} · ${release.rollout} · ${release.size}`} theme={theme} title={release.version} />
+        <MFStatusCard message={release.summary} theme={theme} title={release.status} tone={release.failed > 0 ? 'warning' : release.progress >= 1 ? 'success' : 'info'} />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <SectionTitle theme={theme} title="发布进度" />
+            <MFProgress label={`已升级 ${release.upgraded} / ${release.total}`} theme={theme} value={release.progress} />
+            <MFRow gap={12}>
+              <MFStatCard label="成功" theme={theme} value={String(release.upgraded)} />
+              <MFStatCard label="失败" theme={theme} value={String(failedCount)} />
+              <MFStatCard label="进度" theme={theme} value={`${Math.round(release.progress * 100)}%`} />
+            </MFRow>
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="安装包信息" />
+            <MFKeyValue label="版本号" theme={theme} value={release.version} />
+            <MFKeyValue label="渠道" theme={theme} value={release.channel} />
+            <MFKeyValue label="包大小" theme={theme} value={release.size} />
+            <MFKeyValue label="校验值" theme={theme} value={release.checksum} />
+            <MFKeyValue label="发布范围" theme={theme} value={release.rollout} />
+          </MFStack>
+        </MFCard>
+        <MFCard padded={false} theme={theme}>
+          <MFListItem meta={`${relatedTargets.length || release.total} 台设备升级状态`} onPress={() => actions.goRoute('releaseTargets')} theme={theme} title="设备状态" />
+          <MFDivider />
+          <MFListItem meta="按当前灰度策略增加目标设备" onPress={() => actions.openSheet('扩大灰度', '扩大灰度前会重新计算目标设备并提示风险，确认后写入发布审计。')} theme={theme} title="扩大灰度" />
+          <MFDivider />
+          <MFListItem meta="停止当前发布并保留已升级设备" onPress={() => actions.openSheet('停止发布', '确认停止后不再下发该版本，失败设备可在设备状态页单独重试。')} theme={theme} title="停止发布" />
+        </MFCard>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ReleaseTargetsScreen({ actions, release, theme }: { actions: AdminActions; release: ReleaseRecord; theme: MFTheme }) {
+  const targets = releaseTargets.filter((target) => target.releaseId === release.id);
+  const failedTargets = targets.filter((target) => target.tone === 'danger');
+  const upgradedTargets = targets.filter((target) => target.tone === 'success');
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="releaseDetail" subtitle={`${release.version} · ${release.rollout}`} theme={theme} title="设备升级状态" />
+        <MFSearchBar placeholder="搜索设备名称、升级状态或设备 ID" theme={theme} />
+        <MFSegmentedControl
+          onChange={() => actions.showToast('设备状态筛选将在接口接入后生效')}
+          options={[
+            { label: '全部', value: 'all' },
+            { label: '失败', value: 'failed' },
+            { label: '升级中', value: 'running' }
+          ]}
+          theme={theme}
+          value="all"
+        />
+        <MFRow gap={12}>
+          <MFStatCard label="目标" theme={theme} value={String(targets.length || release.total)} />
+          <MFStatCard label="成功" theme={theme} value={String(upgradedTargets.length || release.upgraded)} />
+          <MFStatCard label="失败" theme={theme} value={String(failedTargets.length || release.failed)} />
+        </MFRow>
+        {targets.map((target) => (
+          <MFCard key={target.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {target.deviceName}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {target.deviceId} · {target.updatedAt}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={target.status} tone={target.tone} theme={theme} />
+              </MFRow>
+              <MFProgress label="升级进度" theme={theme} value={target.progress} />
+              <MFRow gap={10}>
+                <MFButton fullWidth={false} onPress={() => actions.openDevice(target.deviceId)} theme={theme} title="设备详情" variant="secondary" />
+                <MFButton fullWidth={false} onPress={() => actions.showToast(`${target.deviceName} 升级任务已重新下发`)} theme={theme} title="重试" variant="ghost" />
+                <MFButton fullWidth={false} onPress={() => actions.showToast('升级日志将在接口接入后打开')} theme={theme} title="日志" variant="ghost" />
+              </MFRow>
+            </MFStack>
+          </MFCard>
+        ))}
+        {targets.length === 0 ? <MFStatusCard message="当前版本暂无设备升级明细，接入发布接口后会展示目标设备、下载、安装和上报状态。" theme={theme} title="暂无设备状态" tone="info" /> : null}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
 function PendingDevicesScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
   return (
     <MFScrollPage theme={theme}>
@@ -2513,6 +2800,11 @@ function AlertStatusBadge({ status, theme }: { status: AlertStatus; theme: MFThe
   };
   const badge = mapping[status];
   return <MFBadge label={badge.label} tone={badge.tone} theme={theme} />;
+}
+
+function ReleaseStatusBadge({ status, theme }: { status: string; theme: MFTheme }) {
+  const tone: Tone = status === '线上版本' ? 'success' : status === '灰度中' ? 'warning' : status === '草稿' ? 'info' : 'danger';
+  return <MFBadge label={status} tone={tone} theme={theme} />;
 }
 
 function EvidenceSection({ evidences, theme }: { evidences: EvidenceRecord[]; theme: MFTheme }) {
