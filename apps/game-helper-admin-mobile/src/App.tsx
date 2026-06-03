@@ -64,6 +64,11 @@ type RouteKey =
   | 'releases'
   | 'releaseDetail'
   | 'releaseTargets'
+  | 'opsCenter'
+  | 'opsMonitoring'
+  | 'auditLogs'
+  | 'launchReadiness'
+  | 'testPlan'
   | 'pendingDevices'
   | 'deviceDetail'
   | 'deviceAlert';
@@ -191,6 +196,43 @@ type ReleaseTarget = {
   status: string;
   tone: Tone;
   updatedAt: string;
+};
+
+type AuditLogRecord = {
+  actor: string;
+  createdAt: string;
+  id: string;
+  object: string;
+  result: string;
+  risk: Tone;
+  title: string;
+};
+
+type ReadinessCheck = {
+  detail: string;
+  id: string;
+  owner: string;
+  status: string;
+  title: string;
+  tone: Tone;
+};
+
+type TestCaseRecord = {
+  id: string;
+  name: string;
+  owner: string;
+  result: string;
+  scope: string;
+  tone: Tone;
+};
+
+type RealtimeEventRecord = {
+  channel: string;
+  count: number;
+  delay: string;
+  id: string;
+  status: string;
+  tone: Tone;
 };
 
 const theme = createTheme('light');
@@ -447,7 +489,8 @@ const fallbackTaskModule = taskModules[0] ?? {
 const managementEntries = [
   { meta: '128 个用户，98 台在线设备', target: '托管用户列表', title: '托管用户' },
   { meta: '8 个分组，32 个具体任务模块', target: '游戏模块分组', title: '游戏模块' },
-  { meta: '线上 v0.3.2，灰度 v0.3.3', target: 'APP 发版中心', title: 'APP 管理 / 发版中心' }
+  { meta: '线上 v0.3.2，灰度 v0.3.3', target: 'APP 发版中心', title: 'APP 管理 / 发版中心' },
+  { meta: '测试、监控、审计和上线检查', target: '上线运维', title: '测试 / 监控 / 上线' }
 ];
 
 const profileEntries: Array<{ meta: string; title: string }> = [
@@ -564,6 +607,34 @@ const releaseTargets: ReleaseTarget[] = [
   { deviceId: 'dev-pixel-7-pro', deviceName: 'Pixel 7 Pro', id: 'target-pixel-7-pro', progress: 1, releaseId: 'rel-0-3-3', status: '已升级', tone: 'success', updatedAt: '10:08' },
   { deviceId: 'dev-redmi-k70', deviceName: 'Redmi K70', id: 'target-redmi-k70', progress: 0.36, releaseId: 'rel-0-3-3', status: '安装失败', tone: 'danger', updatedAt: '10:18' },
   { deviceId: 'dev-galaxy-s24', deviceName: 'Galaxy S24', id: 'target-galaxy-s24', progress: 0.64, releaseId: 'rel-0-3-3', status: '下载中', tone: 'warning', updatedAt: '10:20' }
+];
+
+const realtimeEvents: RealtimeEventRecord[] = [
+  { channel: 'device.status.changed', count: 286, delay: '0.8s', id: 'evt-device-status', status: '正常', tone: 'success' },
+  { channel: 'task.progress', count: 1248, delay: '1.1s', id: 'evt-task-progress', status: '正常', tone: 'success' },
+  { channel: 'alert.created', count: 12, delay: '0.6s', id: 'evt-alert-created', status: '正常', tone: 'success' },
+  { channel: 'release.device.updated', count: 18, delay: '2.4s', id: 'evt-release-device', status: '关注', tone: 'warning' }
+];
+
+const auditLogs: AuditLogRecord[] = [
+  { actor: 'Admin', createdAt: '10:28:19', id: 'audit-stop-release', object: 'rel-0-3-3', result: '已写入审计', risk: 'warning', title: '停止发布预检查' },
+  { actor: '运维值班', createdAt: '10:12:44', id: 'audit-restart-worker', object: 'dev-redmi-k70', result: '指令已下发', risk: 'danger', title: '重启 Worker' },
+  { actor: '任务调度', createdAt: '09:51:02', id: 'audit-cancel-task', object: 'run-20260603-002', result: '任务已取消', risk: 'danger', title: '取消任务' },
+  { actor: '发版管理员', createdAt: '08:42:35', id: 'audit-expand-rollout', object: 'rel-0-3-3', result: '灰度扩大到 20%', risk: 'warning', title: '扩大灰度' }
+];
+
+const readinessChecks: ReadinessCheck[] = [
+  { detail: '管理员 Token 仅进入 Keychain / Keystore，不落本地明文缓存。', id: 'ready-secure-token', owner: '安全', status: '通过', title: '安全存储', tone: 'success' },
+  { detail: '解绑、取消任务、重启 Worker、停止发布和回滚都进入审计日志。', id: 'ready-audit', owner: '后端', status: '通过', title: '危险操作审计', tone: 'success' },
+  { detail: 'release.device.updated 延迟 2.4 秒，发布期间需要保持监控。', id: 'ready-realtime', owner: '实时链路', status: '关注', title: '实时事件延迟', tone: 'warning' },
+  { detail: 'APK 与证据截图已按短时签名 URL 设计，等待正式对象存储联调。', id: 'ready-signed-url', owner: '存储', status: '待联调', title: '签名 URL', tone: 'warning' }
+];
+
+const testCases: TestCaseRecord[] = [
+  { id: 'case-login', name: '登录与 Token 刷新', owner: '移动端', result: '通过', scope: '登录、登出、会话恢复', tone: 'success' },
+  { id: 'case-task-flow', name: '任务调度闭环', owner: '调度', result: '通过', scope: '新建、执行、暂停、重试、日志', tone: 'success' },
+  { id: 'case-release-flow', name: 'APP 发版流程', owner: '发版', result: '关注', scope: '上传、灰度、失败重试、停止发布', tone: 'warning' },
+  { id: 'case-alert-flow', name: '告警与证据', owner: '运维', result: '通过', scope: '告警详情、日志、证据截图', tone: 'success' }
 ];
 
 export function App() {
@@ -1073,6 +1144,26 @@ function MainScreen({
     return <ReleaseTargetsScreen actions={actions} release={selectedRelease} theme={theme} />;
   }
 
+  if (route === 'opsCenter') {
+    return <OpsCenterScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'opsMonitoring') {
+    return <OpsMonitoringScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'auditLogs') {
+    return <AuditLogsScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'launchReadiness') {
+    return <LaunchReadinessScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'testPlan') {
+    return <TestPlanScreen actions={actions} theme={theme} />;
+  }
+
   if (route === 'pendingDevices') {
     return <PendingDevicesScreen actions={actions} theme={theme} />;
   }
@@ -1306,6 +1397,11 @@ function ManageScreen({ actions, theme }: { actions: AdminActions; theme: MFThem
 
                   if (entry.title === 'APP 管理 / 发版中心') {
                     actions.goRoute('releases');
+                    return;
+                  }
+
+                  if (entry.title === '测试 / 监控 / 上线') {
+                    actions.goRoute('opsCenter');
                     return;
                   }
 
@@ -2542,6 +2638,227 @@ function ReleaseTargetsScreen({ actions, release, theme }: { actions: AdminActio
   );
 }
 
+function OpsCenterScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  const readyCount = readinessChecks.filter((check) => check.tone === 'success').length;
+  const passedCases = testCases.filter((testCase) => testCase.tone === 'success').length;
+  const riskyAudits = auditLogs.filter((log) => log.risk === 'danger').length;
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="manage" subtitle="测试、监控、审计与上线前检查" theme={theme} title="上线运维" />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  上线准备 {readyCount} / {readinessChecks.length}
+                </MFText>
+                <MFCaption theme={theme}>测试用例 {passedCases} / {testCases.length} 通过，实时事件整体稳定。</MFCaption>
+              </MFStack>
+              <MFBadge label={readyCount === readinessChecks.length ? '可上线' : '待确认'} tone={readyCount === readinessChecks.length ? 'success' : 'warning'} theme={theme} />
+            </MFRow>
+            <MFProgress label="上线检查" theme={theme} value={readyCount / readinessChecks.length} />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={12}>
+          <MFStatCard label="测试通过" onPress={() => actions.goRoute('testPlan')} theme={theme} value={`${passedCases}/${testCases.length}`} />
+          <MFStatCard label="实时事件" onPress={() => actions.goRoute('opsMonitoring')} theme={theme} value="4" />
+          <MFStatCard label="高危审计" onPress={() => actions.goRoute('auditLogs')} theme={theme} value={String(riskyAudits)} />
+        </MFRow>
+        <MFCard padded={false} theme={theme}>
+          <MFListItem meta="接口、任务、告警、发版主流程验收" onPress={() => actions.goRoute('testPlan')} theme={theme} title="测试用例" />
+          <MFDivider />
+          <MFListItem meta="实时事件、设备心跳、任务进度和发版上报" onPress={() => actions.goRoute('opsMonitoring')} theme={theme} title="监控看板" />
+          <MFDivider />
+          <MFListItem meta="危险操作、发布变更和管理员行为" onPress={() => actions.goRoute('auditLogs')} theme={theme} title="审计日志" />
+          <MFDivider />
+          <MFListItem meta="Token、安全、签名 URL、回滚和上线确认" onPress={() => actions.goRoute('launchReadiness')} theme={theme} title="上线检查" />
+        </MFCard>
+        <SectionTitle theme={theme} title="关键风险" />
+        {readinessChecks
+          .filter((check) => check.tone !== 'success')
+          .map((check) => (
+            <MFStatusCard key={check.id} message={`${check.owner} · ${check.detail}`} onPress={() => actions.goRoute('launchReadiness')} theme={theme} title={check.title} tone={check.tone} />
+          ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function OpsMonitoringScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  const totalEventCount = realtimeEvents.reduce((sum, event) => sum + event.count, 0);
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="opsCenter" subtitle="实时事件、设备心跳、任务进度和发版上报" theme={theme} title="监控看板" />
+        <MFRow gap={12}>
+          <MFStatCard label="事件量" theme={theme} value={String(totalEventCount)} />
+          <MFStatCard label="在线设备" onPress={() => actions.goTabs('devices')} theme={theme} value="98" />
+          <MFStatCard label="未处理告警" onPress={() => actions.goRoute('alerts')} theme={theme} value="12" />
+        </MFRow>
+        <MFStatusCard message="release.device.updated 当前延迟 2.4 秒，灰度期间建议保留人工观察窗口。" theme={theme} title="发布链路关注" tone="warning" />
+        <SectionTitle theme={theme} title="实时事件" />
+        {realtimeEvents.map((event) => (
+          <MFCard key={event.id} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {event.channel}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    今日 {event.count} 条 · 平均延迟 {event.delay}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={event.status} tone={event.tone} theme={theme} />
+              </MFRow>
+              <MFProgress label="链路健康度" theme={theme} value={event.tone === 'success' ? 0.96 : 0.72} />
+            </MFStack>
+          </MFCard>
+        ))}
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.showToast('监控指标已刷新')} theme={theme} title="刷新" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('auditLogs')} theme={theme} title="审计" variant="ghost" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function AuditLogsScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="opsCenter" subtitle="危险操作、发布变更和管理员行为追踪" theme={theme} title="审计日志" />
+        <MFSearchBar placeholder="搜索管理员、对象 ID 或操作类型" theme={theme} />
+        <MFSegmentedControl
+          onChange={() => actions.showToast('审计筛选将在接口接入后生效')}
+          options={[
+            { label: '全部', value: 'all' },
+            { label: '高危', value: 'danger' },
+            { label: '发版', value: 'release' }
+          ]}
+          theme={theme}
+          value="all"
+        />
+        {auditLogs.map((log) => (
+          <MFCard key={log.id} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {log.title}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {log.createdAt} · {log.actor}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={log.result} tone={log.risk} theme={theme} />
+              </MFRow>
+              <MFKeyValue label="对象" theme={theme} value={log.object} />
+              <MFButton fullWidth={false} onPress={() => actions.openSheet(log.title, `${log.actor} 在 ${log.createdAt} 操作 ${log.object}，结果：${log.result}。`)} theme={theme} title="详情" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function LaunchReadinessScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  const readyCount = readinessChecks.filter((check) => check.tone === 'success').length;
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="opsCenter" subtitle="安全规则、实时链路、发版风险和上线确认" theme={theme} title="上线检查" />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  检查项 {readyCount} / {readinessChecks.length}
+                </MFText>
+                <MFCaption theme={theme}>仍有签名 URL 联调和发布实时延迟需要确认。</MFCaption>
+              </MFStack>
+              <MFBadge label="Phase 7" tone="info" theme={theme} />
+            </MFRow>
+            <MFProgress label="上线准备度" theme={theme} value={readyCount / readinessChecks.length} />
+          </MFStack>
+        </MFCard>
+        {readinessChecks.map((check) => (
+          <MFCard key={check.id} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {check.title}
+                  </MFText>
+                  <MFCaption theme={theme}>{check.owner}</MFCaption>
+                </MFStack>
+                <MFBadge label={check.status} tone={check.tone} theme={theme} />
+              </MFRow>
+              <MFCaption theme={theme}>{check.detail}</MFCaption>
+            </MFStack>
+          </MFCard>
+        ))}
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.showToast('上线检查报告已生成')} theme={theme} title="生成报告" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.goRoute('auditLogs')} theme={theme} title="查看审计" variant="ghost" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TestPlanScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  const passedCases = testCases.filter((testCase) => testCase.tone === 'success').length;
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="opsCenter" subtitle="登录、调度、发版、告警和证据链路验收" theme={theme} title="测试用例" />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                  回归进度
+                </MFText>
+                <MFCaption theme={theme}>
+                  {passedCases} / {testCases.length} 通过，发版流程保留人工确认。
+                </MFCaption>
+              </MFStack>
+              <MFBadge label="验收" tone="info" theme={theme} />
+            </MFRow>
+            <MFProgress label="测试通过率" theme={theme} value={passedCases / testCases.length} />
+          </MFStack>
+        </MFCard>
+        {testCases.map((testCase) => (
+          <MFCard key={testCase.id} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {testCase.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {testCase.scope} · {testCase.owner}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={testCase.result} tone={testCase.tone} theme={theme} />
+              </MFRow>
+              <MFButton fullWidth={false} onPress={() => actions.openSheet(testCase.name, `${testCase.scope} 已纳入 Phase 7 验收记录，正式接入后同步自动化结果。`)} theme={theme} title="记录" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
 function PendingDevicesScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
   return (
     <MFScrollPage theme={theme}>
@@ -2660,7 +2977,19 @@ function ProfileScreen({ actions, theme }: { actions: AdminActions; theme: MFThe
         <MFCard padded={false} theme={theme}>
           {profileEntries.map((entry, index, rows) => (
             <View key={entry.title}>
-              <MFListItem meta={entry.meta} onPress={() => actions.openSheet(entry.title, `${entry.title} 后续会接入独立子页面。`)} theme={theme} title={entry.title} />
+              <MFListItem
+                meta={entry.meta}
+                onPress={() => {
+                  if (entry.title === '操作日志') {
+                    actions.goRoute('auditLogs');
+                    return;
+                  }
+
+                  actions.openSheet(entry.title, `${entry.title} 后续会接入独立子页面。`);
+                }}
+                theme={theme}
+                title={entry.title}
+              />
               {index < rows.length - 1 ? <MFDivider /> : null}
             </View>
           ))}
