@@ -1,4 +1,4 @@
-export type MFPresetName = 'minimal' | 'standard' | 'operations';
+export type MFPresetName = 'minimal' | 'standard' | 'operations' | 'admin-mobile';
 
 export type MFPreset = {
   name: MFPresetName;
@@ -25,6 +25,22 @@ export const mfPresets: Record<MFPresetName, MFPreset> = {
     description: 'Operational app starter with logs, task status, and approval-oriented patterns.',
     modules: ['settings', 'logs', 'tasks'],
     features: ['theme', 'routing', 'storage', 'network-monitor', 'audit-log', 'task-progress']
+  },
+  'admin-mobile': {
+    name: 'admin-mobile',
+    description: 'Administrator mobile console starter for managed users, devices, task dispatch, alerts, and releases.',
+    modules: ['auth', 'dashboard', 'managed-users', 'devices', 'tasks', 'game-modules', 'alerts', 'releases', 'settings'],
+    features: [
+      'theme',
+      'routing',
+      'secure-vault',
+      'query-cache',
+      'network-monitor',
+      'audit-log',
+      'task-progress',
+      'release-rollout',
+      'device-binding'
+    ]
   }
 };
 

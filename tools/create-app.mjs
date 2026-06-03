@@ -11,9 +11,9 @@ import {
   writeFiles
 } from './mf-generator-utils.mjs';
 
-const allowedPresets = new Set(['minimal', 'standard', 'operations']);
+const allowedPresets = new Set(['minimal', 'standard', 'operations', 'admin-mobile']);
 
-const usage = `Usage: pnpm mf:create-app <app-name> [--preset minimal|standard|operations] [--dry-run]
+const usage = `Usage: pnpm mf:create-app <app-name> [--preset minimal|standard|operations|admin-mobile] [--dry-run]
 
 Creates a workspace app under apps/<app-name> and registers it in the root tsconfig.`;
 
@@ -54,7 +54,7 @@ runCli(() => {
               '@mobile-frame/presets': 'workspace:*',
               '@mobile-frame/ui-core': 'workspace:*',
               '@mobile-frame/ui-native': 'workspace:*',
-              react: '19.2.7',
+              react: '19.2.3',
               'react-native': '0.85.3'
             }
           },
