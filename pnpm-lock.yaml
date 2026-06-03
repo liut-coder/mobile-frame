@@ -105,6 +105,9 @@ importers:
       '@mobile-frame/presets':
         specifier: workspace:*
         version: link:../../packages/presets
+      '@mobile-frame/realtime':
+        specifier: workspace:*
+        version: link:../../packages/realtime
       '@mobile-frame/screen-templates':
         specifier: workspace:*
         version: link:../../packages/screen-templates
@@ -188,6 +191,8 @@ importers:
   packages/module-sdk: {}
 
   packages/presets: {}
+
+  packages/realtime: {}
 
   packages/screen-templates:
     dependencies:

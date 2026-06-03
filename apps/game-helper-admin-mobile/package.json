@@ -9,6 +9,7 @@
     "@mobile-frame/auth-admin": "workspace:*",
     "@mobile-frame/module-sdk": "workspace:*",
     "@mobile-frame/presets": "workspace:*",
+    "@mobile-frame/realtime": "workspace:*",
     "@mobile-frame/screen-templates": "workspace:*",
     "@mobile-frame/ui-admin": "workspace:*",
     "@mobile-frame/ui-core": "workspace:*",

@@ -22,6 +22,9 @@
       "path": "../../packages/presets"
     },
     {
+      "path": "../../packages/realtime"
+    },
+    {
       "path": "../../packages/screen-templates"
     },
     {

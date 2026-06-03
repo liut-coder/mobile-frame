@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 
 import { PermissionGate, canAccess, useAdminSession, type AdminPermission } from '@mobile-frame/auth-admin';
+import type { RealtimeConnectionSnapshot, TaskRealtimeLogEntry } from '@mobile-frame/realtime';
 import {
   AdminBoundaryCard,
   AdminPageHeader,
@@ -41,13 +42,12 @@ import {
   getDeviceStatusLabel,
   getTaskStatusLabel,
   managementEntries,
-  progressLabel,
-  progressValue,
   statusTone,
   tasks,
   type DeviceRecord,
   type TaskRecord
 } from '../store';
+import { useRealtimeDeviceStatus, useRealtimeGlobalAlerts, useRealtimeTaskProgress } from '../services/realtime';
 import { appTheme } from '../theme';
 
 type LoginScreenProps = {
@@ -116,6 +116,18 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 }
 
 export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenProps) {
+  const { alerts, connection } = useRealtimeGlobalAlerts();
+  const activeAlerts =
+    alerts.length > 0
+      ? alerts
+      : dashboardAlerts.map((alert, index) => ({
+          createdAt: `fixture-${index}`,
+          id: alert.title,
+          message: alert.message,
+          title: alert.title,
+          tone: alert.tone
+        }));
+
   return (
     <MFScrollPage theme={appTheme}>
       <MFStack gap={appTheme.spacing.lg}>
@@ -125,9 +137,10 @@ export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenPro
           theme={appTheme}
           title="Operations overview"
         />
+        <RealtimeConnectionSummary connection={connection} />
         <DashboardStatGrid />
-        {dashboardAlerts.map((alert) => (
-          <MFBanner key={alert.title} message={alert.message} theme={appTheme} title={alert.title} tone={alert.tone} />
+        {activeAlerts.map((alert) => (
+          <MFBanner key={alert.id} message={alert.message} theme={appTheme} title={alert.title} tone={alert.tone} />
         ))}
         <MFStack gap={appTheme.spacing.md}>
           <SectionTitle title="Recent devices" />
@@ -173,6 +186,7 @@ export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
 }
 
 export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetailScreenProps) {
+  const { connection, snapshot } = useRealtimeDeviceStatus(deviceId);
   const device = findDevice(deviceId);
 
   if (!device) {
@@ -180,6 +194,11 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
   }
 
   const currentTask = device.currentTaskId ? findTask(device.currentTaskId) : undefined;
+  const latestAppVersion = snapshot?.appVersion ?? device.appVersion;
+  const latestHeartbeat = snapshot?.heartbeat ?? device.heartbeat;
+  const latestRisk = snapshot?.risk ?? device.risk;
+  const latestStatus = snapshot?.status ?? device.status;
+  const latestWorker = snapshot?.worker ?? device.worker;
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -188,18 +207,19 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
           backLabel="Devices"
           eyebrow={device.id}
           onBack={onBack}
-          right={<StatusBadge label={getDeviceStatusLabel(device.status)} theme={appTheme} tone={statusTone(device.status)} />}
+          right={<StatusBadge label={getDeviceStatusLabel(latestStatus)} theme={appTheme} tone={statusTone(latestStatus)} />}
           subtitle={`${device.owner} - ${device.model}`}
           theme={appTheme}
           title="Device detail"
         />
+        <RealtimeConnectionSummary connection={connection} />
         <MFCard theme={appTheme}>
           <MFStack gap={appTheme.spacing.md}>
-            <MFInfoRow label="App version" theme={appTheme} value={device.appVersion} />
+            <MFInfoRow label="App version" theme={appTheme} value={latestAppVersion} />
             <MFInfoRow label="Battery" theme={appTheme} value={`${device.battery}%`} />
-            <MFInfoRow label="Last heartbeat" theme={appTheme} value={device.heartbeat} />
-            <MFInfoRow label="Worker health" theme={appTheme} value={device.worker} />
-            {device.risk ? <MFInfoRow label="Risk" theme={appTheme} value={device.risk} /> : null}
+            <MFInfoRow label="Last heartbeat" theme={appTheme} value={latestHeartbeat} />
+            <MFInfoRow label="Worker health" theme={appTheme} value={latestWorker} />
+            {latestRisk ? <MFInfoRow label="Risk" theme={appTheme} value={latestRisk} /> : null}
           </MFStack>
         </MFCard>
         <MFStack gap={appTheme.spacing.md}>
@@ -259,11 +279,18 @@ export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
 }
 
 export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScreenProps) {
+  const { connection, snapshot } = useRealtimeTaskProgress(taskId);
   const task = findTask(taskId);
 
   if (!task) {
     return <MissingEntityScreen entity="task" onBack={onBack} />;
   }
+
+  const latestCurrentStep = snapshot?.currentStep ?? task.currentStep;
+  const latestLogs = mergeRealtimeLog(task.logs, snapshot?.log);
+  const latestProgress = snapshot?.progress ?? task.progress;
+  const latestStatus = snapshot?.status ?? task.status;
+  const latestSteps = snapshot?.steps ?? task.steps;
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -272,17 +299,18 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           backLabel="Tasks"
           eyebrow={task.id}
           onBack={onBack}
-          right={<StatusBadge label={getTaskStatusLabel(task.status)} theme={appTheme} tone={statusTone(task.status)} />}
+          right={<StatusBadge label={getTaskStatusLabel(latestStatus)} theme={appTheme} tone={statusTone(latestStatus)} />}
           subtitle={`${task.owner} - ${task.deviceName}`}
           theme={appTheme}
           title={task.name}
         />
+        <RealtimeConnectionSummary connection={connection} />
         <TaskProgressCard
-          currentStep={`Current step: ${task.currentStep}`}
+          currentStep={`Current step: ${latestCurrentStep}`}
           error={task.error ? { message: task.error, title: 'Failure reason' } : undefined}
-          progress={progressValue(task)}
-          progressLabel={`Progress ${progressLabel(task)} - started ${task.startedAt}`}
-          status={{ label: getTaskStatusLabel(task.status), tone: statusTone(task.status) }}
+          progress={progressRatio(latestProgress)}
+          progressLabel={`Progress ${progressCountLabel(latestProgress)} - started ${task.startedAt}`}
+          status={{ label: getTaskStatusLabel(latestStatus), tone: statusTone(latestStatus) }}
           subtitle={`${task.owner} - ${task.deviceName}`}
           theme={appTheme}
           title={task.name}
@@ -299,7 +327,7 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           </PermissionGate>
         </MFRow>
         <Timeline
-          items={task.steps.map((step) => ({
+          items={latestSteps.map((step) => ({
             label: step.label,
             state: step.state,
             time: step.time,
@@ -307,7 +335,7 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           }))}
           theme={appTheme}
         />
-        <LogViewer entries={task.logs.map((log) => ({ level: log.level, message: log.message, time: log.time }))} theme={appTheme} />
+        <LogViewer entries={latestLogs.map((log) => ({ level: log.level, message: log.message, time: log.time }))} theme={appTheme} />
       </MFStack>
     </MFScrollPage>
   );
@@ -421,19 +449,24 @@ function DashboardStatGrid() {
 }
 
 function DeviceListItem({ compact = false, device, onPress }: { compact?: boolean; device: DeviceRecord; onPress: () => void }) {
+  const { snapshot } = useRealtimeDeviceStatus(device.id);
+  const latestHeartbeat = snapshot?.heartbeat ?? device.heartbeat;
+  const latestRisk = snapshot?.risk ?? device.risk;
+  const latestStatus = snapshot?.status ?? device.status;
+
   return (
     <EntityListItem
       actionLabel={compact ? 'View' : undefined}
-      meta={`App v${device.appVersion} - Battery ${device.battery}% - ${device.heartbeat}`}
+      meta={`App v${snapshot?.appVersion ?? device.appVersion} - Battery ${device.battery}% - ${latestHeartbeat}`}
       onPress={onPress}
-      status={{ label: getDeviceStatusLabel(device.status), tone: statusTone(device.status) }}
+      status={{ label: getDeviceStatusLabel(latestStatus), tone: statusTone(latestStatus) }}
       subtitle={`User: ${device.owner}`}
       theme={appTheme}
       title={`${device.model} - ${device.id}`}
     >
-      {device.risk ? (
+      {latestRisk ? (
         <MFText theme={appTheme} style={warningTextStyle()}>
-          {device.risk}
+          {latestRisk}
         </MFText>
       ) : null}
     </EntityListItem>
@@ -441,20 +474,38 @@ function DeviceListItem({ compact = false, device, onPress }: { compact?: boolea
 }
 
 function TaskListItem({ compact = false, onPress, task }: { compact?: boolean; onPress: () => void; task: TaskRecord }) {
+  const { snapshot } = useRealtimeTaskProgress(task.id);
+  const latestCurrentStep = snapshot?.currentStep ?? task.currentStep;
+  const latestProgress = snapshot?.progress ?? task.progress;
+  const latestStatus = snapshot?.status ?? task.status;
+
   return (
     <EntityListItem
       actionLabel={compact ? 'Details' : undefined}
       onPress={onPress}
-      status={{ label: getTaskStatusLabel(task.status), tone: statusTone(task.status) }}
+      status={{ label: getTaskStatusLabel(latestStatus), tone: statusTone(latestStatus) }}
       subtitle={`${task.owner} - ${task.deviceName}`}
       theme={appTheme}
       title={task.name}
     >
-      <MFProgress label={`${progressLabel(task)} - started ${task.startedAt}`} theme={appTheme} value={progressValue(task)} />
+      <MFProgress label={`${progressCountLabel(latestProgress)} - started ${task.startedAt}`} theme={appTheme} value={progressRatio(latestProgress)} />
       <MFText muted theme={appTheme} style={captionTextStyle()}>
-        {task.currentStep}
+        {latestCurrentStep}
       </MFText>
     </EntityListItem>
+  );
+}
+
+function RealtimeConnectionSummary({ connection }: { connection: RealtimeConnectionSnapshot }) {
+  const label = connection.fallback ? `Realtime ${connection.status} via ${connection.fallback}` : `Realtime ${connection.status}`;
+
+  return (
+    <MFRow gap={appTheme.spacing.sm} style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <StatusBadge label={label} theme={appTheme} tone={connectionTone(connection.status)} />
+      <MFText muted theme={appTheme} style={captionTextStyle()}>
+        {connection.lastEventAt ? `Last event ${connection.lastEventAt}` : `Transport ${connection.transport}`}
+      </MFText>
+    </MFRow>
   );
 }
 
@@ -477,6 +528,49 @@ function SectionTitle({ title }: { title: string }) {
       {title}
     </MFText>
   );
+}
+
+function connectionTone(status: RealtimeConnectionSnapshot['status']) {
+  switch (status) {
+    case 'open':
+      return 'success';
+    case 'polling':
+    case 'reconnecting':
+      return 'warning';
+    case 'error':
+      return 'danger';
+    case 'closed':
+    case 'connecting':
+    case 'idle':
+    default:
+      return 'info';
+  }
+}
+
+function mergeRealtimeLog(logs: TaskRecord['logs'], latestLog: TaskRealtimeLogEntry | undefined): TaskRecord['logs'] {
+  if (!latestLog) {
+    return logs;
+  }
+
+  const lastLog = logs[logs.length - 1];
+
+  if (lastLog?.level === latestLog.level && lastLog.message === latestLog.message && lastLog.time === latestLog.time) {
+    return logs;
+  }
+
+  return [...logs, latestLog];
+}
+
+function progressCountLabel(progress: TaskRecord['progress']) {
+  return `${progress.done} / ${progress.total}`;
+}
+
+function progressRatio(progress: TaskRecord['progress']) {
+  if (progress.total <= 0) {
+    return 0;
+  }
+
+  return progress.done / progress.total;
 }
 
 function sectionTitleTextStyle() {

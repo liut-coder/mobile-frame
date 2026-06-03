@@ -14,6 +14,9 @@
       "path": "./packages/auth-admin"
     },
     {
+      "path": "./packages/realtime"
+    },
+    {
       "path": "./packages/ui-core"
     },
     {

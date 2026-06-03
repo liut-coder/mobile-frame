@@ -17,6 +17,7 @@ packages/ui-core               平台无关主题和组件状态类型
 packages/ui-native             React Native 通用 UI 组件
 packages/ui-admin              后台管理移动端通用组件
 packages/auth-admin            后台管理移动端鉴权、Token 映射和权限门禁
+packages/realtime              后台管理移动端实时订阅、WebSocket 传输和轮询降级契约
 packages/app-shell             App Provider、主题、Toast、Sheet、模块挂载状态
 packages/core                  通用工具、Native Contract、mock adapter
 packages/module-sdk            模块声明、路由、权限和 Tab 元数据
@@ -63,6 +64,7 @@ App
 └── MFAppProvider
     ├── AppNavigator
     ├── AdminAuthProvider
+    ├── Realtime subscriptions
     ├── Screen Templates
     ├── UI Native Components
     ├── UI Core Theme
@@ -70,7 +72,7 @@ App
     └── Core Native Contracts
 ```
 
-页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`，并通过 `@mobile-frame/auth-admin` 统一处理管理员 Token 映射、权限判断、路由级 `ProtectedScreen` 和动作级 `PermissionGate`。平台能力应通过 `@mobile-frame/core/native-modules` 访问，避免业务页面直接调用系统 API。
+页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`，通过 `@mobile-frame/auth-admin` 统一处理管理员 Token 映射、权限判断、路由级 `ProtectedScreen` 和动作级 `PermissionGate`，并通过 `@mobile-frame/realtime` 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 `@mobile-frame/core/native-modules` 访问，避免业务页面直接调用系统 API。
 
 ## 验证边界
 
