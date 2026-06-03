@@ -11,6 +11,9 @@
       "path": "./packages/module-sdk"
     },
     {
+      "path": "./packages/auth-admin"
+    },
+    {
       "path": "./packages/ui-core"
     },
     {

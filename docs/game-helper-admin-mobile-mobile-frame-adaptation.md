@@ -852,6 +852,8 @@ App 管理
 9. /api/v1/mobile BFF
 ```
 
+当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制和 `LogViewer` 已完成首轮接入；`InfiniteList`/`FilterSheet`、WebSocket 实时状态、扫码/复制/分享封装和真实 `/api/v1/mobile` BFF 仍待继续推进。
+
 不要第一阶段就加入：
 
 ```text
@@ -968,7 +970,7 @@ App 管理
 ```text
 可以通过 preset 创建后台管理移动端项目
 可以复用后台管理组件
-可以接入管理员权限
+可以接入管理员权限（已通过 `packages/auth-admin` 首轮接入）
 可以接入 WebSocket
 可以分页加载列表
 可以查看实时日志

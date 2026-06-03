@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { AdminAuthProvider, ProtectedScreen, type AdminPermission, type PermissionMode } from '@mobile-frame/auth-admin';
 import { MFTabBar } from '@mobile-frame/ui-native';
 
 import {
@@ -9,14 +10,37 @@ import {
   DeviceListScreen,
   LoginScreen,
   ManagementHomeScreen,
+  PermissionDeniedScreen,
   ProfileScreen,
   TaskDetailScreen,
   TaskListScreen
 } from '../screens';
-import { appTabs, type AdminTab } from '../store';
+import { adminSession, appTabs, type AdminTab } from '../store';
 import { appTheme } from '../theme';
 
 type DetailRoute = { id: string; type: 'device' | 'task' } | null;
+type RouteGuard = {
+  mode?: PermissionMode;
+  permissions: AdminPermission[];
+  title: string;
+};
+
+const tabGuards: Record<AdminTab, RouteGuard> = {
+  dashboard: { permissions: ['dashboard.view'], title: 'Overview access required' },
+  devices: { permissions: ['device.view'], title: 'Device access required' },
+  management: {
+    mode: 'any',
+    permissions: ['user.view', 'module.view', 'asset.view', 'app.release.view', 'log.view'],
+    title: 'Management access required'
+  },
+  profile: { permissions: [], title: 'Profile' },
+  tasks: { permissions: ['task.view'], title: 'Task access required' }
+};
+
+const detailGuards: Record<NonNullable<DetailRoute>['type'], RouteGuard> = {
+  device: { permissions: ['device.view'], title: 'Device access required' },
+  task: { permissions: ['task.view'], title: 'Task access required' }
+};
 
 export function AppNavigator() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -43,31 +67,59 @@ export function AppNavigator() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      {renderScreen({
-        activeTab,
-        detailRoute,
-        onBack: () => setDetailRoute(null),
-        onOpenDevice: openDevice,
-        onOpenTask: openTask
-      })}
-      <MFTabBar
-        items={appTabs.map((tab) => ({ label: tab.label, value: tab.value }))}
-        onChange={changeTab}
-        theme={appTheme}
-        value={activeTab}
-        style={{
-          bottom: 16,
-          left: 16,
-          position: 'absolute',
-          right: 16
-        }}
-      />
-    </View>
+    <AdminAuthProvider session={adminSession}>
+      <View style={{ flex: 1 }}>
+        {renderScreen({
+          activeTab,
+          detailRoute,
+          onBack: () => setDetailRoute(null),
+          onOpenDevice: openDevice,
+          onOpenTask: openTask
+        })}
+        <MFTabBar
+          items={appTabs.map((tab) => ({ label: tab.label, value: tab.value }))}
+          onChange={changeTab}
+          theme={appTheme}
+          value={activeTab}
+          style={{
+            bottom: 16,
+            left: 16,
+            position: 'absolute',
+            right: 16
+          }}
+        />
+      </View>
+    </AdminAuthProvider>
   );
 }
 
 function renderScreen({
+  activeTab,
+  detailRoute,
+  onBack,
+  onOpenDevice,
+  onOpenTask
+}: {
+  activeTab: AdminTab;
+  detailRoute: DetailRoute;
+  onBack: () => void;
+  onOpenDevice: (deviceId: string) => void;
+  onOpenTask: (taskId: string) => void;
+}) {
+  const guard = detailRoute ? detailGuards[detailRoute.type] : tabGuards[activeTab];
+
+  return (
+    <ProtectedScreen
+      fallback={<PermissionDeniedScreen onBack={detailRoute ? onBack : undefined} permissions={guard.permissions} title={guard.title} />}
+      mode={guard.mode}
+      permissions={guard.permissions}
+    >
+      {renderScreenContent({ activeTab, detailRoute, onBack, onOpenDevice, onOpenTask })}
+    </ProtectedScreen>
+  );
+}
+
+function renderScreenContent({
   activeTab,
   detailRoute,
   onBack,

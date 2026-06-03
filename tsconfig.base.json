@@ -13,6 +13,7 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "@mobile-frame/app-shell": ["packages/app-shell/src/index.ts"],
+      "@mobile-frame/auth-admin": ["packages/auth-admin/src/index.tsx"],
       "@mobile-frame/core": ["packages/core/src/index.ts"],
       "@mobile-frame/core/native-modules": ["packages/core/src/native-modules.ts"],
       "@mobile-frame/design-tokens": ["packages/design-tokens/src/index.ts"],

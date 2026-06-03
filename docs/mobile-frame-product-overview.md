@@ -58,7 +58,7 @@ Current product scope:
 - App shell package.
 - Native capability contract package.
 - Module SDK and preset package.
-- Reusable `ui-admin` package and first `game-helper-admin-mobile` scaffold using the `admin-mobile` preset.
+- Reusable `ui-admin` and `auth-admin` packages plus the first `game-helper-admin-mobile` scaffold using the `admin-mobile` preset.
 - Code generators.
 - Native readiness and native build preflight scripts.
 - Android debug APK build evidence.
@@ -69,7 +69,7 @@ Planned product scope:
 
 - iOS simulator build evidence on macOS.
 - Android production Release signing evidence.
-- Admin-mobile capabilities beyond the first scaffold: permission gates, realtime status, scanner, clipboard, sharing, and real `/api/v1/mobile` BFF contracts.
+- Admin-mobile capabilities beyond the first scaffold: realtime status, scanner, clipboard, sharing, pagination/filtering data flows, and real `/api/v1/mobile` BFF contracts.
 - Real platform implementations for selected native capability modules.
 - More complete reusable page templates.
 - More complete module catalog and preset coverage.
@@ -96,4 +96,4 @@ The scaffold is successful when a team can:
 - Add a native capability without changing unrelated app code.
 - Reuse the same app shell and UI system across multiple app products.
 
-The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run `26906180713`, and the first `game-helper-admin-mobile` adaptation pass from `docs/game-helper-admin-mobile-mobile-frame-adaptation.md`. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.
+The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run `26906180713`, the first `game-helper-admin-mobile` adaptation pass from `docs/game-helper-admin-mobile-mobile-frame-adaptation.md`, and reusable admin-mobile permission gates through `packages/auth-admin`. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.

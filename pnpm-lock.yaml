@@ -96,6 +96,9 @@ importers:
       '@mobile-frame/app-shell':
         specifier: workspace:*
         version: link:../../packages/app-shell
+      '@mobile-frame/auth-admin':
+        specifier: workspace:*
+        version: link:../../packages/auth-admin
       '@mobile-frame/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
@@ -171,6 +174,12 @@ importers:
       zustand:
         specifier: ^5.0.8
         version: 5.0.14(@types/react@19.2.16)(react@19.2.3)
+
+  packages/auth-admin:
+    dependencies:
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
 
   packages/core: {}
 

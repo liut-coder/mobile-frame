@@ -1,3 +1,4 @@
+import { createAdminSession, type AdminPermission, type AdminTokenPayload } from '@mobile-frame/auth-admin';
 import { getPreset } from '@mobile-frame/presets';
 
 export type AdminTab = 'dashboard' | 'devices' | 'tasks' | 'management' | 'profile';
@@ -57,22 +58,29 @@ export const appTabs = appPreset.tabs.map((label, index) => ({
   value: tabValues[index] ?? 'dashboard'
 }));
 
-export const adminSession = {
-  deviceId: 'admin-phone-01',
+export const adminTokenPayload = {
+  access_token: 'demo-admin-access-token',
+  device_id: 'admin-phone-01',
   name: 'Operations Admin',
   permissions: [
     'dashboard.view',
+    'user.view',
     'device.view',
     'device.bind',
+    'module.view',
+    'asset.view',
     'task.view',
     'task.stop',
     'task.retry',
     'app.release.view',
     'log.view'
   ],
+  refresh_token: 'demo-admin-refresh-token',
   role: 'Platform administrator',
-  tenantId: 'game-helper-prod'
-};
+  tenant_id: 'game-helper-prod'
+} satisfies AdminTokenPayload;
+
+export const adminSession = createAdminSession(adminTokenPayload);
 
 export const dashboardSummary = [
   { label: 'Online devices', tone: 'success' as const, value: '128' },
@@ -226,7 +234,12 @@ export const managementEntries = [
     permission: 'log.view',
     title: 'Running logs'
   }
-];
+] satisfies Array<{
+  badge: string;
+  description: string;
+  permission: AdminPermission;
+  title: string;
+}>;
 
 export const adminBoundaries = [
   'No OCR, OpenCV, accessibility service, floating window, or local automation.',

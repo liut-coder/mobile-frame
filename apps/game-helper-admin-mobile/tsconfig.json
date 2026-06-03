@@ -13,6 +13,9 @@
       "path": "../../packages/app-shell"
     },
     {
+      "path": "../../packages/auth-admin"
+    },
+    {
       "path": "../../packages/module-sdk"
     },
     {

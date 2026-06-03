@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 
+import { PermissionGate, canAccess, useAdminSession, type AdminPermission } from '@mobile-frame/auth-admin';
 import {
   AdminBoundaryCard,
   AdminPageHeader,
@@ -76,6 +77,12 @@ type TaskDetailScreenProps = {
   onBack: () => void;
   onOpenDevice: (deviceId: string) => void;
   taskId: string;
+};
+
+type PermissionDeniedScreenProps = {
+  onBack?: () => void;
+  permissions: AdminPermission[];
+  title: string;
 };
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
@@ -198,7 +205,16 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
         <MFStack gap={appTheme.spacing.md}>
           <SectionTitle title="Current task" />
           {currentTask ? (
-            <TaskListItem compact onPress={() => onOpenTask(currentTask.id)} task={currentTask} />
+            <PermissionGate
+              fallback={
+                <MFText muted theme={appTheme}>
+                  Task details require task.view permission.
+                </MFText>
+              }
+              permission="task.view"
+            >
+              <TaskListItem compact onPress={() => onOpenTask(currentTask.id)} task={currentTask} />
+            </PermissionGate>
           ) : (
             <MFText muted theme={appTheme}>
               No active task is assigned to this device.
@@ -206,7 +222,9 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
           )}
         </MFStack>
         <MFRow gap={appTheme.spacing.sm}>
-          <MFButton fullWidth={false} theme={appTheme} title="Scan bind" variant="secondary" />
+          <PermissionGate permission="device.bind">
+            <MFButton fullWidth={false} theme={appTheme} title="Scan bind" variant="secondary" />
+          </PermissionGate>
           <MFButton fullWidth={false} theme={appTheme} title="Copy ID" variant="outline" />
         </MFRow>
       </MFStack>
@@ -260,11 +278,6 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           title={task.name}
         />
         <TaskProgressCard
-          actions={[
-            { label: 'Stop', variant: 'danger' },
-            { label: 'Retry', variant: 'secondary' },
-            { label: 'Device', onPress: () => onOpenDevice(task.deviceId), variant: 'outline' }
-          ]}
           currentStep={`Current step: ${task.currentStep}`}
           error={task.error ? { message: task.error, title: 'Failure reason' } : undefined}
           progress={progressValue(task)}
@@ -274,6 +287,17 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           theme={appTheme}
           title={task.name}
         />
+        <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
+          <PermissionGate permission="task.stop">
+            <MFButton fullWidth={false} theme={appTheme} title="Stop" variant="danger" />
+          </PermissionGate>
+          <PermissionGate permission="task.retry">
+            <MFButton fullWidth={false} theme={appTheme} title="Retry" variant="secondary" />
+          </PermissionGate>
+          <PermissionGate permission="device.view">
+            <MFButton fullWidth={false} onPress={() => onOpenDevice(task.deviceId)} theme={appTheme} title="Device" variant="outline" />
+          </PermissionGate>
+        </MFRow>
         <Timeline
           items={task.steps.map((step) => ({
             label: step.label,
@@ -290,6 +314,9 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
 }
 
 export function ManagementHomeScreen() {
+  const session = useAdminSession();
+  const visibleEntries = managementEntries.filter((entry) => canAccess(session, { permission: entry.permission }));
+
   return (
     <MFScrollPage theme={appTheme}>
       <MFStack gap={appTheme.spacing.lg}>
@@ -299,7 +326,13 @@ export function ManagementHomeScreen() {
           theme={appTheme}
           title="Management"
         />
-        <ManagementEntryList entries={managementEntries} theme={appTheme} />
+        {visibleEntries.length > 0 ? (
+          <ManagementEntryList entries={visibleEntries} theme={appTheme} />
+        ) : (
+          <MFText muted theme={appTheme}>
+            No management entries are available for the current administrator permissions.
+          </MFText>
+        )}
         <AdminBoundaryCard items={adminBoundaries} theme={appTheme} />
       </MFStack>
     </MFScrollPage>
@@ -307,6 +340,8 @@ export function ManagementHomeScreen() {
 }
 
 export function ProfileScreen() {
+  const session = useAdminSession() ?? adminSession;
+
   return (
     <MFScrollPage theme={appTheme}>
       <MFStack gap={appTheme.spacing.lg}>
@@ -318,17 +353,17 @@ export function ProfileScreen() {
         />
         <MFCard theme={appTheme}>
           <MFStack gap={appTheme.spacing.md}>
-            <MFInfoRow label="Name" theme={appTheme} value={adminSession.name} />
-            <MFInfoRow label="Role" theme={appTheme} value={adminSession.role} />
-            <MFInfoRow label="Tenant" theme={appTheme} value={adminSession.tenantId} />
-            <MFInfoRow label="Admin device" theme={appTheme} value={adminSession.deviceId} />
+            <MFInfoRow label="Name" theme={appTheme} value={session.name ?? 'Administrator'} />
+            <MFInfoRow label="Role" theme={appTheme} value={session.role} />
+            <MFInfoRow label="Tenant" theme={appTheme} value={session.tenantId} />
+            <MFInfoRow label="Admin device" theme={appTheme} value={session.deviceId} />
           </MFStack>
         </MFCard>
         <MFCard theme={appTheme}>
           <MFStack gap={appTheme.spacing.sm}>
             <SectionTitle title="Permissions" />
             <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
-              {adminSession.permissions.map((permission) => (
+              {session.permissions.map((permission) => (
                 <StatusBadge key={permission} label={permission} theme={appTheme} tone="info" />
               ))}
             </MFRow>
@@ -342,6 +377,30 @@ export function ProfileScreen() {
                 {contract}
               </MFText>
             ))}
+          </MFStack>
+        </MFCard>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+export function PermissionDeniedScreen({ onBack, permissions, title }: PermissionDeniedScreenProps) {
+  return (
+    <MFScrollPage theme={appTheme}>
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader backLabel={onBack ? 'Back' : undefined} eyebrow="Permission" onBack={onBack} theme={appTheme} title={title} />
+        <MFCard theme={appTheme}>
+          <MFStack gap={appTheme.spacing.md}>
+            <MFText muted theme={appTheme}>
+              The current administrator session does not include the required permission set.
+            </MFText>
+            <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
+              {permissions.length > 0 ? (
+                permissions.map((permission) => <StatusBadge key={permission} label={permission} theme={appTheme} tone="warning" />)
+              ) : (
+                <StatusBadge label="No extra permission required" theme={appTheme} tone="neutral" />
+              )}
+            </MFRow>
           </MFStack>
         </MFCard>
       </MFStack>
