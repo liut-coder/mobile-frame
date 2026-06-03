@@ -3,7 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 import type { MobileBffClient, MobileBffDevice, MobileBffTask } from '@mobile-frame/mobile-bff';
 import type { DeviceRealtimeSnapshot, RealtimeConnectionSnapshot, WebSocketLike } from '@mobile-frame/realtime';
 
-import { createAdminRealtimeClient, createAdminRealtimePolling, mapDeviceToRealtimeSnapshot, mapTaskToProgressSnapshot } from './realtime';
+import {
+  configureAdminRealtimeClient,
+  createAdminRealtimeClient,
+  createAdminRealtimePolling,
+  mapDeviceToRealtimeSnapshot,
+  mapTaskToProgressSnapshot,
+  resetAdminRealtimeClient
+} from './realtime';
 
 const device = {
   appVersion: '1.2.3',
@@ -77,6 +84,77 @@ describe('admin realtime service', () => {
 
     subscription.unsubscribe();
     expect(socket.close).toHaveBeenCalled();
+  });
+
+  it('can configure and reset the active realtime client', () => {
+    const sent: string[] = [];
+    const socket: WebSocketLike = {
+      close: vi.fn(),
+      send: (data) => sent.push(data)
+    };
+
+    const configured = configureAdminRealtimeClient({
+      createSocket: () => socket,
+      mode: 'websocket',
+      websocketUrl: 'wss://admin.example.test/ws/mobile'
+    });
+
+    const websocketSubscription = configured.subscribeTaskProgress('task-bear-042', {
+      onEvent: vi.fn()
+    });
+    socket.onopen?.();
+    expect(sent[0]).toBe(JSON.stringify({ channel: 'task.progress', key: 'task-bear-042', type: 'subscribe' }));
+    websocketSubscription.unsubscribe();
+
+    const reset = resetAdminRealtimeClient();
+    const states: RealtimeConnectionSnapshot[] = [];
+    reset.subscribeDeviceStatus('DEV-1024', {
+      onEvent: vi.fn(),
+      onStateChange: (state) => states.push(state)
+    });
+    expect(states.at(-1)).toMatchObject({ status: 'open', transport: 'fixture' });
+  });
+
+  it('uses configured mobile BFF polling data for websocket fallback', async () => {
+    const socketRef: { current?: WebSocketLike } = {};
+    const client: Pick<MobileBffClient, 'getDashboard' | 'getDevice' | 'getTask'> = {
+      getDashboard: async () => ({ activeTasks: [], alerts: [], metrics: [], recentDevices: [] }),
+      getDevice: async () => device,
+      getTask: async () => task
+    };
+    const realtime = createAdminRealtimeClient({
+      createSocket: () => {
+        socketRef.current = {
+          close: vi.fn(),
+          send: vi.fn()
+        };
+
+        return socketRef.current;
+      },
+      mode: 'websocket',
+      now: () => '2026-06-03T21:00:00Z',
+      pollingClient: client,
+      pollingIntervalMs: 60_000,
+      reconnect: { maxAttempts: 0 },
+      websocketUrl: 'wss://admin.example.test/ws/mobile'
+    });
+    const events: DeviceRealtimeSnapshot[] = [];
+    const states: RealtimeConnectionSnapshot[] = [];
+
+    const subscription = realtime.subscribeDeviceStatus('DEV-1024', {
+      onEvent: (event) => events.push(event),
+      onStateChange: (state) => states.push(state)
+    });
+
+    socketRef.current?.onclose?.();
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 0);
+    });
+
+    expect(events).toEqual([mapDeviceToRealtimeSnapshot(device, '2026-06-03T21:00:00Z')]);
+    expect(states).toContainEqual(expect.objectContaining({ fallback: 'polling', status: 'polling', transport: 'polling' }));
+
+    subscription.unsubscribe();
   });
 
   it('maps mobile BFF polling responses into realtime snapshots', async () => {

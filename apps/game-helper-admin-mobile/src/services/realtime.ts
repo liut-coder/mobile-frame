@@ -7,6 +7,7 @@ import {
   type RealtimeClient,
   type RealtimeConnectionSnapshot,
   type RealtimeGlobalAlert,
+  type RealtimeReconnectOptions,
   type TaskProgressSnapshot,
   type WebSocketLike
 } from '@mobile-frame/realtime';
@@ -20,7 +21,9 @@ export type AdminRealtimeClientOptions = {
   createSocket?: (url: string) => WebSocketLike;
   mode?: AdminRealtimeMode;
   now?: () => string;
+  pollingClient?: Pick<MobileBffClient, 'getDashboard' | 'getDevice' | 'getTask'>;
   pollingIntervalMs?: number;
+  reconnect?: Partial<RealtimeReconnectOptions>;
   websocketUrl?: string;
 };
 
@@ -74,7 +77,7 @@ export const adminFixtureRealtimeClient = createFixtureRealtimeClient({
   taskProgress
 });
 
-export const adminRealtimeClient = createAdminRealtimeClient();
+export let adminRealtimeClient = createAdminRealtimeClient();
 
 export function createAdminRealtimeClient(options: AdminRealtimeClientOptions = {}): RealtimeClient {
   if (options.mode !== 'websocket' || !options.websocketUrl || !options.createSocket) {
@@ -84,11 +87,22 @@ export function createAdminRealtimeClient(options: AdminRealtimeClientOptions = 
   return createWebSocketRealtimeClient({
     createSocket: options.createSocket,
     polling: {
-      ...createAdminRealtimePolling({ now: options.now }),
+      ...createAdminRealtimePolling({ client: options.pollingClient, now: options.now }),
       intervalMs: options.pollingIntervalMs
     },
+    reconnect: options.reconnect,
     url: options.websocketUrl
   });
+}
+
+export function configureAdminRealtimeClient(options: AdminRealtimeClientOptions = {}): RealtimeClient {
+  adminRealtimeClient = createAdminRealtimeClient(options);
+
+  return adminRealtimeClient;
+}
+
+export function resetAdminRealtimeClient(): RealtimeClient {
+  return configureAdminRealtimeClient({ mode: 'fixture' });
 }
 
 export function createAdminRealtimePolling({

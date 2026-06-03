@@ -24,7 +24,28 @@
 
 当前管理页只展示第二阶段管理域的 `/api/v1/mobile` 预览摘要，完整的托管用户、模块、资产、发版、运行日志和审批页面仍按第二阶段计划继续拆分。
 
-页面不直接拼接 HTTP 路径，也不直接读取全部 fixture 后自行模拟后端查询。后续接真实后端时，应优先替换服务层里的 client 创建方式，例如从 fixture client 切换到 HTTP client。
+页面不直接拼接 HTTP 路径，也不直接读取全部 fixture 后自行模拟后端查询。后续接真实后端时，应通过服务层切换 client 创建方式，例如从 fixture client 切换到 HTTP client。
+
+`game-helper-admin-mobile` 当前提供这些运行时配置入口：
+
+```ts
+configureAdminMobileRuntime({
+  bff: {
+    baseUrl: 'https://admin.example.test',
+    fetch,
+    getAccessToken,
+    mode: 'http'
+  },
+  realtime: {
+    createSocket,
+    mode: 'websocket',
+    pollingClient: 'mobile-bff',
+    websocketUrl: 'wss://admin.example.test/ws/mobile'
+  }
+});
+```
+
+默认不传配置时仍使用 fixture BFF 和 fixture realtime；配置 HTTP BFF 后，WebSocket 断线轮询可以复用同一个 mobile BFF client。
 
 ## HTTP 映射
 

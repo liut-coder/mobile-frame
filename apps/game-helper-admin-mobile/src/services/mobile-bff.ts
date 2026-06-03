@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import {
   createFixtureMobileBffClient,
+  createHttpMobileBffClient,
   listAssets as listFixtureAssets,
   listDevices as listFixtureDevices,
   listModules as listFixtureModules,
@@ -12,9 +13,13 @@ import {
   listUsers as listFixtureUsers,
   type MobileBffAssetStatus,
   type MobileBffDashboard,
+  type MobileBffClient,
   type MobileBffDevice,
   type MobileBffDeviceStatus,
+  type MobileBffFetch,
+  type MobileBffFixtureData,
   type MobileBffGameModule,
+  type MobileBffHttpClientOptions,
   type MobileBffListRequest,
   type MobileBffListResponse,
   type MobileBffLogLevel,
@@ -163,7 +168,7 @@ const runtimeLogs = [
   { id: 'log-task-failed', level: 'error', message: 'Task task-arena-219 stopped after login verification failure.', scope: 'task', time: '20:08:03' }
 ] satisfies MobileBffRuntimeLog[];
 
-export const adminMobileBffClient = createFixtureMobileBffClient({
+const fixtureMobileBffData = {
   assets,
   dashboard: fixtureDashboard,
   devices,
@@ -172,7 +177,45 @@ export const adminMobileBffClient = createFixtureMobileBffClient({
   releases,
   tasks,
   users
-});
+} satisfies MobileBffFixtureData;
+
+export type AdminMobileBffMode = 'fixture' | 'http';
+export type AdminMobileBffClientOptions = {
+  baseUrl?: string;
+  fetch?: MobileBffFetch;
+  getAccessToken?: MobileBffHttpClientOptions['getAccessToken'];
+  headers?: MobileBffHttpClientOptions['headers'];
+  mode?: AdminMobileBffMode;
+};
+
+export function createAdminMobileBffClient(options: AdminMobileBffClientOptions = {}): MobileBffClient {
+  if (options.mode !== 'http') {
+    return createFixtureMobileBffClient(fixtureMobileBffData);
+  }
+
+  if (!options.baseUrl || !options.fetch) {
+    throw new Error('HTTP mobile BFF mode requires baseUrl and fetch.');
+  }
+
+  return createHttpMobileBffClient({
+    baseUrl: options.baseUrl,
+    fetch: options.fetch,
+    getAccessToken: options.getAccessToken,
+    headers: options.headers
+  });
+}
+
+export let adminMobileBffClient = createAdminMobileBffClient();
+
+export function configureAdminMobileBffClient(options: AdminMobileBffClientOptions = {}): MobileBffClient {
+  adminMobileBffClient = createAdminMobileBffClient(options);
+
+  return adminMobileBffClient;
+}
+
+export function resetAdminMobileBffClient(): MobileBffClient {
+  return configureAdminMobileBffClient({ mode: 'fixture' });
+}
 
 export function useMobileBffAssets(request: MobileBffListRequest<MobileBffAssetStatus>) {
   const initialValue = listFixtureAssets(assets, request);
@@ -250,11 +293,17 @@ function useBffValue<TValue>(load: () => Promise<TValue>, initialValue: TValue, 
   useEffect(() => {
     let cancelled = false;
     setValue(initialValue);
-    load().then((nextValue) => {
-      if (!cancelled) {
-        setValue(nextValue);
-      }
-    });
+    load()
+      .then((nextValue) => {
+        if (!cancelled) {
+          setValue(nextValue);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setValue(initialValue);
+        }
+      });
 
     return () => {
       cancelled = true;
