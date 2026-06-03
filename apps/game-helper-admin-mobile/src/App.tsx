@@ -58,6 +58,9 @@ type RouteKey =
   | 'taskCreateConfirm'
   | 'taskExecutionDetail'
   | 'taskRetry'
+  | 'alerts'
+  | 'alertDetail'
+  | 'logDetail'
   | 'pendingDevices'
   | 'deviceDetail'
   | 'deviceAlert';
@@ -136,6 +139,29 @@ type TaskRun = {
   title: string;
   user: string;
   worker: string;
+};
+
+type AlertStatus = 'open' | 'processing' | 'resolved';
+
+type AlertRecord = {
+  createdAt: string;
+  deviceId?: string;
+  id: string;
+  message: string;
+  owner: string;
+  source: string;
+  status: AlertStatus;
+  taskRunId?: string;
+  title: string;
+  tone: Tone;
+};
+
+type EvidenceRecord = {
+  capturedAt: string;
+  id: string;
+  label: string;
+  similarity: string;
+  taskRunId: string;
 };
 
 const theme = createTheme('light');
@@ -403,9 +429,60 @@ const profileEntries: Array<{ meta: string; title: string }> = [
   { meta: '解绑、取消任务、回滚和发版审计', title: '操作日志' }
 ];
 
-const alerts = [
-  { message: 'Redmi K70 最近一次心跳 6 分钟前，ADB 连接异常。', title: '设备连接异常', tone: 'danger' as const },
-  { message: 'v0.3.3 灰度覆盖 18 台设备，失败 2 台。', title: '灰度升级失败', tone: 'warning' as const }
+const alerts: AlertRecord[] = [
+  {
+    createdAt: '10:26',
+    deviceId: 'dev-redmi-k70',
+    id: 'alert-adb-redmi',
+    message: 'Redmi K70 最近一次心跳 6 分钟前，ADB 连接异常。',
+    owner: '运维值班',
+    source: 'device.status.changed',
+    status: 'open',
+    taskRunId: 'run-20260603-002',
+    title: '设备连接异常',
+    tone: 'danger'
+  },
+  {
+    createdAt: '09:47',
+    deviceId: 'dev-redmi-k70',
+    id: 'alert-task-failed',
+    message: '王国领奖任务在领奖入口识别失败，最近相似度 0.42。',
+    owner: '任务调度',
+    source: 'task.progress',
+    status: 'processing',
+    taskRunId: 'run-20260603-002',
+    title: '任务执行失败',
+    tone: 'danger'
+  },
+  {
+    createdAt: '08:35',
+    id: 'alert-release-gray',
+    message: 'v0.3.3 灰度覆盖 18 台设备，失败 2 台。',
+    owner: '发版管理员',
+    source: 'release.device.updated',
+    status: 'open',
+    title: '灰度升级失败',
+    tone: 'warning'
+  }
+];
+
+const fallbackAlert = alerts[0] ?? {
+  createdAt: '10:26',
+  deviceId: fallbackDevice.id,
+  id: 'alert-placeholder',
+  message: 'Redmi K70 最近一次心跳 6 分钟前，ADB 连接异常。',
+  owner: '运维值班',
+  source: 'device.status.changed',
+  status: 'open' as const,
+  taskRunId: fallbackTaskRun.id,
+  title: '设备连接异常',
+  tone: 'danger' as const
+};
+
+const evidenceRecords: EvidenceRecord[] = [
+  { capturedAt: '09:47:18', id: 'ev-run-002-before', label: '领奖入口识别截图', similarity: '0.42', taskRunId: 'run-20260603-002' },
+  { capturedAt: '09:47:23', id: 'ev-run-002-failed', label: '失败现场截图', similarity: '0.39', taskRunId: 'run-20260603-002' },
+  { capturedAt: '10:21:38', id: 'ev-run-001-match', label: '野怪识别截图', similarity: '0.86', taskRunId: 'run-20260603-001' }
 ];
 
 export function App() {
@@ -420,6 +497,8 @@ export function App() {
   const [selectedUserId, setSelectedUserId] = useState(fallbackManagedUser.id);
   const [selectedGameAccountId, setSelectedGameAccountId] = useState(fallbackGameAccount.accountId);
   const [selectedTaskRunId, setSelectedTaskRunId] = useState(fallbackTaskRun.id);
+  const [selectedAlertId, setSelectedAlertId] = useState(fallbackAlert.id);
+  const [logBackRoute, setLogBackRoute] = useState<RouteKey>('taskExecutionDetail');
   const [draftTaskRun, setDraftTaskRun] = useState<TaskRun | null>(null);
   const [taskFilter, setTaskFilter] = useState<'running' | 'failed' | 'finished'>('running');
   const [moduleFormMode, setModuleFormMode] = useState<ModuleFormMode>('create');
@@ -466,6 +545,27 @@ export function App() {
         setTab(nextTab);
       }
       setRoute('tabs');
+    },
+    openAlert: (alertId: string) => {
+      const alert = alerts.find((item) => item.id === alertId) ?? fallbackAlert;
+      setSelectedAlertId(alert.id);
+      if (alert.deviceId) {
+        setSelectedDeviceId(alert.deviceId);
+      }
+      if (alert.taskRunId) {
+        setSelectedTaskRunId(alert.taskRunId);
+      }
+      setRoute('alertDetail');
+    },
+    openLogDetail: (taskRunId?: string, alertId?: string, backRoute: RouteKey = 'taskExecutionDetail') => {
+      if (taskRunId) {
+        setSelectedTaskRunId(taskRunId);
+      }
+      if (alertId) {
+        setSelectedAlertId(alertId);
+      }
+      setLogBackRoute(backRoute);
+      setRoute('logDetail');
     },
     openTaskRun: (taskRunId: string) => {
       setSelectedTaskRunId(taskRunId);
@@ -600,7 +700,9 @@ export function App() {
             activeTab={tab}
             deviceFilter={deviceFilter}
             moduleFormMode={moduleFormMode}
+            logBackRoute={logBackRoute}
             route={route}
+            selectedAlert={alerts.find((alert) => alert.id === selectedAlertId) ?? fallbackAlert}
             selectedDevice={devices.find((device) => device.id === selectedDeviceId) ?? fallbackDevice}
             selectedGameAccount={gameAccounts.find((account) => account.accountId === selectedGameAccountId) ?? fallbackGameAccount}
             selectedModuleGroup={moduleGroups.find((group) => group.id === selectedModuleGroupId) ?? fallbackModuleGroup}
@@ -625,8 +727,10 @@ type AdminActions = {
   goMain: (nextTab?: MainTab) => void;
   goRoute: (nextRoute: RouteKey) => void;
   goTabs: (nextTab?: MainTab) => void;
+  openAlert: (alertId: string) => void;
   openBindDevice: (userId: string) => void;
   openDevice: (deviceId: string, nextRoute?: 'deviceDetail' | 'deviceAlert') => void;
+  openLogDetail: (taskRunId?: string, alertId?: string, backRoute?: RouteKey) => void;
   openManagedUser: (userId: string) => void;
   openModuleGroup: (groupId: string) => void;
   openModuleGroupForm: (mode: ModuleFormMode, groupId?: string) => void;
@@ -724,8 +828,10 @@ function MainScreen({
   actions,
   activeTab,
   deviceFilter,
+  logBackRoute,
   moduleFormMode,
   route,
+  selectedAlert,
   selectedDevice,
   selectedGameAccount,
   selectedModuleGroup,
@@ -740,8 +846,10 @@ function MainScreen({
   actions: AdminActions;
   activeTab: MainTab;
   deviceFilter: 'all' | 'online' | 'alert';
+  logBackRoute: RouteKey;
   moduleFormMode: ModuleFormMode;
   route: RouteKey;
+  selectedAlert: AlertRecord;
   selectedDevice: DeviceRecord;
   selectedGameAccount: GameAccount;
   selectedModuleGroup: ModuleGroup;
@@ -851,6 +959,18 @@ function MainScreen({
     return <TaskRetryScreen actions={actions} device={selectedDevice} taskRun={selectedTaskRun} theme={theme} />;
   }
 
+  if (route === 'alerts') {
+    return <AlertsScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'alertDetail') {
+    return <AlertDetailScreen actions={actions} alert={selectedAlert} device={selectedDevice} taskRun={selectedTaskRun} theme={theme} />;
+  }
+
+  if (route === 'logDetail') {
+    return <LogDetailScreen actions={actions} alert={selectedAlert} backRoute={logBackRoute} taskRun={selectedTaskRun} theme={theme} />;
+  }
+
   if (route === 'pendingDevices') {
     return <PendingDevicesScreen actions={actions} theme={theme} />;
   }
@@ -879,7 +999,7 @@ function DashboardScreen({ actions, theme }: { actions: AdminActions; theme: MFT
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={18}>
-        <Header title="总览" subtitle="系统状态、设备、任务、异常和发版状态" theme={theme} rightLabel="告警" onRightPress={() => actions.setTab('devices')} />
+        <Header title="总览" subtitle="系统状态、设备、任务、异常和发版状态" theme={theme} rightLabel="告警" onRightPress={() => actions.goRoute('alerts')} />
         <MFCard glass theme={theme}>
           <MFStack gap={14}>
             <MFRow style={{ justifyContent: 'space-between' }}>
@@ -923,9 +1043,9 @@ function DashboardScreen({ actions, theme }: { actions: AdminActions; theme: MFT
         {runningTasks.map((task) => (
           <TaskSummaryCard key={`${task.title}-${task.device}`} task={task} theme={theme} />
         ))}
-        <SectionTitle action="处理" onAction={() => actions.setTab('devices')} theme={theme} title="最近异常" />
+        <SectionTitle action="全部" onAction={() => actions.goRoute('alerts')} theme={theme} title="最近异常" />
         {alerts.map((alert) => (
-          <MFStatusCard key={alert.title} message={alert.message} theme={theme} title={alert.title} tone={alert.tone} />
+          <MFStatusCard key={alert.id} message={`${alert.createdAt} · ${alert.message}`} onPress={() => actions.openAlert(alert.id)} theme={theme} title={alert.title} tone={alert.tone} />
         ))}
       </MFStack>
     </MFScrollPage>
@@ -1044,7 +1164,7 @@ function TasksScreen({
                       return;
                     }
 
-                    actions.openTaskRun(task.id);
+                    actions.openLogDetail(task.id, undefined, 'taskExecutionDetail');
                   }}
                   theme={theme}
                   title={task.status === 'failed' ? '重试' : '日志'}
@@ -1880,6 +2000,8 @@ function TaskCreateConfirmScreen({
 }
 
 function TaskExecutionDetailScreen({ actions, taskRun, theme }: { actions: AdminActions; taskRun: TaskRun; theme: MFTheme }) {
+  const evidences = evidenceRecords.filter((evidence) => evidence.taskRunId === taskRun.id);
+
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={16}>
@@ -1919,7 +2041,7 @@ function TaskExecutionDetailScreen({ actions, taskRun, theme }: { actions: Admin
         </MFCard>
         <MFCard theme={theme}>
           <MFStack gap={8}>
-            <SectionTitle action="全部日志" onAction={() => actions.showToast('日志分页会在实时网关接入后启用')} theme={theme} title="实时日志" />
+            <SectionTitle action="全部日志" onAction={() => actions.openLogDetail(taskRun.id, undefined, 'taskExecutionDetail')} theme={theme} title="实时日志" />
             {taskRun.logs.map((line) => (
               <MFCaption key={line} theme={theme}>
                 {line}
@@ -1927,11 +2049,168 @@ function TaskExecutionDetailScreen({ actions, taskRun, theme }: { actions: Admin
             ))}
           </MFStack>
         </MFCard>
+        {evidences.length > 0 ? <EvidenceSection evidences={evidences} theme={theme} /> : null}
         <MFRow gap={10}>
           <MFButton fullWidth={false} onPress={() => actions.openSheet('暂停任务', '确认暂停后当前进度会保留，并写入管理员审计日志。')} theme={theme} title="暂停" variant="secondary" />
           <MFButton fullWidth={false} onPress={() => actions.startTaskRetry(taskRun.id)} theme={theme} title="重试" variant="ghost" />
           <MFButton fullWidth={false} onPress={() => actions.openSheet('取消任务', '确认取消后本次任务不会继续调度，设备会释放当前执行锁。')} theme={theme} title="取消" variant="danger" />
         </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function AlertsScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="dashboard" subtitle="告警状态、关联任务、日志和证据截图" theme={theme} title="告警列表" />
+        <MFSearchBar placeholder="搜索告警、设备、任务或事件源" theme={theme} />
+        <MFSegmentedControl
+          onChange={() => actions.showToast('告警筛选将在接口接入后生效')}
+          options={[
+            { label: '未处理', value: 'open' },
+            { label: '处理中', value: 'processing' },
+            { label: '已恢复', value: 'resolved' }
+          ]}
+          theme={theme}
+          value="open"
+        />
+        <MFRow gap={12}>
+          <MFStatCard label="未处理" theme={theme} value="12" />
+          <MFStatCard label="处理中" theme={theme} value="3" />
+          <MFStatCard label="已恢复" theme={theme} value="28" />
+        </MFRow>
+        {alerts.map((alert) => (
+          <MFCard key={alert.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {alert.title}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {alert.createdAt} · {alert.source}
+                  </MFCaption>
+                </MFStack>
+                <AlertStatusBadge status={alert.status} theme={theme} />
+              </MFRow>
+              <MFCaption theme={theme}>{alert.message}</MFCaption>
+              <MFRow gap={10}>
+                <MFButton fullWidth={false} onPress={() => actions.openAlert(alert.id)} theme={theme} title="详情" variant="secondary" />
+                <MFButton
+                  disabled={!alert.taskRunId}
+                  fullWidth={false}
+                  onPress={() => actions.openLogDetail(alert.taskRunId, alert.id, 'alertDetail')}
+                  theme={theme}
+                  title={alert.taskRunId ? '日志' : '无日志'}
+                  variant="ghost"
+                />
+              </MFRow>
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function AlertDetailScreen({
+  actions,
+  alert,
+  device,
+  taskRun,
+  theme
+}: {
+  actions: AdminActions;
+  alert: AlertRecord;
+  device: DeviceRecord;
+  taskRun: TaskRun;
+  theme: MFTheme;
+}) {
+  const hasTask = Boolean(alert.taskRunId);
+  const hasDevice = Boolean(alert.deviceId);
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="alerts" subtitle={`${alert.createdAt} · ${alert.source}`} theme={theme} title={alert.title} />
+        <MFStatusCard message={alert.message} theme={theme} title={alert.status === 'open' ? '待处理告警' : '处理中告警'} tone={alert.tone} />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="告警信息" />
+            <MFKeyValue label="状态" theme={theme} value={alert.status === 'open' ? '未处理' : alert.status === 'processing' ? '处理中' : '已恢复'} />
+            <MFKeyValue label="负责人" theme={theme} value={alert.owner} />
+            <MFKeyValue label="事件源" theme={theme} value={alert.source} />
+            <MFKeyValue label="关联设备" theme={theme} value={hasDevice ? device.name : '无关联设备'} />
+            <MFKeyValue label="关联任务" theme={theme} value={hasTask ? taskRun.title : '无关联任务'} />
+          </MFStack>
+        </MFCard>
+        {hasTask ? <EvidenceSection evidences={evidenceRecords.filter((evidence) => evidence.taskRunId === taskRun.id)} theme={theme} /> : null}
+        <MFRow gap={10}>
+          {hasTask ? <MFButton fullWidth={false} onPress={() => actions.openTaskRun(taskRun.id)} theme={theme} title="任务详情" variant="secondary" /> : null}
+          <MFButton
+            disabled={!hasTask}
+            fullWidth={false}
+            onPress={() => actions.openLogDetail(alert.taskRunId, alert.id, 'alertDetail')}
+            theme={theme}
+            title={hasTask ? '日志详情' : '无日志'}
+            variant="ghost"
+          />
+          <MFButton fullWidth={false} onPress={() => actions.showToast('告警已标记为处理中')} theme={theme} title="处理" variant="ghost" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function LogDetailScreen({
+  actions,
+  alert,
+  backRoute,
+  taskRun,
+  theme
+}: {
+  actions: AdminActions;
+  alert: AlertRecord;
+  backRoute: RouteKey;
+  taskRun: TaskRun;
+  theme: MFTheme;
+}) {
+  const evidences = evidenceRecords.filter((evidence) => evidence.taskRunId === taskRun.id);
+  const hasAlert = alerts.some((item) => item.id === alert.id);
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute={backRoute} subtitle={`${taskRun.id} · ${taskRun.worker}`} theme={theme} title="日志详情" />
+        <MFStatusCard
+          message={taskRun.status === 'failed' ? `${taskRun.currentStep}，最近相似度 ${taskRun.similarity}。` : `${taskRun.currentStep}，日志持续追加中。`}
+          theme={theme}
+          title={taskRun.status === 'failed' ? 'TASK_EXEC_FAILED' : 'TASK_PROGRESS'}
+          tone={taskRun.status === 'failed' ? 'danger' : 'info'}
+        />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="基础信息" />
+            <MFKeyValue label="任务" theme={theme} value={taskRun.title} />
+            <MFKeyValue label="设备" theme={theme} value={taskRun.device} />
+            <MFKeyValue label="账号" theme={theme} value={taskRun.account} />
+            <MFKeyValue label="关联告警" theme={theme} value={hasAlert ? alert.title : '无关联告警'} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={8}>
+            <SectionTitle action="复制" onAction={() => actions.showToast('日志已复制')} theme={theme} title="日志" />
+            {taskRun.logs.map((line, index) => (
+              <MFCaption key={`${taskRun.id}-log-${index}`} theme={theme}>
+                {line}
+              </MFCaption>
+            ))}
+          </MFStack>
+        </MFCard>
+        <EvidenceSection evidences={evidences} theme={theme} />
+        {hasAlert ? <MFButton onPress={() => actions.openAlert(alert.id)} theme={theme} title="查看关联告警" variant="secondary" /> : null}
       </MFStack>
     </MFScrollPage>
   );
@@ -2034,6 +2313,8 @@ function DeviceDetailScreen({ actions, device, theme }: { actions: AdminActions;
 }
 
 function DeviceAlertScreen({ actions, device, theme }: { actions: AdminActions; device: DeviceRecord; theme: MFTheme }) {
+  const relatedAlert = alerts.find((alert) => alert.deviceId === device.id) ?? fallbackAlert;
+
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={16}>
@@ -2058,7 +2339,11 @@ function DeviceAlertScreen({ actions, device, theme }: { actions: AdminActions; 
             ))}
           </MFStack>
         </MFCard>
-        <MFButton onPress={() => actions.showToast('恢复连接指令已下发')} theme={theme} title="尝试恢复连接" />
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.showToast('恢复连接指令已下发')} theme={theme} title="尝试恢复" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.openAlert(relatedAlert.id)} theme={theme} title="关联告警" variant="ghost" />
+          <MFButton fullWidth={false} onPress={() => actions.openLogDetail(relatedAlert.taskRunId, relatedAlert.id, 'deviceAlert')} theme={theme} title="日志" variant="ghost" />
+        </MFRow>
       </MFStack>
     </MFScrollPage>
   );
@@ -2214,6 +2499,54 @@ function TaskDraftSummary({ items, theme }: { items: string[]; theme: MFTheme })
           <MFCaption key={item} theme={theme}>
             {item}
           </MFCaption>
+        ))}
+      </MFStack>
+    </MFCard>
+  );
+}
+
+function AlertStatusBadge({ status, theme }: { status: AlertStatus; theme: MFTheme }) {
+  const mapping: Record<AlertStatus, { label: string; tone: Tone }> = {
+    open: { label: '未处理', tone: 'danger' },
+    processing: { label: '处理中', tone: 'warning' },
+    resolved: { label: '已恢复', tone: 'success' }
+  };
+  const badge = mapping[status];
+  return <MFBadge label={badge.label} tone={badge.tone} theme={theme} />;
+}
+
+function EvidenceSection({ evidences, theme }: { evidences: EvidenceRecord[]; theme: MFTheme }) {
+  if (evidences.length === 0) {
+    return <MFStatusCard message="当前任务还没有可查看的证据截图。" theme={theme} title="证据截图" tone="info" />;
+  }
+
+  return (
+    <MFCard theme={theme}>
+      <MFStack gap={10}>
+        <SectionTitle theme={theme} title="证据截图" />
+        {evidences.map((evidence) => (
+          <View
+            key={evidence.id}
+            style={{
+              backgroundColor: theme.colors.primarySoft,
+              borderColor: theme.colors.border,
+              borderRadius: theme.radius.md,
+              borderWidth: 1,
+              padding: theme.spacing.md
+            }}
+          >
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontWeight: '900' }}>
+                  {evidence.label}
+                </MFText>
+                <MFCaption theme={theme}>
+                  {evidence.capturedAt} · similarity {evidence.similarity}
+                </MFCaption>
+              </MFStack>
+              <MFBadge label="短链" tone="info" theme={theme} />
+            </MFRow>
+          </View>
         ))}
       </MFStack>
     </MFCard>
