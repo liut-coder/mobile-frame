@@ -42,11 +42,19 @@ type RouteKey =
   | 'bindDevice'
   | 'gameAccounts'
   | 'userTaskHistory'
+  | 'moduleGroups'
+  | 'moduleGroupForm'
+  | 'moduleGroupSort'
+  | 'taskModules'
+  | 'taskModuleDetail'
+  | 'taskModuleForm'
+  | 'taskModuleSort'
   | 'pendingDevices'
   | 'deviceDetail'
   | 'deviceAlert';
 type Tone = 'info' | 'success' | 'warning' | 'danger';
 type UserFormMode = 'create' | 'edit';
+type ModuleFormMode = 'create' | 'edit';
 
 type ManagedUser = {
   accountCount: number;
@@ -70,6 +78,29 @@ type DeviceRecord = {
   tone: Tone;
   user: string;
   worker: string;
+};
+
+type ModuleGroup = {
+  enabled: boolean;
+  id: string;
+  key: string;
+  moduleCount: number;
+  name: string;
+  order: number;
+  showInApp: boolean;
+};
+
+type GameTaskModule = {
+  enabled: boolean;
+  groupId: string;
+  id: string;
+  key: string;
+  name: string;
+  retries: number;
+  runTemplate: string;
+  script: string;
+  successRate: string;
+  timeoutSeconds: number;
 };
 
 const theme = createTheme('light');
@@ -170,6 +201,90 @@ const taskCards = [
   { progress: 1, status: 'finished', title: '联盟签到', user: '用户 Q', worker: 'Redmi K70' }
 ];
 
+const fallbackModuleGroup: ModuleGroup = {
+  enabled: true,
+  id: 'group-daily',
+  key: 'daily-activity',
+  moduleCount: 12,
+  name: '日常活动',
+  order: 10,
+  showInApp: true
+};
+
+const moduleGroups: ModuleGroup[] = [
+  fallbackModuleGroup,
+  {
+    enabled: true,
+    id: 'group-queue',
+    key: 'queue-related',
+    moduleCount: 8,
+    name: '队列相关',
+    order: 20,
+    showInApp: true
+  },
+  {
+    enabled: false,
+    id: 'group-basic',
+    key: 'basic-settings',
+    moduleCount: 5,
+    name: '基础设置',
+    order: 30,
+    showInApp: false
+  }
+];
+
+const taskModules: GameTaskModule[] = [
+  {
+    enabled: true,
+    groupId: 'group-daily',
+    id: 'task-random-bear',
+    key: 'task-random-bear',
+    name: '随缘打熊',
+    retries: 2,
+    runTemplate: 'tpl-bear-01',
+    script: 'bear.js',
+    successRate: '92.1%',
+    timeoutSeconds: 300
+  },
+  {
+    enabled: true,
+    groupId: 'group-daily',
+    id: 'task-alliance-signin',
+    key: 'task-alliance-signin',
+    name: '联盟签到',
+    retries: 1,
+    runTemplate: 'tpl-signin-01',
+    script: 'alliance-signin.js',
+    successRate: '96.4%',
+    timeoutSeconds: 120
+  },
+  {
+    enabled: false,
+    groupId: 'group-queue',
+    id: 'task-daily-gather',
+    key: 'task-daily-gather',
+    name: '日常采集',
+    retries: 2,
+    runTemplate: 'tpl-gather-02',
+    script: 'daily-gather.js',
+    successRate: '88.7%',
+    timeoutSeconds: 240
+  }
+];
+
+const fallbackTaskModule = taskModules[0] ?? {
+  enabled: true,
+  groupId: fallbackModuleGroup.id,
+  id: 'task-placeholder',
+  key: 'task-placeholder',
+  name: '随缘打熊',
+  retries: 2,
+  runTemplate: 'tpl-bear-01',
+  script: 'bear.js',
+  successRate: '92.1%',
+  timeoutSeconds: 300
+};
+
 const managementEntries = [
   { meta: '128 个用户，98 台在线设备', target: '托管用户列表', title: '托管用户' },
   { meta: '8 个分组，32 个具体任务模块', target: '游戏模块分组', title: '游戏模块' },
@@ -196,8 +311,11 @@ export function App() {
   const [deviceFilter, setDeviceFilter] = useState<'all' | 'online' | 'alert'>('all');
   const [route, setRoute] = useState<RouteKey>('tabs');
   const [selectedDeviceId, setSelectedDeviceId] = useState(fallbackDevice.id);
+  const [selectedModuleGroupId, setSelectedModuleGroupId] = useState(fallbackModuleGroup.id);
+  const [selectedTaskModuleId, setSelectedTaskModuleId] = useState(fallbackTaskModule.id);
   const [selectedUserId, setSelectedUserId] = useState(fallbackManagedUser.id);
   const [taskFilter, setTaskFilter] = useState<'running' | 'failed' | 'finished'>('running');
+  const [moduleFormMode, setModuleFormMode] = useState<ModuleFormMode>('create');
   const [userFormMode, setUserFormMode] = useState<UserFormMode>('create');
 
   const closeSheet = useMFAppShellStore((state) => state.closeSheet);
@@ -253,6 +371,28 @@ export function App() {
       setSelectedUserId(userId);
       setRoute('managedUserDetail');
     },
+    openModuleGroup: (groupId: string) => {
+      setSelectedModuleGroupId(groupId);
+      setRoute('taskModules');
+    },
+    openModuleGroupForm: (mode: ModuleFormMode, groupId?: string) => {
+      if (groupId) {
+        setSelectedModuleGroupId(groupId);
+      }
+      setModuleFormMode(mode);
+      setRoute('moduleGroupForm');
+    },
+    openTaskModule: (moduleId: string) => {
+      setSelectedTaskModuleId(moduleId);
+      setRoute('taskModuleDetail');
+    },
+    openTaskModuleForm: (mode: ModuleFormMode, moduleId?: string) => {
+      if (moduleId) {
+        setSelectedTaskModuleId(moduleId);
+      }
+      setModuleFormMode(mode);
+      setRoute('taskModuleForm');
+    },
     openUserForm: (mode: UserFormMode, userId?: string) => {
       if (userId) {
         setSelectedUserId(userId);
@@ -277,8 +417,11 @@ export function App() {
             actions={actions}
             activeTab={tab}
             deviceFilter={deviceFilter}
+            moduleFormMode={moduleFormMode}
             route={route}
             selectedDevice={devices.find((device) => device.id === selectedDeviceId) ?? fallbackDevice}
+            selectedModuleGroup={moduleGroups.find((group) => group.id === selectedModuleGroupId) ?? fallbackModuleGroup}
+            selectedTaskModule={taskModules.find((taskModule) => taskModule.id === selectedTaskModuleId) ?? fallbackTaskModule}
             selectedUser={managedUsers.find((user) => user.id === selectedUserId) ?? fallbackManagedUser}
             taskFilter={taskFilter}
             theme={theme}
@@ -300,7 +443,11 @@ type AdminActions = {
   openBindDevice: (userId: string) => void;
   openDevice: (deviceId: string, nextRoute?: 'deviceDetail' | 'deviceAlert') => void;
   openManagedUser: (userId: string) => void;
+  openModuleGroup: (groupId: string) => void;
+  openModuleGroupForm: (mode: ModuleFormMode, groupId?: string) => void;
   openSheet: (title: string, body: string) => void;
+  openTaskModule: (moduleId: string) => void;
+  openTaskModuleForm: (mode: ModuleFormMode, moduleId?: string) => void;
   openUserForm: (mode: UserFormMode, userId?: string) => void;
   setDeviceFilter: (value: 'all' | 'online' | 'alert') => void;
   setRememberLogin: (value: boolean) => void;
@@ -383,8 +530,11 @@ function MainScreen({
   actions,
   activeTab,
   deviceFilter,
+  moduleFormMode,
   route,
   selectedDevice,
+  selectedModuleGroup,
+  selectedTaskModule,
   selectedUser,
   taskFilter,
   theme,
@@ -393,8 +543,11 @@ function MainScreen({
   actions: AdminActions;
   activeTab: MainTab;
   deviceFilter: 'all' | 'online' | 'alert';
+  moduleFormMode: ModuleFormMode;
   route: RouteKey;
   selectedDevice: DeviceRecord;
+  selectedModuleGroup: ModuleGroup;
+  selectedTaskModule: GameTaskModule;
   selectedUser: ManagedUser;
   taskFilter: 'running' | 'failed' | 'finished';
   theme: MFTheme;
@@ -422,6 +575,34 @@ function MainScreen({
 
   if (route === 'userTaskHistory') {
     return <UserTaskHistoryScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'moduleGroups') {
+    return <ModuleGroupsScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'moduleGroupForm') {
+    return <ModuleGroupFormScreen actions={actions} group={selectedModuleGroup} mode={moduleFormMode} theme={theme} />;
+  }
+
+  if (route === 'moduleGroupSort') {
+    return <ModuleGroupSortScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'taskModules') {
+    return <TaskModulesScreen actions={actions} group={selectedModuleGroup} theme={theme} />;
+  }
+
+  if (route === 'taskModuleDetail') {
+    return <TaskModuleDetailScreen actions={actions} module={selectedTaskModule} theme={theme} />;
+  }
+
+  if (route === 'taskModuleForm') {
+    return <TaskModuleFormScreen actions={actions} group={selectedModuleGroup} mode={moduleFormMode} module={selectedTaskModule} theme={theme} />;
+  }
+
+  if (route === 'taskModuleSort') {
+    return <TaskModuleSortScreen actions={actions} group={selectedModuleGroup} theme={theme} />;
   }
 
   if (route === 'pendingDevices') {
@@ -624,6 +805,11 @@ function ManageScreen({ actions, theme }: { actions: AdminActions; theme: MFThem
                     return;
                   }
 
+                  if (entry.title === '游戏模块') {
+                    actions.goRoute('moduleGroups');
+                    return;
+                  }
+
                   actions.openSheet(entry.target, `${entry.target} 页面将按原型继续拆分列表、详情、编辑、排序和确认弹窗。`);
                 }}
                 theme={theme}
@@ -640,6 +826,272 @@ function ManageScreen({ actions, theme }: { actions: AdminActions; theme: MFThem
           <MFStatCard label="审计记录" theme={theme} value="26" />
         </MFRow>
         <MFStatusCard message="模块分组、具体任务模块、脚本、运行模板和视觉资产将在 Phase 3 接入 CRUD 与排序。" theme={theme} title="模块管理计划" tone="info" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ModuleGroupsScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="manage" subtitle="模块分组、排序、启用状态和 APP 展示" theme={theme} title="游戏模块分组" />
+        <MFSearchBar placeholder="搜索分组名称或标识" theme={theme} />
+        <MFSegmentedControl
+          onChange={() => actions.showToast('分组筛选将在接口接入后生效')}
+          options={[
+            { label: '全部', value: 'all' },
+            { label: '启用', value: 'enabled' },
+            { label: '停用', value: 'disabled' }
+          ]}
+          theme={theme}
+          value="all"
+        />
+        {moduleGroups.map((group) => (
+          <MFCard key={group.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {group.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {group.key} · 排序 {group.order}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={group.enabled ? '启用' : '停用'} tone={group.enabled ? 'success' : 'warning'} theme={theme} />
+              </MFRow>
+              <MFKeyValue label="具体任务" theme={theme} value={`${group.moduleCount} 个`} />
+              <MFKeyValue label="APP 展示" theme={theme} value={group.showInApp ? '展示' : '隐藏'} />
+              <MFRow gap={10}>
+                <MFButton fullWidth={false} onPress={() => actions.openModuleGroup(group.id)} theme={theme} title="任务" variant="secondary" />
+                <MFButton fullWidth={false} onPress={() => actions.openModuleGroupForm('edit', group.id)} theme={theme} title="编辑" variant="ghost" />
+                <MFButton fullWidth={false} onPress={() => actions.goRoute('moduleGroupSort')} theme={theme} title="排序" variant="ghost" />
+              </MFRow>
+            </MFStack>
+          </MFCard>
+        ))}
+        <MFButton onPress={() => actions.openModuleGroupForm('create')} theme={theme} title="新建模块分组" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ModuleGroupFormScreen({ actions, group, mode, theme }: { actions: AdminActions; group: ModuleGroup; mode: ModuleFormMode; theme: MFTheme }) {
+  const isEdit = mode === 'edit';
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="moduleGroups" subtitle="名称、标识、排序、启用和 APP 展示" theme={theme} title={isEdit ? '编辑模块分组' : '新建模块分组'} />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="分组名称" required theme={theme}>
+              <MFInput defaultValue={isEdit ? group.name : ''} placeholder="例如：日常活动" theme={theme} />
+            </MFFormField>
+            <MFFormField label="分组标识" required theme={theme}>
+              <MFInput autoCapitalize="none" defaultValue={isEdit ? group.key : ''} placeholder="daily-activity" theme={theme} />
+            </MFFormField>
+            <MFFormField label="排序" theme={theme}>
+              <MFInput defaultValue={isEdit ? String(group.order) : '10'} keyboardType="number-pad" placeholder="10" theme={theme} />
+            </MFFormField>
+            <MFCheckbox label="启用分组" onValueChange={() => actions.showToast('分组启用状态已切换')} theme={theme} value={isEdit ? group.enabled : true} />
+            <MFCheckbox label="在 APP 展示" onValueChange={() => actions.showToast('APP 展示状态已切换')} theme={theme} value={isEdit ? group.showInApp : true} />
+          </MFStack>
+        </MFCard>
+        <MFButton
+          onPress={() => {
+            actions.showToast(isEdit ? '模块分组已保存' : '模块分组已创建');
+            actions.goRoute('moduleGroups');
+          }}
+          theme={theme}
+          title="保存"
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ModuleGroupSortScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="moduleGroups" subtitle="长按拖拽排序，保存后同步 APP 展示顺序" theme={theme} title="分组排序" />
+        {moduleGroups.map((group, index) => (
+          <MFCard key={group.id} theme={theme}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontWeight: '900' }}>
+                  {index + 1}. {group.name}
+                </MFText>
+                <MFCaption theme={theme}>{group.key}</MFCaption>
+              </MFStack>
+              <MFBadge label={`排序 ${group.order}`} tone="info" theme={theme} />
+            </MFRow>
+          </MFCard>
+        ))}
+        <MFButton onPress={() => actions.showToast('分组排序已保存')} theme={theme} title="保存排序" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskModulesScreen({ actions, group, theme }: { actions: AdminActions; group: ModuleGroup; theme: MFTheme }) {
+  const modules = taskModules.filter((taskModule) => taskModule.groupId === group.id);
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="moduleGroups" subtitle={`${group.key} · ${modules.length} 个具体任务`} theme={theme} title={group.name} />
+        <MFSearchBar placeholder="搜索任务名称、脚本或模板" theme={theme} />
+        {modules.map((taskModule) => (
+          <MFCard key={taskModule.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {taskModule.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {taskModule.key} · {taskModule.script}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={taskModule.enabled ? '启用' : '停用'} tone={taskModule.enabled ? 'success' : 'warning'} theme={theme} />
+              </MFRow>
+              <MFKeyValue label="运行模板" theme={theme} value={taskModule.runTemplate} />
+              <MFKeyValue label="成功率" theme={theme} value={taskModule.successRate} />
+              <MFRow gap={10}>
+                <MFButton fullWidth={false} onPress={() => actions.openTaskModule(taskModule.id)} theme={theme} title="详情" variant="secondary" />
+                <MFButton fullWidth={false} onPress={() => actions.openTaskModuleForm('edit', taskModule.id)} theme={theme} title="编辑" variant="ghost" />
+                <MFButton fullWidth={false} onPress={() => actions.goRoute('taskModuleSort')} theme={theme} title="排序" variant="ghost" />
+              </MFRow>
+            </MFStack>
+          </MFCard>
+        ))}
+        <MFButton onPress={() => actions.openTaskModuleForm('create')} theme={theme} title="新建具体任务模块" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskModuleDetailScreen({ actions, module, theme }: { actions: AdminActions; module: GameTaskModule; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskModules" subtitle={`${module.key} · ${module.successRate}`} theme={theme} title={module.name} />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  {module.script}
+                </MFText>
+                <MFCaption theme={theme}>{module.runTemplate}</MFCaption>
+              </MFStack>
+              <MFBadge label={module.enabled ? '启用' : '停用'} tone={module.enabled ? 'success' : 'warning'} theme={theme} />
+            </MFRow>
+            <MFProgress label="今日成功率" theme={theme} value={Number.parseFloat(module.successRate) / 100} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="执行配置" />
+            <MFKeyValue label="脚本" theme={theme} value={module.script} />
+            <MFKeyValue label="运行模板" theme={theme} value={module.runTemplate} />
+            <MFKeyValue label="超时" theme={theme} value={`${module.timeoutSeconds} 秒`} />
+            <MFKeyValue label="最大重试" theme={theme} value={`${module.retries} 次`} />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.openTaskModuleForm('edit', module.id)} theme={theme} title="编辑任务" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.openSheet('脚本与模板', '后续会接入脚本、运行模板和视觉资产管理。')} theme={theme} title="脚本模板" variant="ghost" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskModuleFormScreen({
+  actions,
+  group,
+  mode,
+  module,
+  theme
+}: {
+  actions: AdminActions;
+  group: ModuleGroup;
+  mode: ModuleFormMode;
+  module: GameTaskModule;
+  theme: MFTheme;
+}) {
+  const isEdit = mode === 'edit';
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute={isEdit ? 'taskModuleDetail' : 'taskModules'} subtitle={`${group.name} · 基础信息、执行配置和运行策略`} theme={theme} title={isEdit ? '编辑具体任务模块' : '新建具体任务模块'} />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="任务名称" required theme={theme}>
+              <MFInput defaultValue={isEdit ? module.name : ''} placeholder="例如：随缘打熊" theme={theme} />
+            </MFFormField>
+            <MFFormField label="任务标识" required theme={theme}>
+              <MFInput autoCapitalize="none" defaultValue={isEdit ? module.key : ''} placeholder="task-random-bear" theme={theme} />
+            </MFFormField>
+            <MFFormField label="脚本文件" required theme={theme}>
+              <MFInput defaultValue={isEdit ? module.script : 'bear.js'} placeholder="bear.js" theme={theme} />
+            </MFFormField>
+            <MFFormField label="运行模板" theme={theme}>
+              <MFInput defaultValue={isEdit ? module.runTemplate : 'tpl-bear-01'} placeholder="tpl-bear-01" theme={theme} />
+            </MFFormField>
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <SectionTitle theme={theme} title="运行策略" />
+            <MFFormField label="超时秒数" theme={theme}>
+              <MFInput defaultValue={isEdit ? String(module.timeoutSeconds) : '120'} keyboardType="number-pad" placeholder="120" theme={theme} />
+            </MFFormField>
+            <MFFormField label="最大重试" theme={theme}>
+              <MFInput defaultValue={isEdit ? String(module.retries) : '2'} keyboardType="number-pad" placeholder="2" theme={theme} />
+            </MFFormField>
+            <MFCheckbox label="启用任务模块" onValueChange={() => actions.showToast('任务模块状态已切换')} theme={theme} value={isEdit ? module.enabled : true} />
+          </MFStack>
+        </MFCard>
+        <MFButton
+          onPress={() => {
+            actions.showToast(isEdit ? '具体任务模块已保存' : '具体任务模块已创建');
+            actions.goRoute(isEdit ? 'taskModuleDetail' : 'taskModules');
+          }}
+          theme={theme}
+          title="保存"
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function TaskModuleSortScreen({ actions, group, theme }: { actions: AdminActions; group: ModuleGroup; theme: MFTheme }) {
+  const modules = taskModules.filter((taskModule) => taskModule.groupId === group.id);
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="taskModules" subtitle={`${group.name} · 长按拖拽排序`} theme={theme} title="具体任务排序" />
+        {modules.map((taskModule, index) => (
+          <MFCard key={taskModule.id} theme={theme}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontWeight: '900' }}>
+                  {index + 1}. {taskModule.name}
+                </MFText>
+                <MFCaption theme={theme}>{taskModule.key}</MFCaption>
+              </MFStack>
+              <MFBadge label={taskModule.enabled ? '启用' : '停用'} tone={taskModule.enabled ? 'success' : 'warning'} theme={theme} />
+            </MFRow>
+          </MFCard>
+        ))}
+        <MFButton onPress={() => actions.showToast('具体任务排序已保存')} theme={theme} title="保存排序" />
       </MFStack>
     </MFScrollPage>
   );
