@@ -48,9 +48,11 @@ import {
   managementEntries,
   statusTone,
   tasks,
+  type AdminTone,
   type DeviceRecord,
   type TaskRecord
 } from '../store';
+import { adminNativeActions } from '../services/native-actions';
 import { useRealtimeDeviceStatus, useRealtimeGlobalAlerts, useRealtimeTaskProgress } from '../services/realtime';
 import { appTheme } from '../theme';
 
@@ -91,6 +93,11 @@ type PermissionDeniedScreenProps = {
 
 type DeviceListSegment = 'all' | 'online' | 'attention';
 type TaskListSegment = 'all' | TaskRecord['status'];
+type NativeActionFeedback = {
+  message: string;
+  title: string;
+  tone: AdminTone;
+};
 
 const listPageSize = 2;
 const deviceFilterOptions = [
@@ -261,6 +268,7 @@ export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
 }
 
 export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetailScreenProps) {
+  const [nativeFeedback, setNativeFeedback] = useState<NativeActionFeedback | null>(null);
   const { connection, snapshot } = useRealtimeDeviceStatus(deviceId);
   const device = findDevice(deviceId);
 
@@ -274,6 +282,27 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
   const latestRisk = snapshot?.risk ?? device.risk;
   const latestStatus = snapshot?.status ?? device.status;
   const latestWorker = snapshot?.worker ?? device.worker;
+
+  const scanBindCode = async () => {
+    const result = await adminNativeActions.scanner.scanQRCode();
+
+    if (!result.ok) {
+      setNativeFeedback(nativeFailure('Scan bind', result.error));
+      return;
+    }
+
+    setNativeFeedback(
+      result.data
+        ? { message: `Scanned ${result.data.value}`, title: 'Scan bind', tone: 'success' }
+        : { message: 'No QR code result is available from the native adapter.', title: 'Scan bind', tone: 'warning' }
+    );
+  };
+
+  const copyDeviceId = async () => {
+    const result = await adminNativeActions.clipboard.copy(device.id);
+
+    setNativeFeedback(result.ok ? { message: `Copied ${device.id}`, title: 'Copy device ID', tone: 'success' } : nativeFailure('Copy device ID', result.error));
+  };
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -316,11 +345,12 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
             </MFText>
           )}
         </MFStack>
+        <NativeActionBanner feedback={nativeFeedback} />
         <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
           <PermissionGate permission="device.bind">
-            <MFButton fullWidth={false} theme={appTheme} title="Scan bind" variant="secondary" />
+            <MFButton fullWidth={false} onPress={scanBindCode} theme={appTheme} title="Scan bind" variant="secondary" />
           </PermissionGate>
-          <MFButton fullWidth={false} theme={appTheme} title="Copy ID" variant="outline" />
+          <MFButton fullWidth={false} onPress={copyDeviceId} theme={appTheme} title="Copy ID" variant="outline" />
         </MFRow>
       </MFStack>
     </MFScrollPage>
@@ -398,6 +428,7 @@ export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
 }
 
 export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScreenProps) {
+  const [nativeFeedback, setNativeFeedback] = useState<NativeActionFeedback | null>(null);
   const { connection, snapshot } = useRealtimeTaskProgress(taskId);
   const task = findTask(taskId);
 
@@ -410,6 +441,26 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
   const latestProgress = snapshot?.progress ?? task.progress;
   const latestStatus = snapshot?.status ?? task.status;
   const latestSteps = snapshot?.steps ?? task.steps;
+
+  const copyTaskId = async () => {
+    const result = await adminNativeActions.clipboard.copy(task.id);
+
+    setNativeFeedback(result.ok ? { message: `Copied ${task.id}`, title: 'Copy task ID', tone: 'success' } : nativeFailure('Copy task ID', result.error));
+  };
+
+  const copyErrorInfo = async () => {
+    const errorInfo = task.error ?? 'No task error is available.';
+    const result = await adminNativeActions.clipboard.copy(errorInfo);
+
+    setNativeFeedback(result.ok ? { message: 'Copied task error information.', title: 'Copy error', tone: 'success' } : nativeFailure('Copy error', result.error));
+  };
+
+  const shareTaskLogs = async () => {
+    const logText = formatTaskLogs(task.id, latestLogs);
+    const result = await adminNativeActions.share.shareText(logText);
+
+    setNativeFeedback(result.ok ? { message: 'Shared task logs through the native adapter.', title: 'Share logs', tone: 'success' } : nativeFailure('Share logs', result.error));
+  };
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -434,6 +485,7 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           theme={appTheme}
           title={task.name}
         />
+        <NativeActionBanner feedback={nativeFeedback} />
         <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
           <PermissionGate permission="task.stop">
             <MFButton fullWidth={false} theme={appTheme} title="Stop" variant="danger" />
@@ -444,6 +496,9 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
           <PermissionGate permission="device.view">
             <MFButton fullWidth={false} onPress={() => onOpenDevice(task.deviceId)} theme={appTheme} title="Device" variant="outline" />
           </PermissionGate>
+          <MFButton fullWidth={false} onPress={copyTaskId} theme={appTheme} title="Copy ID" variant="outline" />
+          <MFButton fullWidth={false} onPress={copyErrorInfo} theme={appTheme} title="Copy error" variant="outline" />
+          <MFButton fullWidth={false} onPress={shareTaskLogs} theme={appTheme} title="Share logs" variant="secondary" />
         </MFRow>
         <Timeline
           items={latestSteps.map((step) => ({
@@ -487,7 +542,18 @@ export function ManagementHomeScreen() {
 }
 
 export function ProfileScreen() {
+  const [nativeFeedback, setNativeFeedback] = useState<NativeActionFeedback | null>(null);
   const session = useAdminSession() ?? adminSession;
+
+  const openMobileBffDocs = async () => {
+    const result = await adminNativeActions.browser.open('https://github.com/liut-coder/mobile-frame');
+
+    setNativeFeedback(
+      result.ok
+        ? { message: `Opened ${result.data.url}`, title: 'Open external link', tone: 'success' }
+        : nativeFailure('Open external link', result.error)
+    );
+  };
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -516,6 +582,7 @@ export function ProfileScreen() {
             </MFRow>
           </MFStack>
         </MFCard>
+        <NativeActionBanner feedback={nativeFeedback} />
         <MFCard theme={appTheme}>
           <MFStack gap={appTheme.spacing.sm}>
             <SectionTitle title="/api/v1/mobile boundary" />
@@ -524,6 +591,7 @@ export function ProfileScreen() {
                 {contract}
               </MFText>
             ))}
+            <MFButton fullWidth={false} onPress={openMobileBffDocs} theme={appTheme} title="Open repo" variant="outline" />
           </MFStack>
         </MFCard>
       </MFStack>
@@ -647,6 +715,24 @@ function SectionTitle({ title }: { title: string }) {
       {title}
     </MFText>
   );
+}
+
+function NativeActionBanner({ feedback }: { feedback: NativeActionFeedback | null }) {
+  return feedback ? <MFBanner message={feedback.message} theme={appTheme} title={feedback.title} tone={feedback.tone} /> : null;
+}
+
+function nativeFailure(title: string, error: { code: string; message: string; module: string }): NativeActionFeedback {
+  return {
+    message: `${error.module}.${error.code}: ${error.message}`,
+    title,
+    tone: 'danger'
+  };
+}
+
+function formatTaskLogs(taskId: string, logs: TaskRecord['logs']): string {
+  const logLines = logs.map((log) => `[${log.time}] ${log.level.toUpperCase()} ${log.message}`);
+
+  return [`Task ${taskId}`, ...logLines].join('\n');
 }
 
 function connectionTone(status: RealtimeConnectionSnapshot['status']) {

@@ -48,7 +48,9 @@ PermissionModule
 AppLifecycleModule
 LoggerModule
 DeviceInfoModule
+ScannerModule
 ShareModule
+BrowserModule
 ```
 
 新代码优先使用直接契约；需要兼容旧调用时继续使用 `MFResult` 模块。
@@ -71,7 +73,9 @@ mock adapter 支持：
 - 浮窗权限、显示和隐藏状态；
 - 安全存储；
 - 网络状态订阅；
-- 剪贴板、文件系统、日志和分享等 legacy 模块。
+- 剪贴板、文件系统、日志、扫码、系统分享和打开链接等 legacy 模块。
+
+`game-helper-admin-mobile` 通过 `apps/game-helper-admin-mobile/src/services/native-actions.ts` 使用这些 mock 契约封装扫码绑定、复制设备/任务信息、分享日志和打开外部链接。业务页面继续依赖服务层，后续真实 Android/iOS 原生实现可以替换同一 TypeScript 边界。
 
 ## Showcase 预览
 

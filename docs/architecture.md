@@ -72,7 +72,7 @@ App
     └── Core Native Contracts
 ```
 
-页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`，通过 `@mobile-frame/auth-admin` 统一处理管理员 Token 映射、权限判断、路由级 `ProtectedScreen` 和动作级 `PermissionGate`，并通过 `@mobile-frame/realtime` 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 `@mobile-frame/core/native-modules` 访问，避免业务页面直接调用系统 API。
+页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`，通过 `@mobile-frame/auth-admin` 统一处理管理员 Token 映射、权限判断、路由级 `ProtectedScreen` 和动作级 `PermissionGate`，并通过 `@mobile-frame/realtime` 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 `@mobile-frame/core/native-modules` 或 `@mobile-frame/ui-native/native-modules` 访问；`game-helper-admin-mobile` 进一步用 `src/services/native-actions.ts` 封装扫码、复制、分享和打开链接动作，避免业务页面直接调用系统 API。
 
 ## 验证边界
 

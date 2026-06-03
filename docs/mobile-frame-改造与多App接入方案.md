@@ -727,7 +727,7 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 
 - 将 `game-helper-admin-mobile` 作为独立 App 纳入计划；
 - 基于 `admin-mobile` preset 生成 `apps/game-helper-admin-mobile`；
-- 增加 `ui-admin`、`auth-admin`、`realtime`、扫码、复制和分享等通用后台移动端能力；其中 `ui-admin`、`auth-admin` 和 `realtime` 已完成首轮接入；
+- 增加 `ui-admin`、`auth-admin`、`realtime`、扫码、复制和分享等通用后台移动端能力；其中 `ui-admin`、`auth-admin`、`realtime`、扫码/复制/分享/打开链接 mock 契约和 admin app 服务层已完成首轮接入；
 - 落地总览、设备、任务、管理、我的五 Tab 导航；
 - 按 `/api/v1/mobile` BFF 边界接入后台接口，不复用设备执行端 `/api/v1/device`；
 - 明确 OCR、OpenCV、无障碍、浮窗、Worker 和脚本执行继续归 `game-helper-app`。
@@ -760,7 +760,7 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 
 - [ ] iOS Release 流程稳定；已提供统一 `mf:ios-build:debug`/`mf:ios-build:release` 构建入口和 `mf:ios-export` IPA 导出入口，可执行 iOS strict preflight、`pod install`、`xcodebuild build/archive`、`.app`/`.xcarchive` 校验、`xcodebuild -exportArchive`、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、`ExportOptions.plist` 与签名配置跑出真实 Release/IPA 证据。
 - [x] `game-helper-admin-mobile` 第一阶段适配；已按 `docs/game-helper-admin-mobile-mobile-frame-adaptation.md` 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，并通过执行边界说明避免引入 OCR/OpenCV/Worker/脚本执行能力。
-- [ ] 后台管理端通用能力；`packages/ui-admin` 已提供状态、统计、`SegmentTabs`、`FilterSheet`、`InfiniteList`、空状态、实体列表、任务进度、Timeline、`LogViewer`、管理入口和执行边界组件，`packages/auth-admin` 已提供管理员 Token 映射、权限判断、路由级 `ProtectedScreen`、动作级 `PermissionGate` 和 Keychain/Keystore 存储断言，`packages/realtime` 已提供实时订阅契约、fixture replay、WebSocket envelope 解析、重连延迟和轮询降级支持并接入当前管理端页面。真实 WebSocket/BFF 传输、扫码/复制/分享封装和真实 `/api/v1/mobile` BFF 接口仍待接入。
+- [ ] 后台管理端通用能力；`packages/ui-admin` 已提供状态、统计、`SegmentTabs`、`FilterSheet`、`InfiniteList`、空状态、实体列表、任务进度、Timeline、`LogViewer`、管理入口和执行边界组件，`packages/auth-admin` 已提供管理员 Token 映射、权限判断、路由级 `ProtectedScreen`、动作级 `PermissionGate` 和 Keychain/Keystore 存储断言，`packages/realtime` 已提供实时订阅契约、fixture replay、WebSocket envelope 解析、重连延迟和轮询降级支持并接入当前管理端页面，扫码/复制/分享/打开链接已通过 `@mobile-frame/core/native-modules` mock 契约和 `game-helper-admin-mobile` 服务层首轮接入。真实 WebSocket/BFF 传输、真实 Android/iOS 原生实现和真实 `/api/v1/mobile` BFF 接口仍待接入。
 - [x] 暗色主题；`design-tokens`、`ui-core`、`app-shell` 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。
 - [x] 组件快照测试；`packages/ui-native/src/component-snapshots.test.tsx` 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。
 - [x] 文档站点；已提供无额外依赖的 `docs-site/index.html` 静态入口，并通过 `mf:docs-site:check` 接入 `mf:validate`。

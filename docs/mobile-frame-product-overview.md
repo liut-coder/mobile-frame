@@ -69,7 +69,7 @@ Planned product scope:
 
 - iOS simulator build evidence on macOS.
 - Android production Release signing evidence.
-- Admin-mobile capabilities beyond the first scaffold: real WebSocket/BFF transport, scanner, clipboard, sharing, server-backed pagination/search data flows, and real `/api/v1/mobile` BFF contracts.
+- Admin-mobile capabilities beyond the first scaffold: real WebSocket/BFF transport, server-backed pagination/search data flows, and real `/api/v1/mobile` BFF contracts.
 - Real platform implementations for selected native capability modules.
 - More complete reusable page templates.
 - More complete module catalog and preset coverage.
@@ -77,7 +77,7 @@ Planned product scope:
 
 ## Native Capability Strategy
 
-MobileFrame keeps app pages away from direct platform API calls. Pages and business modules should use TypeScript contracts such as permission, clipboard, network, biometric, secure vault, lifecycle, logger, and device-info adapters.
+MobileFrame keeps app pages away from direct platform API calls. Pages and business modules should use TypeScript contracts such as permission, scanner, clipboard, share, browser, network, biometric, secure vault, lifecycle, logger, and device-info adapters.
 
 This keeps the product scalable:
 
@@ -96,4 +96,4 @@ The scaffold is successful when a team can:
 - Add a native capability without changing unrelated app code.
 - Reuse the same app shell and UI system across multiple app products.
 
-The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run `26906180713`, the first `game-helper-admin-mobile` adaptation pass from `docs/game-helper-admin-mobile-mobile-frame-adaptation.md`, reusable admin-mobile permission gates through `packages/auth-admin`, fixture-backed realtime subscriptions through `packages/realtime`, and mobile list filtering/pagination components through `packages/ui-admin`. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.
+The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run `26906180713`, the first `game-helper-admin-mobile` adaptation pass from `docs/game-helper-admin-mobile-mobile-frame-adaptation.md`, reusable admin-mobile permission gates through `packages/auth-admin`, fixture-backed realtime subscriptions through `packages/realtime`, mobile list filtering/pagination components through `packages/ui-admin`, and scanner/clipboard/share/browser action wrappers through the native mock contract. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.

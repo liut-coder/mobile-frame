@@ -51,6 +51,56 @@ describe('createMockNativeModules', () => {
     expect(missing).toMatchObject({ error: { code: 'E_FILE_NOT_FOUND', recoverable: true }, ok: false });
   });
 
+  it('supports admin scanner, clipboard, share, and browser action mocks', async () => {
+    const nativeModules = createMockNativeModules({
+      scannedQRCodes: [{ format: 'qr', value: 'mf-bind://device/DEV-1024' }]
+    });
+
+    await expect(nativeModules.clipboard.copy('DEV-1024')).resolves.toEqual({ ok: true, data: undefined });
+    await expect(nativeModules.clipboard.getString()).resolves.toEqual({ ok: true, data: 'DEV-1024' });
+
+    await expect(nativeModules.scanner.scanQRCode()).resolves.toEqual({
+      ok: true,
+      data: { format: 'qr', value: 'mf-bind://device/DEV-1024' }
+    });
+    await expect(nativeModules.scanner.scanQRCode()).resolves.toEqual({ ok: true, data: null });
+
+    await expect(nativeModules.share.shareText('logs')).resolves.toEqual({ ok: true, data: { completed: true } });
+    expect(nativeModules.mock.sharedTexts).toEqual(['logs']);
+
+    await expect(nativeModules.share.shareFile('/tmp/log.txt')).resolves.toEqual({
+      ok: true,
+      data: { completed: true, path: '/tmp/log.txt' }
+    });
+    expect(nativeModules.mock.sharedFiles).toEqual(['/tmp/log.txt']);
+
+    const emptyPath = await nativeModules.share.shareFile('   ');
+    expect(emptyPath).toMatchObject({
+      error: {
+        code: 'E_EMPTY_PATH',
+        module: 'ShareModule',
+        recoverable: true
+      },
+      ok: false
+    });
+
+    await expect(nativeModules.browser.open('https://example.test')).resolves.toEqual({
+      ok: true,
+      data: { opened: true, url: 'https://example.test' }
+    });
+    expect(nativeModules.mock.openedUrls).toEqual(['https://example.test']);
+
+    const invalidUrl = await nativeModules.browser.open('ftp://example.test/file.txt');
+    expect(invalidUrl).toMatchObject({
+      error: {
+        code: 'E_INVALID_URL',
+        module: 'BrowserModule',
+        recoverable: true
+      },
+      ok: false
+    });
+  });
+
   it('redacts sensitive log messages and details recursively', async () => {
     const nativeModules = createMockNativeModules();
 

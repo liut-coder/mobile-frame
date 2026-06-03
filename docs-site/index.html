@@ -1324,7 +1324,7 @@ App 管理
   <ul>
   <li>将 <code>game-helper-admin-mobile</code> 作为独立 App 纳入计划；</li>
   <li>基于 <code>admin-mobile</code> preset 生成 <code>apps/game-helper-admin-mobile</code>；</li>
-  <li>增加 <code>ui-admin</code>、<code>auth-admin</code>、<code>realtime</code>、扫码、复制和分享等通用后台移动端能力；其中 <code>ui-admin</code>、<code>auth-admin</code> 和 <code>realtime</code> 已完成首轮接入；</li>
+  <li>增加 <code>ui-admin</code>、<code>auth-admin</code>、<code>realtime</code>、扫码、复制和分享等通用后台移动端能力；其中 <code>ui-admin</code>、<code>auth-admin</code>、<code>realtime</code>、扫码/复制/分享/打开链接 mock 契约和 admin app 服务层已完成首轮接入；</li>
   <li>落地总览、设备、任务、管理、我的五 Tab 导航；</li>
   <li>按 <code>/api/v1/mobile</code> BFF 边界接入后台接口，不复用设备执行端 <code>/api/v1/device</code>；</li>
   <li>明确 OCR、OpenCV、无障碍、浮窗、Worker 和脚本执行继续归 <code>game-helper-app</code>。</li>
@@ -1354,7 +1354,7 @@ App 管理
   <ul>
   <li>[ ] iOS Release 流程稳定；已提供统一 <code>mf:ios-build:debug</code>/<code>mf:ios-build:release</code> 构建入口和 <code>mf:ios-export</code> IPA 导出入口，可执行 iOS strict preflight、<code>pod install</code>、<code>xcodebuild build/archive</code>、<code>.app</code>/<code>.xcarchive</code> 校验、<code>xcodebuild -exportArchive</code>、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 与签名配置跑出真实 Release/IPA 证据。</li>
   <li>[x] <code>game-helper-admin-mobile</code> 第一阶段适配；已按 <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code> 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，并通过执行边界说明避免引入 OCR/OpenCV/Worker/脚本执行能力。</li>
-  <li>[ ] 后台管理端通用能力；<code>packages/ui-admin</code> 已提供状态、统计、<code>SegmentTabs</code>、<code>FilterSheet</code>、<code>InfiniteList</code>、空状态、实体列表、任务进度、Timeline、<code>LogViewer</code>、管理入口和执行边界组件，<code>packages/auth-admin</code> 已提供管理员 Token 映射、权限判断、路由级 <code>ProtectedScreen</code>、动作级 <code>PermissionGate</code> 和 Keychain/Keystore 存储断言，<code>packages/realtime</code> 已提供实时订阅契约、fixture replay、WebSocket envelope 解析、重连延迟和轮询降级支持并接入当前管理端页面。真实 WebSocket/BFF 传输、扫码/复制/分享封装和真实 <code>/api/v1/mobile</code> BFF 接口仍待接入。</li>
+  <li>[ ] 后台管理端通用能力；<code>packages/ui-admin</code> 已提供状态、统计、<code>SegmentTabs</code>、<code>FilterSheet</code>、<code>InfiniteList</code>、空状态、实体列表、任务进度、Timeline、<code>LogViewer</code>、管理入口和执行边界组件，<code>packages/auth-admin</code> 已提供管理员 Token 映射、权限判断、路由级 <code>ProtectedScreen</code>、动作级 <code>PermissionGate</code> 和 Keychain/Keystore 存储断言，<code>packages/realtime</code> 已提供实时订阅契约、fixture replay、WebSocket envelope 解析、重连延迟和轮询降级支持并接入当前管理端页面，扫码/复制/分享/打开链接已通过 <code>@mobile-frame/core/native-modules</code> mock 契约和 <code>game-helper-admin-mobile</code> 服务层首轮接入。真实 WebSocket/BFF 传输、真实 Android/iOS 原生实现和真实 <code>/api/v1/mobile</code> BFF 接口仍待接入。</li>
   <li>[x] 暗色主题；<code>design-tokens</code>、<code>ui-core</code>、<code>app-shell</code> 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。</li>
   <li>[x] 组件快照测试；<code>packages/ui-native/src/component-snapshots.test.tsx</code> 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。</li>
   <li>[x] 文档站点；已提供无额外依赖的 <code>docs-site/index.html</code> 静态入口，并通过 <code>mf:docs-site:check</code> 接入 <code>mf:validate</code>。</li>
@@ -1786,6 +1786,7 @@ browser.open(url)</code></pre>
 保存截图证据
 打开外部链接</code></pre>
   <p>业务层不要直接调用原生 SDK。</p>
+  <p>当前落地状态更新于 2026-06-03：<code>@mobile-frame/core/native-modules</code> 已补齐 <code>ScannerModule</code>、<code>ClipboardModule.copy</code>、<code>ShareModule.shareFile/shareText</code> 和 <code>BrowserModule.open</code> 的 mock 契约；<code>game-helper-admin-mobile</code> 通过 <code>src/services/native-actions.ts</code> 统一封装扫码绑定、复制设备 ID、复制任务 ID、复制错误信息、分享日志和打开外部链接。后续仍需在同一 TypeScript 边界后替换真实 Android/iOS 原生实现。</p>
   <hr />
   <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-46">14. 后端接口适配</h2>
   <p>移动端不建议直接复用桌面后台全部接口。</p>
@@ -1884,7 +1885,7 @@ App 管理
 7. LogViewer
 8. 扫码、复制、分享封装
 9. /api/v1/mobile BFF</code></pre>
-  <p>当前落地状态更新于 2026-06-03：<code>admin-mobile</code> preset、底部 5 个导航、<code>ui-admin</code> 组件包、管理员 Token/权限控制、<code>InfiniteList</code>/<code>FilterSheet</code>/<code>SegmentTabs</code>、<code>packages/realtime</code> 实时订阅契约和 <code>LogViewer</code> 已完成首轮接入；真实 WebSocket/BFF 传输、扫码/复制/分享封装和真实 <code>/api/v1/mobile</code> BFF 仍待继续推进。</p>
+  <p>当前落地状态更新于 2026-06-03：<code>admin-mobile</code> preset、底部 5 个导航、<code>ui-admin</code> 组件包、管理员 Token/权限控制、<code>InfiniteList</code>/<code>FilterSheet</code>/<code>SegmentTabs</code>、<code>packages/realtime</code> 实时订阅契约、<code>LogViewer</code>、扫码/复制/分享/打开链接 mock 契约和 admin app 服务层已完成首轮接入；真实 WebSocket/BFF 传输、真实 Android/iOS 原生实现和真实 <code>/api/v1/mobile</code> BFF 仍待继续推进。</p>
   <p>不要第一阶段就加入：</p>
   <pre><code class="language-text">复杂审批流
 完整视觉资产编辑器
@@ -1969,7 +1970,7 @@ App 管理
 可以接入 WebSocket（已通过 `packages/realtime` 提供首轮传输契约和 fixture 订阅）
 可以分页加载列表（已通过 `ui-admin` 的 `InfiniteList`、`FilterSheet` 和 `SegmentTabs` 首轮接入）
 可以查看实时日志
-可以扫码、复制、分享</code></pre>
+可以扫码、复制、分享（已通过 native mock 契约和 `game-helper-admin-mobile` 服务层首轮接入）</code></pre>
   <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-71">20.2 game-helper-admin-mobile 验收</h3>
   <pre><code class="language-text">管理员可以登录
 可以查看总览
@@ -2055,7 +2056,7 @@ docs                           架构、生成器、发布和使用文档</code>
     ├── UI Core Theme
     ├── Module SDK metadata
     └── Core Native Contracts</code></pre>
-  <p>页面应优先使用 <code>@mobile-frame/screen-templates</code> 和 <code>@mobile-frame/ui-native</code>。后台管理端页面可在此基础上使用 <code>@mobile-frame/ui-admin</code>，通过 <code>@mobile-frame/auth-admin</code> 统一处理管理员 Token 映射、权限判断、路由级 <code>ProtectedScreen</code> 和动作级 <code>PermissionGate</code>，并通过 <code>@mobile-frame/realtime</code> 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 <code>@mobile-frame/core/native-modules</code> 访问，避免业务页面直接调用系统 API。</p>
+  <p>页面应优先使用 <code>@mobile-frame/screen-templates</code> 和 <code>@mobile-frame/ui-native</code>。后台管理端页面可在此基础上使用 <code>@mobile-frame/ui-admin</code>，通过 <code>@mobile-frame/auth-admin</code> 统一处理管理员 Token 映射、权限判断、路由级 <code>ProtectedScreen</code> 和动作级 <code>PermissionGate</code>，并通过 <code>@mobile-frame/realtime</code> 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 <code>@mobile-frame/core/native-modules</code> 或 <code>@mobile-frame/ui-native/native-modules</code> 访问；<code>game-helper-admin-mobile</code> 进一步用 <code>src/services/native-actions.ts</code> 封装扫码、复制、分享和打开链接动作，避免业务页面直接调用系统 API。</p>
   <h2 id="doc-docs-architecture-heading-6">验证边界</h2>
   <p>当前源码级闭环由以下命令覆盖：</p>
   <pre><code class="language-bash">pnpm run typecheck
@@ -2362,7 +2363,9 @@ PermissionModule
 AppLifecycleModule
 LoggerModule
 DeviceInfoModule
-ShareModule</code></pre>
+ScannerModule
+ShareModule
+BrowserModule</code></pre>
   <p>新代码优先使用直接契约；需要兼容旧调用时继续使用 <code>MFResult</code> 模块。</p>
   <h2 id="doc-docs-native-contracts-heading-5">Mock Adapter</h2>
   <p>使用：</p>
@@ -2377,8 +2380,9 @@ const nativeModules = createMockNativeModules();</code></pre>
   <li>浮窗权限、显示和隐藏状态；</li>
   <li>安全存储；</li>
   <li>网络状态订阅；</li>
-  <li>剪贴板、文件系统、日志和分享等 legacy 模块。</li>
+  <li>剪贴板、文件系统、日志、扫码、系统分享和打开链接等 legacy 模块。</li>
   </ul>
+  <p><code>game-helper-admin-mobile</code> 通过 <code>apps/game-helper-admin-mobile/src/services/native-actions.ts</code> 使用这些 mock 契约封装扫码绑定、复制设备/任务信息、分享日志和打开外部链接。业务页面继续依赖服务层，后续真实 Android/iOS 原生实现可以替换同一 TypeScript 边界。</p>
   <h2 id="doc-docs-native-contracts-heading-6">Showcase 预览</h2>
   <p>Showcase 的 Native tab 已列出新契约和 legacy 模块。预览动作通过 <code>apps/showcase/src/preview-actions.ts</code> 触发 mock adapter，确保没有真实 Native Module 时也能检查页面状态。</p>
   <h2 id="doc-docs-native-contracts-heading-7">验证</h2>
@@ -2593,14 +2597,14 @@ git diff --check</code></pre>
   <ul>
   <li>iOS simulator build evidence on macOS.</li>
   <li>Android production Release signing evidence.</li>
-  <li>Admin-mobile capabilities beyond the first scaffold: real WebSocket/BFF transport, scanner, clipboard, sharing, server-backed pagination/search data flows, and real <code>/api/v1/mobile</code> BFF contracts.</li>
+  <li>Admin-mobile capabilities beyond the first scaffold: real WebSocket/BFF transport, server-backed pagination/search data flows, and real <code>/api/v1/mobile</code> BFF contracts.</li>
   <li>Real platform implementations for selected native capability modules.</li>
   <li>More complete reusable page templates.</li>
   <li>More complete module catalog and preset coverage.</li>
   <li>CI workflow that runs workspace validation and platform-specific build checks on suitable hosts.</li>
   </ul>
   <h2 id="doc-docs-mobile-frame-product-overview-heading-7">Native Capability Strategy</h2>
-  <p>MobileFrame keeps app pages away from direct platform API calls. Pages and business modules should use TypeScript contracts such as permission, clipboard, network, biometric, secure vault, lifecycle, logger, and device-info adapters.</p>
+  <p>MobileFrame keeps app pages away from direct platform API calls. Pages and business modules should use TypeScript contracts such as permission, scanner, clipboard, share, browser, network, biometric, secure vault, lifecycle, logger, and device-info adapters.</p>
   <p>This keeps the product scalable:</p>
   <ul>
   <li>Mock adapters can support early UI and product work.</li>
@@ -2617,7 +2621,7 @@ git diff --check</code></pre>
   <li>Add a native capability without changing unrelated app code.</li>
   <li>Reuse the same app shell and UI system across multiple app products.</li>
   </ul>
-  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run <code>26906180713</code>, the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>, reusable admin-mobile permission gates through <code>packages/auth-admin</code>, fixture-backed realtime subscriptions through <code>packages/realtime</code>, and mobile list filtering/pagination components through <code>packages/ui-admin</code>. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.</p>
+  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run <code>26906180713</code>, the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>, reusable admin-mobile permission gates through <code>packages/auth-admin</code>, fixture-backed realtime subscriptions through <code>packages/realtime</code>, mobile list filtering/pagination components through <code>packages/ui-admin</code>, and scanner/clipboard/share/browser action wrappers through the native mock contract. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.</p>
 </article>
 <article class="doc-article" id="doc-docs-mobile-frame-landing-plan">
   <div class="article-meta">

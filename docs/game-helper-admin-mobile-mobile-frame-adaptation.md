@@ -662,6 +662,8 @@ browser.open(url)
 
 业务层不要直接调用原生 SDK。
 
+当前落地状态更新于 2026-06-03：`@mobile-frame/core/native-modules` 已补齐 `ScannerModule`、`ClipboardModule.copy`、`ShareModule.shareFile/shareText` 和 `BrowserModule.open` 的 mock 契约；`game-helper-admin-mobile` 通过 `src/services/native-actions.ts` 统一封装扫码绑定、复制设备 ID、复制任务 ID、复制错误信息、分享日志和打开外部链接。后续仍需在同一 TypeScript 边界后替换真实 Android/iOS 原生实现。
+
 ---
 
 ## 14. 后端接口适配
@@ -852,7 +854,7 @@ App 管理
 9. /api/v1/mobile BFF
 ```
 
-当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约和 `LogViewer` 已完成首轮接入；真实 WebSocket/BFF 传输、扫码/复制/分享封装和真实 `/api/v1/mobile` BFF 仍待继续推进。
+当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约和 admin app 服务层已完成首轮接入；真实 WebSocket/BFF 传输、真实 Android/iOS 原生实现和真实 `/api/v1/mobile` BFF 仍待继续推进。
 
 不要第一阶段就加入：
 
@@ -974,7 +976,7 @@ App 管理
 可以接入 WebSocket（已通过 `packages/realtime` 提供首轮传输契约和 fixture 订阅）
 可以分页加载列表（已通过 `ui-admin` 的 `InfiniteList`、`FilterSheet` 和 `SegmentTabs` 首轮接入）
 可以查看实时日志
-可以扫码、复制、分享
+可以扫码、复制、分享（已通过 native mock 契约和 `game-helper-admin-mobile` 服务层首轮接入）
 ```
 
 ### 20.2 game-helper-admin-mobile 验收

@@ -106,6 +106,7 @@ export type HapticsModule = {
 };
 
 export type ClipboardModule = {
+  copy: (value: string) => Promise<MFResult<void>>;
   getString: () => Promise<MFResult<string>>;
   setString: (value: string) => Promise<MFResult<void>>;
 };
@@ -134,13 +135,28 @@ export type DeviceInfoModule = {
   getInfo: () => Promise<MFResult<DeviceInfo>>;
 };
 
+export type QRCodeScanResult = {
+  format: 'qr' | (string & {});
+  value: string;
+};
+
+export type ScannerModule = {
+  scanQRCode: () => Promise<MFResult<QRCodeScanResult | null>>;
+};
+
 export type ShareModule = {
+  shareFile: (path: string) => Promise<MFResult<{ completed: boolean; path: string }>>;
   shareText: (message: string) => Promise<MFResult<{ completed: boolean }>>;
+};
+
+export type BrowserModule = {
+  open: (url: string) => Promise<MFResult<{ opened: boolean; url: string }>>;
 };
 
 export type MFNativeModules = {
   appLifecycle: AppLifecycleModule;
   biometric: BiometricModule;
+  browser: BrowserModule;
   clipboard: ClipboardModule;
   deviceInfo: DeviceInfoModule;
   deviceInfoNative: DeviceInfoNative;
@@ -153,6 +169,7 @@ export type MFNativeModules = {
   overlay: OverlayNative;
   permission: PermissionModule;
   permissionNative: PermissionNative;
+  scanner: ScannerModule;
   secureStorage: SecureStorageNative;
   secureVault: SecureVaultModule;
   share: ShareModule;
@@ -171,9 +188,13 @@ export type MFNativeMockState = {
   logs: MFMockLogEntry[];
   networkListeners: Set<(status: NetworkStatus) => void>;
   openedPermissionSettings: PermissionType[];
+  openedUrls: string[];
   overlayPermission: boolean;
   overlayVisible: boolean;
   permissions: Map<string, boolean>;
+  scannedQRCodes: QRCodeScanResult[];
+  sharedFiles: string[];
+  sharedTexts: string[];
   vault: Map<string, string>;
 };
 
@@ -186,10 +207,14 @@ export type MFNativeMockOptions = {
   installedApps?: InstalledApp[];
   networkState?: NetworkStatus;
   networkStatus?: NetworkStatus;
+  openedUrls?: string[];
   overlayPermission?: boolean;
   permissionSnapshot?: PermissionSnapshot;
   permissions?: Record<string, boolean>;
+  scannedQRCodes?: QRCodeScanResult[];
   shareCompleted?: boolean;
+  sharedFiles?: string[];
+  sharedTexts?: string[];
   vault?: Record<string, string>;
 };
 
@@ -221,9 +246,13 @@ export function createMockNativeModules(options: MFNativeMockOptions = {}): MFMo
     logs: [],
     networkListeners: new Set(),
     openedPermissionSettings: [],
+    openedUrls: [...(options.openedUrls ?? [])],
     overlayPermission: options.overlayPermission ?? true,
     overlayVisible: false,
     permissions: new Map(Object.entries(options.permissions ?? {})),
+    scannedQRCodes: [...(options.scannedQRCodes ?? [])],
+    sharedFiles: [...(options.sharedFiles ?? [])],
+    sharedTexts: [...(options.sharedTexts ?? [])],
     vault: new Map(Object.entries(options.vault ?? {}))
   };
 
@@ -241,10 +270,25 @@ export function createMockNativeModules(options: MFNativeMockOptions = {}): MFMo
       isAvailable: async () => ok(options.biometricAvailable ?? true)
     },
     clipboard: {
+      copy: async (value) => {
+        state.clipboard = value;
+        return ok(undefined);
+      },
       getString: async () => ok(state.clipboard),
       setString: async (value) => {
         state.clipboard = value;
         return ok(undefined);
+      }
+    },
+    browser: {
+      open: async (url) => {
+        const validatedUrl = validateUrl('BrowserModule', url);
+        if (validatedUrl) {
+          return validatedUrl;
+        }
+
+        state.openedUrls.push(url);
+        return ok({ opened: true, url });
       }
     },
     deviceInfo: {
@@ -327,6 +371,9 @@ export function createMockNativeModules(options: MFNativeMockOptions = {}): MFMo
         state.openedPermissionSettings.push(type);
       }
     },
+    scanner: {
+      scanQRCode: async () => ok(state.scannedQRCodes.shift() ?? null)
+    },
     secureStorage: {
       getItem: async (key) => {
         ensureKey(key);
@@ -370,7 +417,18 @@ export function createMockNativeModules(options: MFNativeMockOptions = {}): MFMo
       }
     },
     share: {
-      shareText: async () => ok({ completed: options.shareCompleted ?? true })
+      shareFile: async (path) => {
+        if (!path.trim()) {
+          return fail('ShareModule', 'E_EMPTY_PATH', 'File path must not be empty.', { path });
+        }
+
+        state.sharedFiles.push(path);
+        return ok({ completed: options.shareCompleted ?? true, path });
+      },
+      shareText: async (message) => {
+        state.sharedTexts.push(message);
+        return ok({ completed: options.shareCompleted ?? true });
+      }
     }
   };
 }
@@ -389,6 +447,17 @@ function ensureKey(key: string): void {
   if (!key.trim()) {
     throw new Error('Key must not be empty.');
   }
+}
+
+function validateUrl(module: string, url: string): MFResult<never> | null {
+  const trimmedUrl = url.trim();
+  const match = /^https?:\/\/([^/?#\s]+)(?:[/?#].*)?$/i.exec(trimmedUrl);
+
+  if (match?.[1]) {
+    return null;
+  }
+
+  return fail(module, 'E_INVALID_URL', 'URL must be a valid HTTP or HTTPS URL.', { url });
 }
 
 function createPermissionSnapshot(permissions: Map<string, boolean>): PermissionSnapshot {
