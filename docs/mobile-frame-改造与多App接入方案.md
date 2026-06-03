@@ -543,13 +543,11 @@ Sheet
 #### `admin-mobile`
 
 ```text
-仪表盘
-设备管理
-任务管理
-告警中心
-审批中心
-账号管理
-设置
+总览
+设备
+任务
+管理
+我的
 ```
 
 ---
@@ -580,7 +578,7 @@ Sheet
 
 ### 10.2 推荐目录
 
-未来可创建：
+当前已创建首期 App，后续可继续细分目录：
 
 ```text
 apps/game-helper-admin-mobile/
@@ -761,8 +759,8 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 ### P2
 
 - [ ] iOS Release 流程稳定；已提供统一 `mf:ios-build:debug`/`mf:ios-build:release` 构建入口和 `mf:ios-export` IPA 导出入口，可执行 iOS strict preflight、`pod install`、`xcodebuild build/archive`、`.app`/`.xcarchive` 校验、`xcodebuild -exportArchive`、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、`ExportOptions.plist` 与签名配置跑出真实 Release/IPA 证据。
-- [ ] `game-helper-admin-mobile` 第一阶段适配；按 `docs/game-helper-admin-mobile-mobile-frame-adaptation.md` 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，不引入 OCR/OpenCV/Worker/脚本执行能力。
-- [ ] 后台管理端通用能力；补齐 `ui-admin` 组件、管理员权限控制、分页/筛选列表、WebSocket 实时状态、`LogViewer`、扫码/复制/分享封装和 `/api/v1/mobile` BFF 接口边界。
+- [x] `game-helper-admin-mobile` 第一阶段适配；已按 `docs/game-helper-admin-mobile-mobile-frame-adaptation.md` 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，并通过执行边界说明避免引入 OCR/OpenCV/Worker/脚本执行能力。
+- [ ] 后台管理端通用能力；`packages/ui-admin` 已提供状态、统计、实体列表、任务进度、Timeline、`LogViewer`、管理入口和执行边界组件。管理员权限控制、分页/筛选列表、WebSocket 实时状态、扫码/复制/分享封装和真实 `/api/v1/mobile` BFF 接口仍待接入。
 - [x] 暗色主题；`design-tokens`、`ui-core`、`app-shell` 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。
 - [x] 组件快照测试；`packages/ui-native/src/component-snapshots.test.tsx` 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。
 - [x] 文档站点；已提供无额外依赖的 `docs-site/index.html` 静态入口，并通过 `mf:docs-site:check` 接入 `mf:validate`。

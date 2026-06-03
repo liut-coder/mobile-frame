@@ -15,6 +15,7 @@ apps/showcase                  Showcase 预览 App 和原生模板来源
 packages/design-tokens         色彩、间距、圆角、字体、阴影、动效
 packages/ui-core               平台无关主题和组件状态类型
 packages/ui-native             React Native 通用 UI 组件
+packages/ui-admin              后台管理移动端通用组件
 packages/app-shell             App Provider、主题、Toast、Sheet、模块挂载状态
 packages/core                  通用工具、Native Contract、mock adapter
 packages/module-sdk            模块声明、路由、权限和 Tab 元数据
@@ -30,6 +31,7 @@ docs                           架构、生成器、发布和使用文档
 ```text
 mobile-frame
 ├── apps/showcase                  # 底座能力展示和原生模板来源
+├── apps/game-helper-admin-mobile  # admin-mobile preset 的首个管理端适配 App
 ├── apps/<generated-app>           # create-app 生成的独立 RN Bare App
 └── packages/*                     # 所有 App 复用的底座能力
 ```
@@ -66,7 +68,7 @@ App
     └── Core Native Contracts
 ```
 
-页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。平台能力应通过 `@mobile-frame/core/native-modules` 访问，避免业务页面直接调用系统 API。
+页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`。平台能力应通过 `@mobile-frame/core/native-modules` 访问，避免业务页面直接调用系统 API。
 
 ## 验证边界
 

@@ -22,6 +22,9 @@
       "path": "../../packages/screen-templates"
     },
     {
+      "path": "../../packages/ui-admin"
+    },
+    {
       "path": "../../packages/ui-core"
     },
     {

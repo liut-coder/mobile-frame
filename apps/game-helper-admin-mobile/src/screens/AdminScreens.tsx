@@ -1,26 +1,30 @@
 import { View } from 'react-native';
 
 import {
-  MFBadge,
+  AdminBoundaryCard,
+  AdminPageHeader,
+  EntityListItem,
+  LogViewer,
+  ManagementEntryList,
+  StatCard,
+  StatusBadge,
+  TaskProgressCard,
+  Timeline
+} from '@mobile-frame/ui-admin';
+import {
   MFBanner,
   MFButton,
   MFCard,
-  MFDivider,
   MFFormField,
-  MFHeading,
-  MFInfoGrid,
   MFInfoRow,
   MFInput,
-  MFListItem,
   MFPage,
-  MFPageHeader,
   MFPasswordInput,
   MFProgress,
   MFRow,
   MFScrollPage,
   MFSearchBar,
   MFStack,
-  MFStatusPill,
   MFText
 } from '@mobile-frame/ui-native';
 
@@ -77,15 +81,15 @@ type TaskDetailScreenProps = {
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
     <MFPage centered theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           eyebrow="Admin mobile"
           subtitle="Sign in with administrator credentials backed by the mobile BFF boundary."
           theme={appTheme}
           title="Game Helper Admin"
         />
         <MFCard theme={appTheme}>
-          <MFStack gap={14}>
+          <MFStack gap={appTheme.spacing.md}>
             <MFFormField label="Tenant" theme={appTheme}>
               <MFInput editable={false} theme={appTheme} value={adminSession.tenantId} />
             </MFFormField>
@@ -98,7 +102,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <MFButton onPress={onLogin} theme={appTheme} title="Sign in" />
           </MFStack>
         </MFCard>
-        <CapabilityBoundaryCard />
+        <AdminBoundaryCard items={adminBoundaries} theme={appTheme} />
       </MFStack>
     </MFPage>
   );
@@ -107,33 +111,29 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenProps) {
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           eyebrow="Overview"
           subtitle="Realtime summary for devices, task progress, failures, approvals, and release status."
           theme={appTheme}
           title="Operations overview"
         />
-        <MFInfoGrid items={dashboardSummary} theme={appTheme} />
+        <DashboardStatGrid />
         {dashboardAlerts.map((alert) => (
           <MFBanner key={alert.title} message={alert.message} theme={appTheme} title={alert.title} tone={alert.tone} />
         ))}
-        <MFCard theme={appTheme}>
-          <MFStack gap={12}>
-            <SectionTitle title="Recent devices" />
-            {devices.slice(0, 2).map((device) => (
-              <DeviceListRow device={device} key={device.id} onPress={() => onOpenDevice(device.id)} />
-            ))}
-          </MFStack>
-        </MFCard>
-        <MFCard theme={appTheme}>
-          <MFStack gap={12}>
-            <SectionTitle title="Active tasks" />
-            {tasks.slice(0, 2).map((task) => (
-              <TaskListRow key={task.id} onPress={() => onOpenTask(task.id)} task={task} />
-            ))}
-          </MFStack>
-        </MFCard>
+        <MFStack gap={appTheme.spacing.md}>
+          <SectionTitle title="Recent devices" />
+          {devices.slice(0, 2).map((device) => (
+            <DeviceListItem compact device={device} key={device.id} onPress={() => onOpenDevice(device.id)} />
+          ))}
+        </MFStack>
+        <MFStack gap={appTheme.spacing.md}>
+          <SectionTitle title="Active tasks" />
+          {tasks.slice(0, 2).map((task) => (
+            <TaskListItem compact key={task.id} onPress={() => onOpenTask(task.id)} task={task} />
+          ))}
+        </MFStack>
       </MFStack>
     </MFScrollPage>
   );
@@ -142,22 +142,22 @@ export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenPro
 export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           eyebrow="Devices"
           subtitle="Paginated and filterable device status surface for the administrator mobile app."
           theme={appTheme}
           title="Device fleet"
         />
         <MFSearchBar placeholder="Search device, user, or app version" theme={appTheme} value="" />
-        <MFRow gap={8}>
-          <MFBadge label="All 3" theme={appTheme} />
-          <MFBadge label="Online 1" tone="success" theme={appTheme} />
-          <MFBadge label="Attention 2" tone="warning" theme={appTheme} />
+        <MFRow gap={appTheme.spacing.sm}>
+          <StatusBadge label="All 3" theme={appTheme} tone="info" />
+          <StatusBadge label="Online 1" theme={appTheme} tone="success" />
+          <StatusBadge label="Attention 2" theme={appTheme} tone="warning" />
         </MFRow>
-        <MFStack gap={12}>
+        <MFStack gap={appTheme.spacing.md}>
           {devices.map((device) => (
-            <DeviceCard device={device} key={device.id} onPress={() => onOpenDevice(device.id)} />
+            <DeviceListItem device={device} key={device.id} onPress={() => onOpenDevice(device.id)} />
           ))}
         </MFStack>
       </MFStack>
@@ -176,18 +176,18 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
 
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           backLabel="Devices"
           eyebrow={device.id}
           onBack={onBack}
-          right={<MFStatusPill label={getDeviceStatusLabel(device.status)} status={statusTone(device.status)} theme={appTheme} />}
+          right={<StatusBadge label={getDeviceStatusLabel(device.status)} theme={appTheme} tone={statusTone(device.status)} />}
           subtitle={`${device.owner} - ${device.model}`}
           theme={appTheme}
           title="Device detail"
         />
         <MFCard theme={appTheme}>
-          <MFStack gap={12}>
+          <MFStack gap={appTheme.spacing.md}>
             <MFInfoRow label="App version" theme={appTheme} value={device.appVersion} />
             <MFInfoRow label="Battery" theme={appTheme} value={`${device.battery}%`} />
             <MFInfoRow label="Last heartbeat" theme={appTheme} value={device.heartbeat} />
@@ -195,19 +195,17 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
             {device.risk ? <MFInfoRow label="Risk" theme={appTheme} value={device.risk} /> : null}
           </MFStack>
         </MFCard>
-        <MFCard theme={appTheme}>
-          <MFStack gap={12}>
-            <SectionTitle title="Current task" />
-            {currentTask ? (
-              <TaskListRow onPress={() => onOpenTask(currentTask.id)} task={currentTask} />
-            ) : (
-              <MFText muted theme={appTheme}>
-                No active task is assigned to this device.
-              </MFText>
-            )}
-          </MFStack>
-        </MFCard>
-        <MFRow gap={10}>
+        <MFStack gap={appTheme.spacing.md}>
+          <SectionTitle title="Current task" />
+          {currentTask ? (
+            <TaskListItem compact onPress={() => onOpenTask(currentTask.id)} task={currentTask} />
+          ) : (
+            <MFText muted theme={appTheme}>
+              No active task is assigned to this device.
+            </MFText>
+          )}
+        </MFStack>
+        <MFRow gap={appTheme.spacing.sm}>
           <MFButton fullWidth={false} theme={appTheme} title="Scan bind" variant="secondary" />
           <MFButton fullWidth={false} theme={appTheme} title="Copy ID" variant="outline" />
         </MFRow>
@@ -219,22 +217,22 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
 export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           eyebrow="Tasks"
           subtitle="Monitor progress, stop failed runs, retry recoverable jobs, and inspect logs."
           theme={appTheme}
           title="Task queue"
         />
         <MFSearchBar placeholder="Search task, user, or device" theme={appTheme} value="" />
-        <MFRow gap={8}>
-          <MFBadge label="Running" theme={appTheme} />
-          <MFBadge label="Failed" tone="danger" theme={appTheme} />
-          <MFBadge label="Queued" tone="warning" theme={appTheme} />
+        <MFRow gap={appTheme.spacing.sm}>
+          <StatusBadge label="Running" theme={appTheme} tone="info" />
+          <StatusBadge label="Failed" theme={appTheme} tone="danger" />
+          <StatusBadge label="Queued" theme={appTheme} tone="warning" />
         </MFRow>
-        <MFStack gap={12}>
+        <MFStack gap={appTheme.spacing.md}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} onPress={() => onOpenTask(task.id)} task={task} />
+            <TaskListItem key={task.id} onPress={() => onOpenTask(task.id)} task={task} />
           ))}
         </MFStack>
       </MFStack>
@@ -251,45 +249,41 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
 
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           backLabel="Tasks"
           eyebrow={task.id}
           onBack={onBack}
-          right={<MFStatusPill label={getTaskStatusLabel(task.status)} status={statusTone(task.status)} theme={appTheme} />}
+          right={<StatusBadge label={getTaskStatusLabel(task.status)} theme={appTheme} tone={statusTone(task.status)} />}
           subtitle={`${task.owner} - ${task.deviceName}`}
           theme={appTheme}
           title={task.name}
         />
-        <MFCard theme={appTheme}>
-          <MFStack gap={12}>
-            <MFProgress label={`Progress ${progressLabel(task)}`} theme={appTheme} value={progressValue(task)} />
-            <MFInfoRow label="Current step" theme={appTheme} value={task.currentStep} />
-            <MFInfoRow label="Started" theme={appTheme} value={task.startedAt} />
-            {task.error ? <MFBanner message={task.error} theme={appTheme} title="Failure reason" tone="danger" /> : null}
-          </MFStack>
-        </MFCard>
-        <MFCard theme={appTheme}>
-          <MFStack gap={12}>
-            <SectionTitle title="Timeline" />
-            {task.steps.map((step, index) => (
-              <TimelineRow key={`${step.label}-${index}`} label={step.label} state={step.state} time={step.time} />
-            ))}
-          </MFStack>
-        </MFCard>
-        <MFCard theme={appTheme}>
-          <MFStack gap={12}>
-            <SectionTitle title="Log viewer" />
-            {task.logs.map((log, index) => (
-              <LogRow key={`${log.time}-${index}`} level={log.level} message={log.message} time={log.time} />
-            ))}
-          </MFStack>
-        </MFCard>
-        <MFRow gap={10}>
-          <MFButton fullWidth={false} theme={appTheme} title="Stop" variant="danger" />
-          <MFButton fullWidth={false} theme={appTheme} title="Retry" variant="secondary" />
-          <MFButton fullWidth={false} onPress={() => onOpenDevice(task.deviceId)} theme={appTheme} title="Device" variant="outline" />
-        </MFRow>
+        <TaskProgressCard
+          actions={[
+            { label: 'Stop', variant: 'danger' },
+            { label: 'Retry', variant: 'secondary' },
+            { label: 'Device', onPress: () => onOpenDevice(task.deviceId), variant: 'outline' }
+          ]}
+          currentStep={`Current step: ${task.currentStep}`}
+          error={task.error ? { message: task.error, title: 'Failure reason' } : undefined}
+          progress={progressValue(task)}
+          progressLabel={`Progress ${progressLabel(task)} - started ${task.startedAt}`}
+          status={{ label: getTaskStatusLabel(task.status), tone: statusTone(task.status) }}
+          subtitle={`${task.owner} - ${task.deviceName}`}
+          theme={appTheme}
+          title={task.name}
+        />
+        <Timeline
+          items={task.steps.map((step) => ({
+            label: step.label,
+            state: step.state,
+            time: step.time,
+            tone: statusTone(step.state)
+          }))}
+          theme={appTheme}
+        />
+        <LogViewer entries={task.logs.map((log) => ({ level: log.level, message: log.message, time: log.time }))} theme={appTheme} />
       </MFStack>
     </MFScrollPage>
   );
@@ -298,27 +292,15 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
 export function ManagementHomeScreen() {
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           eyebrow="Management"
           subtitle="Second-level entry points keep the bottom navigation focused and mobile friendly."
           theme={appTheme}
           title="Management"
         />
-        <MFCard padded={false} theme={appTheme}>
-          {managementEntries.map((entry, index) => (
-            <View key={entry.title}>
-              <MFListItem
-                meta={`${entry.description} Permission: ${entry.permission}`}
-                right={<MFBadge label={entry.badge} theme={appTheme} />}
-                theme={appTheme}
-                title={entry.title}
-              />
-              {index < managementEntries.length - 1 ? <MFDivider theme={appTheme} /> : null}
-            </View>
-          ))}
-        </MFCard>
-        <CapabilityBoundaryCard />
+        <ManagementEntryList entries={managementEntries} theme={appTheme} />
+        <AdminBoundaryCard items={adminBoundaries} theme={appTheme} />
       </MFStack>
     </MFScrollPage>
   );
@@ -327,15 +309,15 @@ export function ManagementHomeScreen() {
 export function ProfileScreen() {
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
           eyebrow="Mine"
           subtitle="Administrator identity, permission snapshot, and integration contracts."
           theme={appTheme}
           title="Profile"
         />
         <MFCard theme={appTheme}>
-          <MFStack gap={12}>
+          <MFStack gap={appTheme.spacing.md}>
             <MFInfoRow label="Name" theme={appTheme} value={adminSession.name} />
             <MFInfoRow label="Role" theme={appTheme} value={adminSession.role} />
             <MFInfoRow label="Tenant" theme={appTheme} value={adminSession.tenantId} />
@@ -343,20 +325,20 @@ export function ProfileScreen() {
           </MFStack>
         </MFCard>
         <MFCard theme={appTheme}>
-          <MFStack gap={10}>
+          <MFStack gap={appTheme.spacing.sm}>
             <SectionTitle title="Permissions" />
-            <MFRow gap={8} style={{ flexWrap: 'wrap' }}>
+            <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
               {adminSession.permissions.map((permission) => (
-                <MFBadge key={permission} label={permission} theme={appTheme} />
+                <StatusBadge key={permission} label={permission} theme={appTheme} tone="info" />
               ))}
             </MFRow>
           </MFStack>
         </MFCard>
         <MFCard theme={appTheme}>
-          <MFStack gap={10}>
+          <MFStack gap={appTheme.spacing.sm}>
             <SectionTitle title="/api/v1/mobile boundary" />
             {bffContracts.map((contract) => (
-              <MFText key={contract} theme={appTheme} style={{ fontFamily: 'monospace', fontSize: 13, lineHeight: 18 }}>
+              <MFText key={contract} theme={appTheme} style={codeTextStyle()}>
                 {contract}
               </MFText>
             ))}
@@ -367,128 +349,61 @@ export function ProfileScreen() {
   );
 }
 
-function DeviceCard({ device, onPress }: { device: DeviceRecord; onPress: () => void }) {
+function DashboardStatGrid() {
   return (
-    <MFCard onPress={onPress} pressable theme={appTheme}>
-      <DeviceListRow device={device} />
-    </MFCard>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: appTheme.spacing.md }}>
+      {dashboardSummary.map((item) => (
+        <View key={item.label} style={{ flexBasis: '46%', flexGrow: 1 }}>
+          <StatCard label={item.label} theme={appTheme} tone={item.tone} value={item.value} />
+        </View>
+      ))}
+    </View>
   );
 }
 
-function DeviceListRow({ device, onPress }: { device: DeviceRecord; onPress?: () => void }) {
+function DeviceListItem({ compact = false, device, onPress }: { compact?: boolean; device: DeviceRecord; onPress: () => void }) {
   return (
-    <MFStack gap={8}>
-      <MFRow style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <MFStack gap={2} style={{ flex: 1 }}>
-          <MFText theme={appTheme} style={{ fontWeight: '900' }}>
-            {device.model} - {device.id}
-          </MFText>
-          <MFText muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
-            User: {device.owner}
-          </MFText>
-        </MFStack>
-        <MFStatusPill label={getDeviceStatusLabel(device.status)} status={statusTone(device.status)} theme={appTheme} />
-      </MFRow>
-      <MFText muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
-        App v{device.appVersion} - Battery {device.battery}% - {device.heartbeat}
-      </MFText>
+    <EntityListItem
+      actionLabel={compact ? 'View' : undefined}
+      meta={`App v${device.appVersion} - Battery ${device.battery}% - ${device.heartbeat}`}
+      onPress={onPress}
+      status={{ label: getDeviceStatusLabel(device.status), tone: statusTone(device.status) }}
+      subtitle={`User: ${device.owner}`}
+      theme={appTheme}
+      title={`${device.model} - ${device.id}`}
+    >
       {device.risk ? (
-        <MFText theme={appTheme} style={{ color: appTheme.colors.warning, fontSize: 13, fontWeight: '800', lineHeight: 18 }}>
+        <MFText theme={appTheme} style={warningTextStyle()}>
           {device.risk}
         </MFText>
       ) : null}
-      {onPress ? (
-        <MFButton fullWidth={false} onPress={onPress} theme={appTheme} title="View" variant="ghost" />
-      ) : null}
-    </MFStack>
+    </EntityListItem>
   );
 }
 
-function TaskCard({ onPress, task }: { onPress: () => void; task: TaskRecord }) {
+function TaskListItem({ compact = false, onPress, task }: { compact?: boolean; onPress: () => void; task: TaskRecord }) {
   return (
-    <MFCard onPress={onPress} pressable theme={appTheme}>
-      <TaskListRow task={task} />
-    </MFCard>
-  );
-}
-
-function TaskListRow({ onPress, task }: { onPress?: () => void; task: TaskRecord }) {
-  return (
-    <MFStack gap={10}>
-      <MFRow style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <MFStack gap={2} style={{ flex: 1 }}>
-          <MFText theme={appTheme} style={{ fontWeight: '900' }}>
-            {task.name}
-          </MFText>
-          <MFText muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
-            {task.owner} - {task.deviceName}
-          </MFText>
-        </MFStack>
-        <MFStatusPill label={getTaskStatusLabel(task.status)} status={statusTone(task.status)} theme={appTheme} />
-      </MFRow>
+    <EntityListItem
+      actionLabel={compact ? 'Details' : undefined}
+      onPress={onPress}
+      status={{ label: getTaskStatusLabel(task.status), tone: statusTone(task.status) }}
+      subtitle={`${task.owner} - ${task.deviceName}`}
+      theme={appTheme}
+      title={task.name}
+    >
       <MFProgress label={`${progressLabel(task)} - started ${task.startedAt}`} theme={appTheme} value={progressValue(task)} />
-      <MFText muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
+      <MFText muted theme={appTheme} style={captionTextStyle()}>
         {task.currentStep}
       </MFText>
-      {onPress ? (
-        <MFButton fullWidth={false} onPress={onPress} theme={appTheme} title="Details" variant="ghost" />
-      ) : null}
-    </MFStack>
-  );
-}
-
-function TimelineRow({ label, state, time }: { label: string; state: 'done' | 'running' | 'blocked' | 'waiting'; time: string }) {
-  return (
-    <MFRow gap={10} style={{ alignItems: 'flex-start' }}>
-      <MFStatusPill label={state} status={statusTone(state)} theme={appTheme} />
-      <MFStack gap={2} style={{ flex: 1 }}>
-        <MFText theme={appTheme} style={{ fontWeight: '800' }}>
-          {label}
-        </MFText>
-        <MFText muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
-          {time}
-        </MFText>
-      </MFStack>
-    </MFRow>
-  );
-}
-
-function LogRow({ level, message, time }: { level: 'info' | 'warn' | 'error'; message: string; time: string }) {
-  return (
-    <MFStack gap={6}>
-      <MFRow gap={8}>
-        <MFStatusPill label={level} status={statusTone(level)} theme={appTheme} />
-        <MFText muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
-          {time}
-        </MFText>
-      </MFRow>
-      <MFText theme={appTheme} style={{ fontFamily: 'monospace', fontSize: 13, lineHeight: 18 }}>
-        {message}
-      </MFText>
-    </MFStack>
-  );
-}
-
-function CapabilityBoundaryCard() {
-  return (
-    <MFCard theme={appTheme}>
-      <MFStack gap={10}>
-        <SectionTitle title="Execution boundary" />
-        {adminBoundaries.map((boundary) => (
-          <MFText key={boundary} muted theme={appTheme} style={{ fontSize: 13, lineHeight: 18 }}>
-            {boundary}
-          </MFText>
-        ))}
-      </MFStack>
-    </MFCard>
+    </EntityListItem>
   );
 }
 
 function MissingEntityScreen({ entity, onBack }: { entity: string; onBack: () => void }) {
   return (
     <MFScrollPage theme={appTheme}>
-      <MFStack gap={18}>
-        <MFPageHeader backLabel="Back" eyebrow="Missing" onBack={onBack} theme={appTheme} title={`Unknown ${entity}`} />
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader backLabel="Back" eyebrow="Missing" onBack={onBack} theme={appTheme} title={`Unknown ${entity}`} />
         <MFText muted theme={appTheme}>
           The selected {entity} fixture is not available.
         </MFText>
@@ -499,8 +414,38 @@ function MissingEntityScreen({ entity, onBack }: { entity: string; onBack: () =>
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <MFHeading level="section" theme={appTheme}>
+    <MFText theme={appTheme} style={sectionTitleTextStyle()}>
       {title}
-    </MFHeading>
+    </MFText>
   );
+}
+
+function sectionTitleTextStyle() {
+  return {
+    fontSize: appTheme.typography.size.title3,
+    fontWeight: '800' as const,
+    lineHeight: appTheme.typography.lineHeight.title3
+  };
+}
+
+function captionTextStyle() {
+  return {
+    fontSize: appTheme.typography.size.caption,
+    lineHeight: appTheme.typography.lineHeight.caption
+  };
+}
+
+function warningTextStyle() {
+  return {
+    ...captionTextStyle(),
+    color: appTheme.colors.warning,
+    fontWeight: '800' as const
+  };
+}
+
+function codeTextStyle() {
+  return {
+    fontFamily: appTheme.typography.family.mono,
+    ...captionTextStyle()
+  };
 }

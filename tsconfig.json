@@ -17,6 +17,9 @@
       "path": "./packages/ui-native"
     },
     {
+      "path": "./packages/ui-admin"
+    },
+    {
       "path": "./packages/app-shell"
     },
     {

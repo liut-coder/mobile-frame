@@ -1187,13 +1187,11 @@ Sheet</code></pre>
 日志
 设置</code></pre>
   <h4 id="doc-docs-mobile-frame-app-heading-37"><code>admin-mobile</code></h4>
-  <pre><code class="language-text">仪表盘
-设备管理
-任务管理
-告警中心
-审批中心
-账号管理
-设置</code></pre>
+  <pre><code class="language-text">总览
+设备
+任务
+管理
+我的</code></pre>
   <hr />
   <h2 id="doc-docs-mobile-frame-app-heading-38">10. 为 game-helper-admin 移动端预留</h2>
   <h3 id="doc-docs-mobile-frame-app-heading-39">10.1 定位</h3>
@@ -1213,7 +1211,7 @@ Sheet</code></pre>
   <li>查看资源版本和 App 版本分布。</li>
   </ul>
   <h3 id="doc-docs-mobile-frame-app-heading-40">10.2 推荐目录</h3>
-  <p>未来可创建：</p>
+  <p>当前已创建首期 App，后续可继续细分目录：</p>
   <pre><code class="language-text">apps/game-helper-admin-mobile/
 ├── src/
 │   ├── screens/
@@ -1355,8 +1353,8 @@ App 管理
   <h3 id="doc-docs-mobile-frame-app-heading-58">P2</h3>
   <ul>
   <li>[ ] iOS Release 流程稳定；已提供统一 <code>mf:ios-build:debug</code>/<code>mf:ios-build:release</code> 构建入口和 <code>mf:ios-export</code> IPA 导出入口，可执行 iOS strict preflight、<code>pod install</code>、<code>xcodebuild build/archive</code>、<code>.app</code>/<code>.xcarchive</code> 校验、<code>xcodebuild -exportArchive</code>、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 与签名配置跑出真实 Release/IPA 证据。</li>
-  <li>[ ] <code>game-helper-admin-mobile</code> 第一阶段适配；按 <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code> 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，不引入 OCR/OpenCV/Worker/脚本执行能力。</li>
-  <li>[ ] 后台管理端通用能力；补齐 <code>ui-admin</code> 组件、管理员权限控制、分页/筛选列表、WebSocket 实时状态、<code>LogViewer</code>、扫码/复制/分享封装和 <code>/api/v1/mobile</code> BFF 接口边界。</li>
+  <li>[x] <code>game-helper-admin-mobile</code> 第一阶段适配；已按 <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code> 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，并通过执行边界说明避免引入 OCR/OpenCV/Worker/脚本执行能力。</li>
+  <li>[ ] 后台管理端通用能力；<code>packages/ui-admin</code> 已提供状态、统计、实体列表、任务进度、Timeline、<code>LogViewer</code>、管理入口和执行边界组件。管理员权限控制、分页/筛选列表、WebSocket 实时状态、扫码/复制/分享封装和真实 <code>/api/v1/mobile</code> BFF 接口仍待接入。</li>
   <li>[x] 暗色主题；<code>design-tokens</code>、<code>ui-core</code>、<code>app-shell</code> 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。</li>
   <li>[x] 组件快照测试；<code>packages/ui-native/src/component-snapshots.test.tsx</code> 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。</li>
   <li>[x] 文档站点；已提供无额外依赖的 <code>docs-site/index.html</code> 静态入口，并通过 <code>mf:docs-site:check</code> 接入 <code>mf:validate</code>。</li>
@@ -2013,6 +2011,7 @@ game-helper-app
 packages/design-tokens         色彩、间距、圆角、字体、阴影、动效
 packages/ui-core               平台无关主题和组件状态类型
 packages/ui-native             React Native 通用 UI 组件
+packages/ui-admin              后台管理移动端通用组件
 packages/app-shell             App Provider、主题、Toast、Sheet、模块挂载状态
 packages/core                  通用工具、Native Contract、mock adapter
 packages/module-sdk            模块声明、路由、权限和 Tab 元数据
@@ -2024,6 +2023,7 @@ docs                           架构、生成器、发布和使用文档</code>
   <h2 id="doc-docs-architecture-heading-4">App 关系</h2>
   <pre><code class="language-text">mobile-frame
 ├── apps/showcase                  # 底座能力展示和原生模板来源
+├── apps/game-helper-admin-mobile  # admin-mobile preset 的首个管理端适配 App
 ├── apps/&lt;generated-app&gt;           # create-app 生成的独立 RN Bare App
 └── packages/*                     # 所有 App 复用的底座能力</code></pre>
   <p><code>create-app</code> 会复制 <code>apps/showcase/android</code> 与 <code>apps/showcase/ios</code>，并替换包名、registry name 和显示名。生成结果包含：</p>
@@ -2050,7 +2050,7 @@ docs                           架构、生成器、发布和使用文档</code>
     ├── UI Core Theme
     ├── Module SDK metadata
     └── Core Native Contracts</code></pre>
-  <p>页面应优先使用 <code>@mobile-frame/screen-templates</code> 和 <code>@mobile-frame/ui-native</code>。平台能力应通过 <code>@mobile-frame/core/native-modules</code> 访问，避免业务页面直接调用系统 API。</p>
+  <p>页面应优先使用 <code>@mobile-frame/screen-templates</code> 和 <code>@mobile-frame/ui-native</code>。后台管理端页面可在此基础上使用 <code>@mobile-frame/ui-admin</code>。平台能力应通过 <code>@mobile-frame/core/native-modules</code> 访问，避免业务页面直接调用系统 API。</p>
   <h2 id="doc-docs-architecture-heading-6">验证边界</h2>
   <p>当前源码级闭环由以下命令覆盖：</p>
   <pre><code class="language-bash">pnpm run typecheck
@@ -2577,6 +2577,7 @@ git diff --check</code></pre>
   <li>App shell package.</li>
   <li>Native capability contract package.</li>
   <li>Module SDK and preset package.</li>
+  <li>Reusable <code>ui-admin</code> package and first <code>game-helper-admin-mobile</code> scaffold using the <code>admin-mobile</code> preset.</li>
   <li>Code generators.</li>
   <li>Native readiness and native build preflight scripts.</li>
   <li>Android debug APK build evidence.</li>
@@ -2587,8 +2588,7 @@ git diff --check</code></pre>
   <ul>
   <li>iOS simulator build evidence on macOS.</li>
   <li>Android production Release signing evidence.</li>
-  <li>Game-helper admin mobile adaptation using the <code>admin-mobile</code> preset as a separate management app.</li>
-  <li>Reusable admin-mobile capabilities: admin UI components, permission gates, realtime status, log viewing, mobile list patterns, scanner, clipboard, sharing, and <code>/api/v1/mobile</code> BFF contracts.</li>
+  <li>Admin-mobile capabilities beyond the first scaffold: permission gates, realtime status, scanner, clipboard, sharing, and real <code>/api/v1/mobile</code> BFF contracts.</li>
   <li>Real platform implementations for selected native capability modules.</li>
   <li>More complete reusable page templates.</li>
   <li>More complete module catalog and preset coverage.</li>
@@ -2612,7 +2612,7 @@ git diff --check</code></pre>
   <li>Add a native capability without changing unrelated app code.</li>
   <li>Reuse the same app shell and UI system across multiple app products.</li>
   </ul>
-  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, and Android emulator runtime proof through GitHub Actions run <code>26906180713</code>. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>.</p>
+  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, Android emulator runtime proof through GitHub Actions run <code>26906180713</code>, and the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and real admin-mobile service capabilities behind the current scaffold.</p>
 </article>
 <article class="doc-article" id="doc-docs-mobile-frame-landing-plan">
   <div class="article-meta">

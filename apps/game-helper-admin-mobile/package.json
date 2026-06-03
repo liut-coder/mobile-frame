@@ -9,6 +9,7 @@
     "@mobile-frame/module-sdk": "workspace:*",
     "@mobile-frame/presets": "workspace:*",
     "@mobile-frame/screen-templates": "workspace:*",
+    "@mobile-frame/ui-admin": "workspace:*",
     "@mobile-frame/ui-core": "workspace:*",
     "@mobile-frame/ui-native": "workspace:*",
     "react": "19.2.3",

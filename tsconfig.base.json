@@ -20,6 +20,7 @@
       "@mobile-frame/presets": ["packages/presets/src/index.ts"],
       "@mobile-frame/screen-templates": ["packages/screen-templates/src/index.tsx"],
       "@mobile-frame/ui-core": ["packages/ui-core/src/index.ts"],
+      "@mobile-frame/ui-admin": ["packages/ui-admin/src/index.tsx"],
       "@mobile-frame/ui-native": ["packages/ui-native/src/index.ts"],
       "@mobile-frame/ui-native/native-modules": ["packages/ui-native/src/native-modules.ts"]
     },
