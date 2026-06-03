@@ -19,8 +19,14 @@ describe('mfPresets', () => {
   it('defines the admin-mobile preset for administrator apps', () => {
     const preset = getPreset('admin-mobile');
 
-    expect(preset.modules).toEqual(expect.arrayContaining(['dashboard', 'devices', 'tasks', 'alerts', 'approvals', 'accounts', 'settings']));
-    expect(preset.tabs).toEqual(['Overview', 'Devices', 'Tasks', 'Alerts', 'Mine']);
+    expect(preset.modules).toEqual(['dashboard', 'devices', 'tasks', 'management', 'profile']);
+    expect(preset.features).toEqual(
+      expect.arrayContaining(['admin-auth', 'admin-permissions', 'realtime-status', 'log-viewer', 'scanner', 'clipboard', 'share', 'mobile-bff'])
+    );
+    expect(preset.screens).toEqual(
+      expect.arrayContaining(['LoginScreen', 'DeviceDetailScreen', 'TaskDetailScreen', 'ManagementHomeScreen', 'ProfileScreen'])
+    );
+    expect(preset.tabs).toEqual(['Overview', 'Devices', 'Tasks', 'Management', 'Mine']);
   });
 
   it('keeps legacy preset names available for existing commands', () => {

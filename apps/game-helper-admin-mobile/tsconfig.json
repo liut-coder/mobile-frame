@@ -1,0 +1,31 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../packages/app-shell"
+    },
+    {
+      "path": "../../packages/module-sdk"
+    },
+    {
+      "path": "../../packages/presets"
+    },
+    {
+      "path": "../../packages/screen-templates"
+    },
+    {
+      "path": "../../packages/ui-core"
+    },
+    {
+      "path": "../../packages/ui-native"
+    }
+  ]
+}

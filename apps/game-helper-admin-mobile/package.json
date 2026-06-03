@@ -1,0 +1,17 @@
+{
+  "name": "@mobile-frame/game-helper-admin-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "dependencies": {
+    "@mobile-frame/app-shell": "workspace:*",
+    "@mobile-frame/module-sdk": "workspace:*",
+    "@mobile-frame/presets": "workspace:*",
+    "@mobile-frame/screen-templates": "workspace:*",
+    "@mobile-frame/ui-core": "workspace:*",
+    "@mobile-frame/ui-native": "workspace:*",
+    "react": "19.2.3",
+    "react-native": "0.85.3"
+  }
+}

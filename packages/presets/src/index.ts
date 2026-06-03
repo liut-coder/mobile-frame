@@ -46,12 +46,33 @@ export const mfPresets: Record<MFPresetName, MFPreset> = {
   },
   'admin-mobile': {
     name: 'admin-mobile',
-    description: 'Administrator mobile starter for dashboards, devices, tasks, alerts, approvals, accounts, and settings.',
+    description: 'Administrator mobile starter for dashboards, devices, tasks, management entry points, profile, and mobile BFF boundaries.',
     entryScreen: 'DashboardScreen',
-    modules: ['dashboard', 'devices', 'tasks', 'alerts', 'approvals', 'accounts', 'settings'],
-    features: ['admin-dashboard', 'device-management', 'task-management', 'alerts', 'approvals', 'audit-log'],
-    screens: ['DashboardScreen', 'ListScreen', 'DetailScreen', 'SettingsScreen'],
-    tabs: ['Overview', 'Devices', 'Tasks', 'Alerts', 'Mine']
+    modules: ['dashboard', 'devices', 'tasks', 'management', 'profile'],
+    features: [
+      'admin-dashboard',
+      'admin-auth',
+      'admin-permissions',
+      'device-management',
+      'task-management',
+      'realtime-status',
+      'log-viewer',
+      'scanner',
+      'clipboard',
+      'share',
+      'mobile-bff'
+    ],
+    screens: [
+      'LoginScreen',
+      'DashboardScreen',
+      'DeviceListScreen',
+      'DeviceDetailScreen',
+      'TaskListScreen',
+      'TaskDetailScreen',
+      'ManagementHomeScreen',
+      'ProfileScreen'
+    ],
+    tabs: ['Overview', 'Devices', 'Tasks', 'Management', 'Mine']
   },
   minimal: {
     name: 'minimal',

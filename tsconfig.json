@@ -27,6 +27,9 @@
     },
     {
       "path": "./apps/showcase"
+    },
+    {
+      "path": "./apps/game-helper-admin-mobile"
     }
   ]
 }

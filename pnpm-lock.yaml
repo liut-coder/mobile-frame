@@ -91,6 +91,33 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@24.12.4)(vite@8.0.16(@types/node@24.12.4)(terser@5.48.0)(yaml@2.9.0))
 
+  apps/game-helper-admin-mobile:
+    dependencies:
+      '@mobile-frame/app-shell':
+        specifier: workspace:*
+        version: link:../../packages/app-shell
+      '@mobile-frame/module-sdk':
+        specifier: workspace:*
+        version: link:../../packages/module-sdk
+      '@mobile-frame/presets':
+        specifier: workspace:*
+        version: link:../../packages/presets
+      '@mobile-frame/screen-templates':
+        specifier: workspace:*
+        version: link:../../packages/screen-templates
+      '@mobile-frame/ui-core':
+        specifier: workspace:*
+        version: link:../../packages/ui-core
+      '@mobile-frame/ui-native':
+        specifier: workspace:*
+        version: link:../../packages/ui-native
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-native:
+        specifier: 0.85.3
+        version: 0.85.3(@babel/core@7.29.7)(@react-native-community/cli@20.1.3(typescript@6.0.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.16)(react@19.2.3)
+
   apps/showcase:
     dependencies:
       '@babel/runtime':

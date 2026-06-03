@@ -59,7 +59,7 @@ runCli(() => {
               '@mobile-frame/screen-templates': 'workspace:*',
               '@mobile-frame/ui-core': 'workspace:*',
               '@mobile-frame/ui-native': 'workspace:*',
-              react: '19.2.7',
+              react: '19.2.3',
               'react-native': '0.85.3'
             }
           },
