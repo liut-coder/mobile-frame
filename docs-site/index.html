@@ -325,6 +325,7 @@
       <div class="sidebar-group">
         <p class="sidebar-group-title">Plan</p>
       <a href="#doc-docs-mobile-frame-app">mobile-frame 改造与多 App 接入方案</a>
+      <a href="#doc-docs-game-helper-admin-mobile-mobile-frame-adaptation">游戏后台管理移动端：mobile-frame 适配方案</a>
       </div>
       <div class="sidebar-group">
         <p class="sidebar-group-title">Foundation</p>
@@ -371,6 +372,12 @@
           <h2><a href="#doc-docs-mobile-frame-app">mobile-frame 改造与多 App 接入方案</a></h2>
           <p>Main transformation plan, target architecture, delivery phases, and acceptance checklist.</p>
           <a class="source-link" href="../docs/mobile-frame-%E6%94%B9%E9%80%A0%E4%B8%8E%E5%A4%9AApp%E6%8E%A5%E5%85%A5%E6%96%B9%E6%A1%88.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Plan</span>
+          <h2><a href="#doc-docs-game-helper-admin-mobile-mobile-frame-adaptation">游戏后台管理移动端：mobile-frame 适配方案</a></h2>
+          <p>Game-helper admin mobile adaptation plan, boundaries, pages, admin components, realtime, logs, and mobile BFF scope.</p>
+          <a class="source-link" href="../docs/game-helper-admin-mobile-mobile-frame-adaptation.md">Source</a>
         </article>
         <article class="doc-card">
           <span class="category-pill">Foundation</span>
@@ -1228,8 +1235,9 @@ Sheet</code></pre>
   <pre><code class="language-text">总览
 设备
 任务
-告警
+管理
 我的</code></pre>
+  <p>“管理”页作为二级入口集合，不把托管用户、游戏模块、视觉资产、App 管理、运行日志、审批中心全部挤到底部导航。</p>
   <h3 id="doc-docs-mobile-frame-app-heading-42">10.4 管理端页面清单</h3>
   <h4 id="doc-docs-mobile-frame-app-heading-43">总览</h4>
   <pre><code class="language-text">在线设备数
@@ -1258,26 +1266,25 @@ Worker 状态
 任务详情
 步骤详情
 证据截图</code></pre>
-  <h4 id="doc-docs-mobile-frame-app-heading-46">告警</h4>
-  <pre><code class="language-text">离线
-心跳超时
-OCR 失败
-截图失败
-权限丢失
-目标游戏卸载
-版本过旧
-资源包异常</code></pre>
-  <h4 id="doc-docs-mobile-frame-app-heading-47">审批</h4>
-  <pre><code class="language-text">暂停设备
-停止 Worker
-强制重连
-重新下发任务
-触发更新
-资源包回滚</code></pre>
-  <h3 id="doc-docs-mobile-frame-app-heading-48">10.5 与 mobile-frame 的关系</h3>
+  <h4 id="doc-docs-mobile-frame-app-heading-46">管理</h4>
+  <pre><code class="language-text">托管用户
+游戏模块
+视觉资产
+App 管理
+运行日志
+审批中心</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-47">10.5 与 mobile-frame 的关系</h3>
   <p><code>game-helper-admin-mobile</code> 可以直接基于 <code>admin-mobile</code> preset 创建：</p>
   <pre><code class="language-bash">pnpm create:app game-helper-admin-mobile --preset admin-mobile</code></pre>
   <p>它只复用底座，不复用游戏助手设备端的 Kotlin 执行内核。</p>
+  <h3 id="doc-docs-mobile-frame-app-heading-48">10.6 适配计划来源</h3>
+  <p><code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code> 已作为 <code>game-helper-admin-mobile</code> 的详细适配计划纳入当前改造范围。该文档明确：</p>
+  <ul>
+  <li>管理员移动端负责总览、设备、任务、日志、托管用户、游戏模块、视觉资产、App 发版状态、轻量审批、扫码绑定、复制和分享；</li>
+  <li>管理员移动端不承载 OCR、OpenCV、无障碍服务、浮窗、自动点击、Worker 拉取 Job、Worker 心跳、截图采集和本地自动化控制，这些仍归 <code>game-helper-app</code>；</li>
+  <li>第一阶段补齐 <code>admin-mobile</code> preset、五 Tab 导航、<code>ui-admin</code> 组件包、管理员 Token/权限、分页列表、状态筛选、WebSocket 实时状态、<code>LogViewer</code>、扫码/复制/分享封装和 <code>/api/v1/mobile</code> BFF 边界；</li>
+  <li><code>game-helper-admin-mobile</code> 第一阶段页面包含登录、总览、设备列表、设备详情、任务列表、任务详情、管理入口和我的；第二阶段扩展托管用户、游戏模块、视觉资产、App 管理、发版详情、运行日志和审批中心。</li>
+  </ul>
   <hr />
   <h2 id="doc-docs-mobile-frame-app-heading-49">11. 开发阶段</h2>
   <h3 id="doc-docs-mobile-frame-app-heading-50">阶段 1：设计系统稳定</h3>
@@ -1315,10 +1322,19 @@ OCR 失败
   <li>发布说明；</li>
   <li>脚手架使用文档。</li>
   </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-54">阶段 5：game-helper-admin-mobile 适配</h3>
+  <ul>
+  <li>将 <code>game-helper-admin-mobile</code> 作为独立 App 纳入计划；</li>
+  <li>基于 <code>admin-mobile</code> preset 生成 <code>apps/game-helper-admin-mobile</code>；</li>
+  <li>增加 <code>ui-admin</code>、<code>auth-admin</code>、<code>realtime</code>、扫码、复制和分享等通用后台移动端能力；</li>
+  <li>落地总览、设备、任务、管理、我的五 Tab 导航；</li>
+  <li>按 <code>/api/v1/mobile</code> BFF 边界接入后台接口，不复用设备执行端 <code>/api/v1/device</code>；</li>
+  <li>明确 OCR、OpenCV、无障碍、浮窗、Worker 和脚本执行继续归 <code>game-helper-app</code>。</li>
+  </ul>
   <hr />
-  <h2 id="doc-docs-mobile-frame-app-heading-54">12. 验收清单</h2>
+  <h2 id="doc-docs-mobile-frame-app-heading-55">12. 验收清单</h2>
   <blockquote>当前推进状态更新于 2026-06-03。源码级验证已通过 <code>typecheck</code>、<code>lint</code>、<code>test</code>、<code>mf:generator-smoke</code>、<code>mf:workspace-check</code>、<code>mf:docs-site:check</code>、<code>mf:ci-workflow-check</code>、非严格 <code>mf:runtime-evidence</code> 和非严格 <code>mf:validate</code>。GitHub Actions run <code>26906180713</code> 已证明 Android debug APK 自动构建、Android Release scaffold 自动构建和 Android emulator runtime 安装/启动闭环。生产 Android Release 签名、iOS Debug/Release 和 iOS IPA 导出仍需要具备 macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 或相应 CI 环境继续验证。</blockquote>
-  <h3 id="doc-docs-mobile-frame-app-heading-55">P0</h3>
+  <h3 id="doc-docs-mobile-frame-app-heading-56">P0</h3>
   <ul>
   <li>[x] Showcase 可在 Android emulator 运行；GitHub Actions run <code>26906180713</code> 的 <code>showcase-android-runtime</code> job 已下载 debug APK、启动 Android emulator、运行 <code>mf:android-runtime-run</code>，并上传 <code>apps-showcase-runtime-evidence.json</code>。证据记录 <code>emulator-5554</code> 上安装、启动和前台窗口校验均通过。</li>
   <li>[x] Design Tokens 可统一引用；<code>packages/design-tokens</code>、<code>ui-core</code> 和 <code>ui-native</code> 已接入。</li>
@@ -1327,7 +1343,7 @@ OCR 失败
   <li>[x] 所有原生能力有 mock adapter；<code>@mobile-frame/core/native-modules</code> 已覆盖设备信息、权限、已安装应用、浮窗、安全存储、网络和 legacy mock。</li>
   <li>[x] Android Debug / Release scaffold 可打包；GitHub Actions run <code>26906180713</code> 的 <code>showcase-android-debug</code> job 已产出 debug APK、APK metadata 和 <code>apps-showcase-debug-build-evidence.json</code>，<code>showcase-android-release</code> job 已显式运行 <code>mf:android-build:release -- --allow-debug-release-signing</code> 并产出 Release scaffold APK、APK metadata 和 <code>apps-showcase-release-build-evidence.json</code>。两个 job 的 <code>mf:runtime-evidence --require ...</code> 报告均显示对应 required evidence 通过；正式业务 Release 签名仍需业务侧配置。</li>
   </ul>
-  <h3 id="doc-docs-mobile-frame-app-heading-56">P1</h3>
+  <h3 id="doc-docs-mobile-frame-app-heading-57">P1</h3>
   <ul>
   <li>[x] create-app 可创建独立 RN Bare App；生成结果包含 <code>android/</code>、<code>ios/</code>、<code>src/navigation</code>、<code>src/screens</code>、<code>src/modules</code>、<code>src/store</code>、<code>src/theme</code>，并通过 generator smoke TypeScript 构建。</li>
   <li>[x] create-screen 可创建页面；已支持 <code>blank</code>、<code>dashboard</code>、<code>detail</code>、<code>installed-apps</code>、<code>list</code>、<code>permission</code>、<code>settings</code> 等模板类型。</li>
@@ -1336,16 +1352,18 @@ OCR 失败
   <li>[x] <code>device-agent</code> preset 可用；已加入 canonical preset 并被 <code>create-app</code> 支持。</li>
   <li>[x] <code>admin-mobile</code> preset 可用；已加入 canonical preset 并被 <code>create-app</code> 支持。</li>
   </ul>
-  <h3 id="doc-docs-mobile-frame-app-heading-57">P2</h3>
+  <h3 id="doc-docs-mobile-frame-app-heading-58">P2</h3>
   <ul>
   <li>[ ] iOS Release 流程稳定；已提供统一 <code>mf:ios-build:debug</code>/<code>mf:ios-build:release</code> 构建入口和 <code>mf:ios-export</code> IPA 导出入口，可执行 iOS strict preflight、<code>pod install</code>、<code>xcodebuild build/archive</code>、<code>.app</code>/<code>.xcarchive</code> 校验、<code>xcodebuild -exportArchive</code>、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 与签名配置跑出真实 Release/IPA 证据。</li>
+  <li>[ ] <code>game-helper-admin-mobile</code> 第一阶段适配；按 <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code> 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，不引入 OCR/OpenCV/Worker/脚本执行能力。</li>
+  <li>[ ] 后台管理端通用能力；补齐 <code>ui-admin</code> 组件、管理员权限控制、分页/筛选列表、WebSocket 实时状态、<code>LogViewer</code>、扫码/复制/分享封装和 <code>/api/v1/mobile</code> BFF 接口边界。</li>
   <li>[x] 暗色主题；<code>design-tokens</code>、<code>ui-core</code>、<code>app-shell</code> 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。</li>
   <li>[x] 组件快照测试；<code>packages/ui-native/src/component-snapshots.test.tsx</code> 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。</li>
   <li>[x] 文档站点；已提供无额外依赖的 <code>docs-site/index.html</code> 静态入口，并通过 <code>mf:docs-site:check</code> 接入 <code>mf:validate</code>。</li>
   <li>[x] 示例 App 自动构建；GitHub Actions run <code>26906180713</code> 已跑通 <code>source-validation</code>、<code>showcase-android-debug</code>、<code>showcase-android-release</code> 和 <code>showcase-android-runtime</code>。<code>mobile-frame-showcase-debug-apk</code> artifact 已产出 debug APK、APK metadata、debug build evidence 和 report；<code>mobile-frame-showcase-release-apk</code> artifact 已产出 Release scaffold APK、APK metadata、release build evidence 和 report；<code>mobile-frame-showcase-runtime-evidence</code> artifact 已产出 Android runtime evidence 和 report。</li>
   </ul>
   <hr />
-  <h2 id="doc-docs-mobile-frame-app-heading-58">13. 最终交付</h2>
+  <h2 id="doc-docs-mobile-frame-app-heading-59">13. 最终交付</h2>
   <p><code>mobile-frame</code> 完成后应交付：</p>
   <pre><code class="language-text">一个纯净通用底座
 一个 Showcase APK
@@ -1360,12 +1378,625 @@ OCR 失败
 一套构建脚本
 一套完整文档</code></pre>
   <hr />
-  <h2 id="doc-docs-mobile-frame-app-heading-59">14. 最终结论</h2>
+  <h2 id="doc-docs-mobile-frame-app-heading-60">14. 最终结论</h2>
   <pre><code class="language-text">mobile-frame
 = 通用移动端脚手架
 = 不直接承载游戏助手业务
 = 同时服务未来 game-helper-app RN 壳层与 game-helper-admin-mobile</code></pre>
   <p>短期重点：先把底座做稳定，不要提前把复杂游戏助手业务迁进去。</p>
+</article>
+<article class="doc-article" id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation">
+  <div class="article-meta">
+    <span class="category-pill">Plan</span>
+    <a class="source-link" href="../docs/game-helper-admin-mobile-mobile-frame-adaptation.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-1">游戏后台管理移动端：mobile-frame 适配方案</h1>
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-2">1. 文档说明</h2>
+  <p>本文档用于指导在现有 <code>mobile-frame</code> 基础上，建设游戏后台管理移动端项目。</p>
+  <p>目标不是把 <code>mobile-frame</code> 改造成游戏业务项目，而是补齐一套可复用的“移动后台管理端能力”，然后基于该能力创建独立项目：</p>
+  <pre><code class="language-text">game-helper-admin-mobile</code></pre>
+  <p>后续 HMN 移动管理端、发布中心移动端、服务器管理移动端，也可以复用同一套底座能力。</p>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-3">2. 项目边界</h2>
+  <p>建议将当前系统拆分为三个端：</p>
+  <table><thead><tr><th>项目</th><th>定位</th><th>是否承担脚本执行</th></tr></thead><tbody><tr><td><code>game-helper-web</code></td><td>桌面端完整后台</td><td>否</td></tr><tr><td><code>game-helper-app</code></td><td>用户端 + 本地 Worker 执行端</td><td>是</td></tr><tr><td><code>game-helper-admin-mobile</code></td><td>手机端轻量管理、调度、排障、发版</td><td>否</td></tr></tbody></table>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-4">2.1 管理员移动端负责的内容</h3>
+  <p>管理员移动端只负责：</p>
+  <ul>
+  <li>查看系统总览</li>
+  <li>查看设备在线状态</li>
+  <li>查看任务运行进度</li>
+  <li>停止、重试任务</li>
+  <li>查看任务日志</li>
+  <li>查看设备详情</li>
+  <li>查看托管用户</li>
+  <li>查看游戏模块</li>
+  <li>查看视觉资产</li>
+  <li>查看 App 发版状态</li>
+  <li>处理轻量审批</li>
+  <li>复制、分享错误信息</li>
+  <li>扫码绑定设备</li>
+  </ul>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-5">2.2 管理员移动端不负责的内容</h3>
+  <p>以下能力不要放入管理员移动端：</p>
+  <ul>
+  <li>OCR</li>
+  <li>OpenCV</li>
+  <li>无障碍服务</li>
+  <li>悬浮窗</li>
+  <li>自动点击</li>
+  <li>滑动操作</li>
+  <li>脚本执行</li>
+  <li>Worker 拉取 Job</li>
+  <li>Worker 心跳上报</li>
+  <li>设备端截图采集</li>
+  <li>本地自动化控制</li>
+  </ul>
+  <p>这些能力继续保留在：</p>
+  <pre><code class="language-text">game-helper-app</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-6">3. 总体改造思路</h2>
+  <p><code>mobile-frame</code> 需要增加一套后台管理端能力，但仍然保持通用底座定位。</p>
+  <p>推荐结构：</p>
+  <pre><code class="language-text">mobile-frame
+├── 普通 App 能力
+│   ├── 登录
+│   ├── 设置
+│   ├── 通知
+│   └── 基础页面
+│
+└── 后台管理 App 能力
+    ├── admin-mobile preset
+    ├── 权限控制
+    ├── 状态卡片
+    ├── 管理列表
+    ├── 实时推送
+    ├── 日志查看
+    ├── 扫码绑定
+    └── 发版管理组件</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-7">4. 增加 admin-mobile preset</h2>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-8">4.1 preset 定位</h3>
+  <p>在 <code>mobile-frame</code> 现有 preset 基础上增加：</p>
+  <pre><code class="language-text">admin-mobile</code></pre>
+  <p>创建命令建议：</p>
+  <pre><code class="language-bash">pnpm create-app game-helper-admin-mobile --preset admin-mobile</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-9">4.2 默认生成目录</h3>
+  <pre><code class="language-text">apps/game-helper-admin-mobile</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-10">4.3 推荐目录结构</h3>
+  <pre><code class="language-text">apps/game-helper-admin-mobile/
+├── src/
+│   ├── app/
+│   │   ├── navigation/
+│   │   ├── providers/
+│   │   └── bootstrap/
+│   │
+│   ├── screens/
+│   │   ├── auth/
+│   │   │   └── login/
+│   │   ├── dashboard/
+│   │   ├── devices/
+│   │   ├── tasks/
+│   │   ├── management/
+│   │   ├── users/
+│   │   ├── modules/
+│   │   ├── assets/
+│   │   ├── releases/
+│   │   ├── logs/
+│   │   └── profile/
+│   │
+│   ├── components/
+│   │   ├── admin/
+│   │   ├── feedback/
+│   │   ├── forms/
+│   │   └── list/
+│   │
+│   ├── services/
+│   │   ├── api/
+│   │   ├── auth/
+│   │   ├── realtime/
+│   │   ├── scanner/
+│   │   ├── clipboard/
+│   │   └── share/
+│   │
+│   ├── stores/
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── devices/
+│   │   └── tasks/
+│   │
+│   ├── hooks/
+│   ├── constants/
+│   ├── types/
+│   └── utils/
+│
+├── app.json
+├── package.json
+└── README.md</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-11">5. 后台移动端导航设计</h2>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-12">5.1 底部导航</h3>
+  <p>移动端底部导航建议固定为 5 个：</p>
+  <pre><code class="language-text">总览
+设备
+任务
+管理
+我的</code></pre>
+  <p>对应路由：</p>
+  <pre><code class="language-text">/dashboard
+/devices
+/tasks
+/management
+/profile</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-13">5.2 管理入口</h3>
+  <p>“管理”页作为二级入口集合，不要把所有模块直接堆到底部导航。</p>
+  <p>建议包含：</p>
+  <pre><code class="language-text">托管用户
+游戏模块
+视觉资产
+App 管理
+运行日志</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-14">5.3 导航结构</h3>
+  <pre><code class="language-text">TabNavigator
+├── DashboardStack
+│   └── DashboardScreen
+├── DeviceStack
+│   ├── DeviceListScreen
+│   └── DeviceDetailScreen
+├── TaskStack
+│   ├── TaskListScreen
+│   └── TaskDetailScreen
+├── ManagementStack
+│   ├── ManagementHomeScreen
+│   ├── UserListScreen
+│   ├── UserDetailScreen
+│   ├── ModuleListScreen
+│   ├── AssetListScreen
+│   ├── ReleaseListScreen
+│   ├── ReleaseDetailScreen
+│   └── LogListScreen
+└── ProfileStack
+    ├── ProfileScreen
+    └── SettingsScreen</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-15">6. 增加 ui-admin 组件包</h2>
+  <p>建议在 <code>mobile-frame</code> 内新增：</p>
+  <pre><code class="language-text">packages/ui-admin</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-16">6.1 基础组件</h3>
+  <table><thead><tr><th>组件</th><th>用途</th></tr></thead><tbody><tr><td><code>AdminPageHeader</code></td><td>页面标题、返回、右侧操作</td></tr><tr><td><code>StatCard</code></td><td>总览统计卡片</td></tr><tr><td><code>StatusBadge</code></td><td>在线、离线、运行中、失败、待审批</td></tr><tr><td><code>SearchBar</code></td><td>搜索用户、设备、任务</td></tr><tr><td><code>FilterSheet</code></td><td>底部筛选面板</td></tr><tr><td><code>SegmentTabs</code></td><td>状态切换</td></tr><tr><td><code>EntityListItem</code></td><td>通用列表行</td></tr><tr><td><code>ActionSheet</code></td><td>手机端操作菜单</td></tr><tr><td><code>ConfirmDialog</code></td><td>停止任务、解绑设备等确认操作</td></tr><tr><td><code>EmptyState</code></td><td>空状态</td></tr><tr><td><code>ErrorState</code></td><td>加载失败</td></tr><tr><td><code>SkeletonList</code></td><td>骨架屏列表</td></tr><tr><td><code>PullToRefresh</code></td><td>下拉刷新</td></tr><tr><td><code>InfiniteList</code></td><td>游标分页加载</td></tr><tr><td><code>BatchActionBar</code></td><td>批量停止、批量重试</td></tr></tbody></table>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-17">6.2 日志与任务组件</h3>
+  <table><thead><tr><th>组件</th><th>用途</th></tr></thead><tbody><tr><td><code>Timeline</code></td><td>任务执行步骤时间线</td></tr><tr><td><code>TaskProgressCard</code></td><td>任务执行进度</td></tr><tr><td><code>LogViewer</code></td><td>实时日志查看</td></tr><tr><td><code>EvidenceGallery</code></td><td>截图证据查看</td></tr><tr><td><code>ErrorSummaryCard</code></td><td>错误摘要</td></tr><tr><td><code>DeviceStatusCard</code></td><td>设备运行状态</td></tr><tr><td><code>WorkerHealthCard</code></td><td>Worker 健康状态</td></tr></tbody></table>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-18">6.3 发版管理组件</h3>
+  <table><thead><tr><th>组件</th><th>用途</th></tr></thead><tbody><tr><td><code>ReleaseCard</code></td><td>发版记录卡片</td></tr><tr><td><code>VersionBadge</code></td><td>版本号展示</td></tr><tr><td><code>ReleaseChannelBadge</code></td><td>测试版、灰度版、正式版</td></tr><tr><td><code>UploadProgress</code></td><td>上传进度</td></tr><tr><td><code>MarkdownReleaseNote</code></td><td>更新说明</td></tr><tr><td><code>UpgradePolicySelector</code></td><td>强制更新、可选更新、静默更新</td></tr></tbody></table>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-19">6.4 Design Tokens</h3>
+  <p>所有组件必须从统一 Design Tokens 获取样式：</p>
+  <pre><code class="language-text">packages/design-tokens</code></pre>
+  <p>禁止业务页面直接写死：</p>
+  <ul>
+  <li>颜色</li>
+  <li>圆角</li>
+  <li>间距</li>
+  <li>字号</li>
+  <li>阴影</li>
+  <li>状态颜色</li>
+  </ul>
+  <p>推荐 Token 分类：</p>
+  <pre><code class="language-text">color.background.*
+color.text.*
+color.border.*
+color.status.online
+color.status.offline
+color.status.running
+color.status.failed
+color.status.warning
+spacing.*
+radius.*
+fontSize.*
+shadow.*</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-20">7. 列表适配规范</h2>
+  <p>桌面后台通常使用表格，但移动端不能直接缩小桌面表格。</p>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-21">7.1 设备列表</h3>
+  <p>桌面端表格：</p>
+  <pre><code class="language-text">设备 ID | 用户 | 在线状态 | 电量 | App 版本 | 最后心跳 | 操作</code></pre>
+  <p>移动端建议改为卡片：</p>
+  <pre><code class="language-text">┌────────────────────────────┐
+│ 小米 14 · DEV-1024         │
+│ 用户：张三                 │
+│ ● 在线  App v1.2.3         │
+│ 电量 82% · 2 分钟前心跳     │
+│                     查看 &gt; │
+└────────────────────────────┘</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-22">7.2 任务列表</h3>
+  <pre><code class="language-text">┌────────────────────────────┐
+│ 随缘打熊                   │
+│ 用户：张三 · 小米 14        │
+│ 运行中 · 已执行 18 / 42     │
+│ 03:21 开始                 │
+│                  查看详情 &gt; │
+└────────────────────────────┘</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-23">7.3 通用组件示例</h3>
+  <pre><code class="language-tsx">&lt;EntityListItem
+  title=&quot;随缘打熊&quot;
+  subtitle=&quot;用户：张三 · 小米 14&quot;
+  status={{ label: '运行中', type: 'running' }}
+  meta=&quot;已执行 18 / 42&quot;
+  onPress={openDetail}
+/&gt;</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-24">8. 鉴权与权限控制</h2>
+  <p>管理员移动端和普通用户端不能共用一套身份逻辑。</p>
+  <p>建议新增：</p>
+  <pre><code class="language-text">packages/auth-admin</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-25">8.1 Token 数据结构</h3>
+  <pre><code class="language-text">access_token
+refresh_token
+role
+permissions
+tenant_id
+device_id</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-26">8.2 安全存储</h3>
+  <p>敏感信息只存储在：</p>
+  <pre><code class="language-text">iOS Keychain
+Android Keystore</code></pre>
+  <p>禁止将 Token 存入：</p>
+  <pre><code class="language-text">AsyncStorage</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-27">8.3 页面级权限控制</h3>
+  <pre><code class="language-tsx">&lt;PermissionGate permission=&quot;task.stop&quot;&gt;
+  &lt;StopTaskButton /&gt;
+&lt;/PermissionGate&gt;</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-28">8.4 路由级权限控制</h3>
+  <pre><code class="language-tsx">&lt;ProtectedScreen permission=&quot;app.release.view&quot;&gt;
+  &lt;ReleaseCenterScreen /&gt;
+&lt;/ProtectedScreen&gt;</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-29">8.5 权限建议</h3>
+  <pre><code class="language-text">dashboard.view
+
+user.view
+user.manage
+
+device.view
+device.bind
+device.unbind
+device.command
+
+task.view
+task.stop
+task.retry
+
+module.view
+module.manage
+
+asset.view
+asset.manage
+
+app.release.view
+app.release.manage
+
+log.view</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-30">9. 实时状态能力</h2>
+  <p>后台管理移动端必须能够实时查看：</p>
+  <pre><code class="language-text">设备在线状态
+最后心跳时间
+任务运行进度
+失败原因
+顶号状态
+Worker 被停止
+任务暂停结果
+任务取消结果
+App 版本</code></pre>
+  <p>建议新增：</p>
+  <pre><code class="language-text">packages/realtime</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-31">9.1 对外接口</h3>
+  <pre><code class="language-ts">subscribeDeviceStatus(deviceId)
+subscribeTaskProgress(taskId)
+subscribeGlobalAlerts()</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-32">9.2 推荐实现</h3>
+  <pre><code class="language-text">WebSocket</code></pre>
+  <p>网络不稳定时：</p>
+  <pre><code class="language-text">WebSocket 断开
+    ↓
+指数退避重连
+    ↓
+必要时降级为轮询刷新</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-33">9.3 订阅范围</h3>
+  <p>不要在移动端一次订阅全部原始日志。</p>
+  <p>推荐：</p>
+  <table><thead><tr><th>页面</th><th>订阅内容</th></tr></thead><tbody><tr><td>总览页</td><td>汇总事件、告警数量、在线设备数量</td></tr><tr><td>设备列表</td><td>设备在线状态变更</td></tr><tr><td>设备详情</td><td>指定设备状态</td></tr><tr><td>任务列表</td><td>任务状态变更</td></tr><tr><td>任务详情</td><td>指定任务进度、步骤、日志</td></tr></tbody></table>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-34">10. 日志查看器</h2>
+  <p>后台管理移动端需要内置通用 <code>LogViewer</code>。</p>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-35">10.1 功能要求</h3>
+  <pre><code class="language-text">按级别筛选：info / warn / error
+关键词搜索
+自动滚动
+暂停自动滚动
+复制日志
+分页加载历史记录
+查看截图证据
+查看步骤详情
+错误高亮</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-36">10.2 任务详情页结构</h3>
+  <pre><code class="language-text">任务摘要
+执行进度
+当前步骤
+异常提示
+步骤时间线
+实时日志
+截图证据
+底部操作栏</code></pre>
+  <p>底部操作：</p>
+  <pre><code class="language-text">停止任务
+重试任务
+查看设备</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-37">11. App 发版管理</h2>
+  <p>移动端只负责查看、审批、暂停，不负责本地构建。</p>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-38">11.1 展示字段</h3>
+  <pre><code class="language-text">版本号：1.3.0-beta.4
+构建号：20260604.12
+渠道：测试版
+状态：灰度发布
+升级方式：可选更新
+发布时间：2026-06-04 02:30</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-39">11.2 可操作项</h3>
+  <pre><code class="language-text">查看发版详情
+查看更新说明
+暂停灰度发布
+恢复灰度发布
+查看升级进度
+查看失败设备
+审批发布</code></pre>
+  <p>APK、IPA、增量包的实际构建与上传，继续由服务端发布中心完成。</p>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-40">12. 大列表与弱网适配</h2>
+  <p>后台移动端的数据量会明显大于普通用户端。</p>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-41">12.1 需要适配的数据</h3>
+  <pre><code class="language-text">设备列表
+用户列表
+任务列表
+日志列表
+版本列表
+视觉资产列表</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-42">12.2 推荐方案</h3>
+  <pre><code class="language-text">FlashList
+游标分页
+下拉刷新
+请求去重
+本地缓存
+骨架屏
+离线提示
+失败重试</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-43">12.3 缓存策略</h3>
+  <table><thead><tr><th>数据</th><th>策略</th></tr></thead><tbody><tr><td>总览统计</td><td>缓存 30 秒</td></tr><tr><td>设备状态</td><td>实时推送，断线后轮询</td></tr><tr><td>用户列表</td><td>缓存 1 分钟</td></tr><tr><td>任务详情</td><td>实时推送</td></tr><tr><td>历史日志</td><td>分页加载</td></tr><tr><td>游戏模块</td><td>缓存 5 分钟</td></tr><tr><td>发版记录</td><td>缓存 1 分钟</td></tr><tr><td>视觉资产</td><td>缓存 5 分钟</td></tr></tbody></table>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-44">13. 扫码、复制、系统分享</h2>
+  <p>管理员排障时经常需要复制和分享信息。</p>
+  <p>建议在 <code>mobile-frame</code> 统一封装：</p>
+  <pre><code class="language-ts">scanner.scanQRCode()
+clipboard.copy(text)
+share.shareText(text)
+share.shareFile(path)
+browser.open(url)</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-45">13.1 常见场景</h3>
+  <pre><code class="language-text">扫描设备绑定码
+复制设备 ID
+复制任务 ID
+复制错误信息
+分享日志
+保存截图证据
+打开外部链接</code></pre>
+  <p>业务层不要直接调用原生 SDK。</p>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-46">14. 后端接口适配</h2>
+  <p>移动端不建议直接复用桌面后台全部接口。</p>
+  <p>桌面后台接口通常字段多、结构复杂，不适合手机端。</p>
+  <p>建议新增：</p>
+  <pre><code class="language-text">/api/v1/mobile</code></pre>
+  <p>作为移动端 BFF。</p>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-47">14.1 Dashboard</h3>
+  <pre><code class="language-http">GET /api/v1/mobile/dashboard</code></pre>
+  <p>示例响应：</p>
+  <pre><code class="language-json">{
+  &quot;device_total&quot;: 128,
+  &quot;device_online&quot;: 93,
+  &quot;task_running&quot;: 21,
+  &quot;task_failed_today&quot;: 7,
+  &quot;pending_approval&quot;: 3,
+  &quot;latest_alerts&quot;: []
+}</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-48">14.2 设备接口</h3>
+  <pre><code class="language-http">GET  /api/v1/mobile/devices
+GET  /api/v1/mobile/devices/:id
+POST /api/v1/mobile/devices/:id/bind
+POST /api/v1/mobile/devices/:id/unbind</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-49">14.3 任务接口</h3>
+  <pre><code class="language-http">GET  /api/v1/mobile/tasks
+GET  /api/v1/mobile/tasks/:id
+POST /api/v1/mobile/tasks/:id/stop
+POST /api/v1/mobile/tasks/:id/retry</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-50">14.4 用户接口</h3>
+  <pre><code class="language-http">GET /api/v1/mobile/users
+GET /api/v1/mobile/users/:id</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-51">14.5 游戏模块接口</h3>
+  <pre><code class="language-http">GET /api/v1/mobile/modules
+GET /api/v1/mobile/modules/:id</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-52">14.6 视觉资产接口</h3>
+  <pre><code class="language-http">GET /api/v1/mobile/assets
+GET /api/v1/mobile/assets/:id</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-53">14.7 发版接口</h3>
+  <pre><code class="language-http">GET  /api/v1/mobile/releases
+GET  /api/v1/mobile/releases/:id
+POST /api/v1/mobile/releases/:id/pause
+POST /api/v1/mobile/releases/:id/resume</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-54">14.8 日志接口</h3>
+  <pre><code class="language-http">GET /api/v1/mobile/logs
+GET /api/v1/mobile/tasks/:id/logs</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-55">14.9 WebSocket</h3>
+  <pre><code class="language-text">/ws/mobile</code></pre>
+  <p>推荐事件：</p>
+  <pre><code class="language-text">device.status.changed
+task.status.changed
+task.progress.changed
+task.log.appended
+release.status.changed
+alert.created</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-56">14.10 接口边界</h3>
+  <p>设备执行端继续使用：</p>
+  <pre><code class="language-text">/api/v1/device</code></pre>
+  <p>后台管理移动端使用：</p>
+  <pre><code class="language-text">/api/v1/mobile</code></pre>
+  <p>两套接口不要混在一起。</p>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-57">15. 第一阶段页面范围</h2>
+  <p>第一阶段只做最小可用版本。</p>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-58">15.1 页面列表</h3>
+  <pre><code class="language-text">登录页
+总览页
+设备列表
+设备详情
+任务列表
+任务详情
+管理入口
+我的</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-59">15.2 页面说明</h3>
+  <table><thead><tr><th>页面</th><th>核心内容</th></tr></thead><tbody><tr><td>登录页</td><td>管理员账号登录、Token 刷新、错误提示</td></tr><tr><td>总览页</td><td>在线设备、运行任务、失败任务、待审批、告警</td></tr><tr><td>设备列表</td><td>搜索、筛选、状态、最后心跳</td></tr><tr><td>设备详情</td><td>用户、版本、Worker 状态、当前任务、日志入口</td></tr><tr><td>任务列表</td><td>搜索、状态筛选、运行进度</td></tr><tr><td>任务详情</td><td>步骤时间线、日志、截图证据、停止与重试</td></tr><tr><td>管理入口</td><td>用户、模块、视觉资产、App 管理、运行日志</td></tr><tr><td>我的</td><td>管理员信息、退出登录、设置</td></tr></tbody></table>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-60">16. 第二阶段页面范围</h2>
+  <pre><code class="language-text">托管用户列表
+托管用户详情
+游戏模块列表
+游戏模块详情
+视觉资产列表
+视觉资产详情
+App 管理
+发版详情
+运行日志
+审批中心</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-61">17. 第一阶段改造清单</h2>
+  <p><code>mobile-frame</code> 第一阶段只补以下内容：</p>
+  <pre><code class="language-text">1. admin-mobile preset
+2. 底部 5 个导航
+3. ui-admin 组件包
+4. 管理员 Token 和权限控制
+5. InfiniteList + FilterSheet + StatusBadge
+6. WebSocket 实时状态
+7. LogViewer
+8. 扫码、复制、分享封装
+9. /api/v1/mobile BFF</code></pre>
+  <p>不要第一阶段就加入：</p>
+  <pre><code class="language-text">复杂审批流
+完整视觉资产编辑器
+本地脚本执行
+OCR
+OpenCV
+Worker 能力
+高级 BI 报表
+桌面端全部功能</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-62">18. 建议仓库结构</h2>
+  <p>如果 <code>mobile-frame</code> 使用 Monorepo，推荐：</p>
+  <pre><code class="language-text">mobile-frame/
+├── apps/
+│   ├── demo-app/
+│   └── game-helper-admin-mobile/
+│
+├── packages/
+│   ├── ui-core/
+│   ├── ui-admin/
+│   ├── design-tokens/
+│   ├── auth-core/
+│   ├── auth-admin/
+│   ├── realtime/
+│   ├── scanner/
+│   ├── clipboard/
+│   ├── share/
+│   └── app-bootstrap/
+│
+├── presets/
+│   ├── minimal/
+│   ├── standard/
+│   ├── operations/
+│   └── admin-mobile/
+│
+└── docs/
+    └── game-helper-admin-mobile-adaptation.md</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-63">19. 实施顺序</h2>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-64">阶段一：底座能力</h3>
+  <pre><code class="language-text">admin-mobile preset
+导航骨架
+权限控制
+后台管理组件
+分页列表
+状态筛选</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-65">阶段二：核心业务页面</h3>
+  <pre><code class="language-text">登录
+总览
+设备列表
+设备详情
+任务列表
+任务详情
+管理入口
+我的</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-66">阶段三：实时能力</h3>
+  <pre><code class="language-text">WebSocket
+断线重连
+状态降级轮询
+实时日志
+任务进度
+设备在线状态</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-67">阶段四：管理模块</h3>
+  <pre><code class="language-text">托管用户
+游戏模块
+视觉资产
+App 管理
+运行日志
+审批中心</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-68">阶段五：通用化</h3>
+  <pre><code class="language-text">把游戏业务组件与通用组件拆开
+补齐文档
+补齐示例
+补齐 preset 生成器
+供 HMN、发布中心复用</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-69">20. 验收标准</h2>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-70">20.1 mobile-frame 验收</h3>
+  <pre><code class="language-text">可以通过 preset 创建后台管理移动端项目
+可以复用后台管理组件
+可以接入管理员权限
+可以接入 WebSocket
+可以分页加载列表
+可以查看实时日志
+可以扫码、复制、分享</code></pre>
+  <h3 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-71">20.2 game-helper-admin-mobile 验收</h3>
+  <pre><code class="language-text">管理员可以登录
+可以查看总览
+可以查看在线设备
+可以查看设备详情
+可以查看任务列表
+可以查看任务详情
+可以停止任务
+可以重试任务
+可以查看日志
+可以查看截图证据
+可以查看 App 发版记录</code></pre>
+  <hr />
+  <h2 id="doc-docs-game-helper-admin-mobile-mobile-frame-adaptation-heading-72">21. 最终结论</h2>
+  <p><code>mobile-frame</code> 需要做适配，但适配方向不是加入游戏脚本能力，而是新增一套后台管理移动端通用能力。</p>
+  <p>推荐最终形态：</p>
+  <pre><code class="language-text">mobile-frame
+├── 普通 App 底座
+└── admin-mobile 后台管理端底座
+
+game-helper-admin-mobile
+└── 基于 admin-mobile preset 创建
+
+game-helper-app
+└── 继续承担 Worker、脚本执行、OCR、浮窗、无障碍能力</code></pre>
+  <p>这样既能快速建设游戏后台管理移动端，也不会污染 <code>mobile-frame</code> 的通用性。</p>
 </article>
 <article class="doc-article" id="doc-docs-architecture">
   <div class="article-meta">
@@ -1956,6 +2587,8 @@ git diff --check</code></pre>
   <ul>
   <li>iOS simulator build evidence on macOS.</li>
   <li>Android production Release signing evidence.</li>
+  <li>Game-helper admin mobile adaptation using the <code>admin-mobile</code> preset as a separate management app.</li>
+  <li>Reusable admin-mobile capabilities: admin UI components, permission gates, realtime status, log viewing, mobile list patterns, scanner, clipboard, sharing, and <code>/api/v1/mobile</code> BFF contracts.</li>
   <li>Real platform implementations for selected native capability modules.</li>
   <li>More complete reusable page templates.</li>
   <li>More complete module catalog and preset coverage.</li>
@@ -1979,7 +2612,7 @@ git diff --check</code></pre>
   <li>Add a native capability without changing unrelated app code.</li>
   <li>Reuse the same app shell and UI system across multiple app products.</li>
   </ul>
-  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, and Android emulator runtime proof through GitHub Actions run <code>26906180713</code>. The next closure milestone is production Android signing evidence and native build/runtime proof on iOS.</p>
+  <p>The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, and Android emulator runtime proof through GitHub Actions run <code>26906180713</code>. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and the first <code>game-helper-admin-mobile</code> adaptation pass from <code>docs/game-helper-admin-mobile-mobile-frame-adaptation.md</code>.</p>
 </article>
 <article class="doc-article" id="doc-docs-mobile-frame-landing-plan">
   <div class="article-meta">

@@ -68,6 +68,8 @@ Planned product scope:
 
 - iOS simulator build evidence on macOS.
 - Android production Release signing evidence.
+- Game-helper admin mobile adaptation using the `admin-mobile` preset as a separate management app.
+- Reusable admin-mobile capabilities: admin UI components, permission gates, realtime status, log viewing, mobile list patterns, scanner, clipboard, sharing, and `/api/v1/mobile` BFF contracts.
 - Real platform implementations for selected native capability modules.
 - More complete reusable page templates.
 - More complete module catalog and preset coverage.
@@ -94,4 +96,4 @@ The scaffold is successful when a team can:
 - Add a native capability without changing unrelated app code.
 - Reuse the same app shell and UI system across multiple app products.
 
-The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, and Android emulator runtime proof through GitHub Actions run `26906180713`. The next closure milestone is production Android signing evidence and native build/runtime proof on iOS.
+The current milestone has reached source-level validation, Android debug APK assembly proof, Android Release scaffold proof, and Android emulator runtime proof through GitHub Actions run `26906180713`. The next closure milestone is production Android signing evidence, native build/runtime proof on iOS, and the first `game-helper-admin-mobile` adaptation pass from `docs/game-helper-admin-mobile-mobile-frame-adaptation.md`.

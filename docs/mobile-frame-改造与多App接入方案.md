@@ -609,9 +609,11 @@ apps/game-helper-admin-mobile/
 总览
 设备
 任务
-告警
+管理
 我的
 ```
+
+“管理”页作为二级入口集合，不把托管用户、游戏模块、视觉资产、App 管理、运行日志、审批中心全部挤到底部导航。
 
 ### 10.4 管理端页面清单
 
@@ -654,28 +656,15 @@ Worker 状态
 证据截图
 ```
 
-#### 告警
+#### 管理
 
 ```text
-离线
-心跳超时
-OCR 失败
-截图失败
-权限丢失
-目标游戏卸载
-版本过旧
-资源包异常
-```
-
-#### 审批
-
-```text
-暂停设备
-停止 Worker
-强制重连
-重新下发任务
-触发更新
-资源包回滚
+托管用户
+游戏模块
+视觉资产
+App 管理
+运行日志
+审批中心
 ```
 
 ### 10.5 与 mobile-frame 的关系
@@ -687,6 +676,15 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 ```
 
 它只复用底座，不复用游戏助手设备端的 Kotlin 执行内核。
+
+### 10.6 适配计划来源
+
+`docs/game-helper-admin-mobile-mobile-frame-adaptation.md` 已作为 `game-helper-admin-mobile` 的详细适配计划纳入当前改造范围。该文档明确：
+
+- 管理员移动端负责总览、设备、任务、日志、托管用户、游戏模块、视觉资产、App 发版状态、轻量审批、扫码绑定、复制和分享；
+- 管理员移动端不承载 OCR、OpenCV、无障碍服务、浮窗、自动点击、Worker 拉取 Job、Worker 心跳、截图采集和本地自动化控制，这些仍归 `game-helper-app`；
+- 第一阶段补齐 `admin-mobile` preset、五 Tab 导航、`ui-admin` 组件包、管理员 Token/权限、分页列表、状态筛选、WebSocket 实时状态、`LogViewer`、扫码/复制/分享封装和 `/api/v1/mobile` BFF 边界；
+- `game-helper-admin-mobile` 第一阶段页面包含登录、总览、设备列表、设备详情、任务列表、任务详情、管理入口和我的；第二阶段扩展托管用户、游戏模块、视觉资产、App 管理、发版详情、运行日志和审批中心。
 
 ---
 
@@ -727,6 +725,15 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 - 发布说明；
 - 脚手架使用文档。
 
+### 阶段 5：game-helper-admin-mobile 适配
+
+- 将 `game-helper-admin-mobile` 作为独立 App 纳入计划；
+- 基于 `admin-mobile` preset 生成 `apps/game-helper-admin-mobile`；
+- 增加 `ui-admin`、`auth-admin`、`realtime`、扫码、复制和分享等通用后台移动端能力；
+- 落地总览、设备、任务、管理、我的五 Tab 导航；
+- 按 `/api/v1/mobile` BFF 边界接入后台接口，不复用设备执行端 `/api/v1/device`；
+- 明确 OCR、OpenCV、无障碍、浮窗、Worker 和脚本执行继续归 `game-helper-app`。
+
 ---
 
 ## 12. 验收清单
@@ -754,6 +761,8 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 ### P2
 
 - [ ] iOS Release 流程稳定；已提供统一 `mf:ios-build:debug`/`mf:ios-build:release` 构建入口和 `mf:ios-export` IPA 导出入口，可执行 iOS strict preflight、`pod install`、`xcodebuild build/archive`、`.app`/`.xcarchive` 校验、`xcodebuild -exportArchive`、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、`ExportOptions.plist` 与签名配置跑出真实 Release/IPA 证据。
+- [ ] `game-helper-admin-mobile` 第一阶段适配；按 `docs/game-helper-admin-mobile-mobile-frame-adaptation.md` 创建独立 App，覆盖登录、总览、设备列表/详情、任务列表/详情、管理入口和我的，不引入 OCR/OpenCV/Worker/脚本执行能力。
+- [ ] 后台管理端通用能力；补齐 `ui-admin` 组件、管理员权限控制、分页/筛选列表、WebSocket 实时状态、`LogViewer`、扫码/复制/分享封装和 `/api/v1/mobile` BFF 接口边界。
 - [x] 暗色主题；`design-tokens`、`ui-core`、`app-shell` 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。
 - [x] 组件快照测试；`packages/ui-native/src/component-snapshots.test.tsx` 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。
 - [x] 文档站点；已提供无额外依赖的 `docs-site/index.html` 静态入口，并通过 `mf:docs-site:check` 接入 `mf:validate`。

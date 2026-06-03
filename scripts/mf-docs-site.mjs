@@ -22,6 +22,11 @@ const documents = [
     summary: 'Main transformation plan, target architecture, delivery phases, and acceptance checklist.'
   },
   {
+    path: 'docs/game-helper-admin-mobile-mobile-frame-adaptation.md',
+    category: 'Plan',
+    summary: 'Game-helper admin mobile adaptation plan, boundaries, pages, admin components, realtime, logs, and mobile BFF scope.'
+  },
+  {
     path: 'docs/architecture.md',
     category: 'Foundation',
     summary: 'Workspace boundaries, app relationships, runtime layering, and verification scope.'
