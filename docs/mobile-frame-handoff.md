@@ -166,7 +166,7 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 ## Open Risks And Gaps
 
 - iOS native build is not proven on this Windows host. It needs macOS, Xcode, and CocoaPods.
-- Production Android Release signing still needs business configuration; the current Release evidence is scaffold validation using the explicit debug-signing allowance.
+- Production Android Release signing still needs business keystore/secrets and a production evidence run; the Android template and build script now support injected `MF_ANDROID_RELEASE_*` signing values without committing secrets.
 - The global `JAVA_HOME` mismatch can confuse future Android commands if the temporary JDK 17 environment is not applied.
 - Generated build outputs and Gradle caches should not be committed.
 - Some older Chinese planning documents in the repository appear to have encoding issues; prefer these newer UTF-8 docs for handoff and product context.
@@ -174,6 +174,6 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 ## Recommended Next Steps
 
 1. On macOS, run iOS preflight and a real iOS simulator build.
-2. Replace scaffold debug signing with real release signing for production apps and capture production Release evidence.
+2. Inject real Android release signing secrets with `MF_ANDROID_RELEASE_*`, run a production release build, and capture production Release evidence.
 3. Decide whether to update the persistent user `JAVA_HOME` to JDK 17.
 4. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.

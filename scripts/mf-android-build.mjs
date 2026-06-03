@@ -14,6 +14,13 @@ const androidDir = resolve(`${appPath}/android`);
 const gradleExecutable = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
 const gradlePath = path.join(androidDir, process.platform === 'win32' ? 'gradlew.bat' : 'gradlew');
 const gradleTask = `:app:assemble${capitalize(variant)}`;
+const androidReleaseSigningKeys = [
+  'MF_ANDROID_RELEASE_STORE_FILE',
+  'MF_ANDROID_RELEASE_STORE_PASSWORD',
+  'MF_ANDROID_RELEASE_KEY_ALIAS',
+  'MF_ANDROID_RELEASE_KEY_PASSWORD'
+];
+const releaseSigningStatus = variant === 'release' ? getReleaseSigningStatus() : null;
 
 if (!['debug', 'release'].includes(variant)) {
   fail(`Unsupported Android variant "${variant}". Expected one of: debug, release`);
@@ -27,13 +34,8 @@ if (!fs.existsSync(gradlePath)) {
   fail(`Gradle wrapper is missing: ${relative(gradlePath)}`);
 }
 
-if (variant === 'release' && releaseUsesDebugSigning() && !allowDebugReleaseSigning) {
-  fail(
-    [
-      `${appPath} release build currently uses the debug signing config.`,
-      'Pass --allow-debug-release-signing only for scaffold validation builds, or configure a real release signingConfig first.'
-    ].join(' ')
-  );
+if (variant === 'release') {
+  validateReleaseSigning();
 }
 
 if (!skipPreflight) {
@@ -43,6 +45,47 @@ if (!skipPreflight) {
 runGradleBuild();
 const apkEvidence = verifyApkOutput();
 writeEvidence(apkEvidence);
+
+function validateReleaseSigning() {
+  const releaseBlock = getReleaseBuildTypeBlock();
+  const referencesReleaseSigning = /signingConfigs\.release/.test(releaseBlock);
+  const referencesDebugSigning = /signingConfigs\.debug/.test(releaseBlock);
+
+  if (releaseSigningStatus.partial) {
+    fail(
+      [
+        `${appPath} release signing config is incomplete.`,
+        `Missing: ${releaseSigningStatus.missing.join(', ')}.`,
+        `Provide all of ${androidReleaseSigningKeys.join(', ')} or unset them before scaffold validation.`
+      ].join(' ')
+    );
+  }
+
+  if (releaseSigningStatus.complete) {
+    if (!referencesReleaseSigning) {
+      fail(`${appPath} release build does not reference signingConfigs.release; configure production release signing before building without scaffold mode.`);
+    }
+
+    if (!releaseSigningStatus.storeFileExists) {
+      fail(`${appPath} release signing store file does not exist: ${relative(releaseSigningStatus.storeFilePath)}`);
+    }
+
+    return;
+  }
+
+  if (referencesDebugSigning && !allowDebugReleaseSigning) {
+    fail(
+      [
+        `${appPath} release build currently uses the debug signing config.`,
+        'Pass --allow-debug-release-signing only for scaffold validation builds, or configure real release signing first.'
+      ].join(' ')
+    );
+  }
+
+  if (!referencesDebugSigning) {
+    fail(`${appPath} release signing config is not configured. Provide all of ${androidReleaseSigningKeys.join(', ')} before building release.`);
+  }
+}
 
 function runPreflight() {
   const result = spawnSync(process.execPath, ['scripts/mf-native-build-preflight.mjs', '--app', appPath, '--platform', 'android', '--strict'], {
@@ -115,6 +158,7 @@ function verifyApkOutput() {
     gradleTask,
     metadataPath: relative(metadataPath),
     platform: process.platform,
+    signingMode: getSigningMode(),
     variant,
     versionCode: apkElement.versionCode ?? null,
     versionName: apkElement.versionName ?? null
@@ -142,15 +186,125 @@ function writeEvidence(apkEvidence) {
   console.log(`- evidence: ${relative(evidencePath)}`);
 }
 
-function releaseUsesDebugSigning() {
+function getReleaseBuildTypeBlock() {
   const appBuildGradlePath = resolve(`${appPath}/android/app/build.gradle`);
   if (!fs.existsSync(appBuildGradlePath)) {
-    return false;
+    return '';
   }
 
   const source = fs.readFileSync(appBuildGradlePath, 'utf8');
-  const releaseBlock = source.match(/release\s*\{[\s\S]*?\n\s*\}/)?.[0] ?? '';
-  return /signingConfig\s+signingConfigs\.debug/.test(releaseBlock);
+  const buildTypesBlock = getNamedBlock(source, 'buildTypes');
+  return buildTypesBlock ? getNamedBlock(buildTypesBlock, 'release') : '';
+}
+
+function getNamedBlock(source, name) {
+  const match = new RegExp(`\\b${escapeRegExp(name)}\\s*\\{`).exec(source);
+  if (!match) {
+    return '';
+  }
+
+  const openingBraceIndex = source.indexOf('{', match.index);
+  let depth = 0;
+
+  for (let index = openingBraceIndex; index < source.length; index += 1) {
+    const char = source[index];
+
+    if (char === '{') {
+      depth += 1;
+      continue;
+    }
+
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return source.slice(match.index, index + 1);
+      }
+    }
+  }
+
+  return '';
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getReleaseSigningStatus() {
+  const configured = androidReleaseSigningKeys.map((key) => ({
+    key,
+    value: getReleaseSigningValue(key)
+  }));
+  const missing = configured.filter((item) => !item.value).map((item) => item.key);
+  const storeFile = configured.find((item) => item.key === 'MF_ANDROID_RELEASE_STORE_FILE')?.value ?? null;
+  const storeFilePath = storeFile ? resolveReleaseStoreFilePath(storeFile) : null;
+
+  return {
+    complete: missing.length === 0,
+    missing,
+    partial: missing.length > 0 && missing.length < androidReleaseSigningKeys.length,
+    storeFilePath,
+    storeFileExists: Boolean(storeFilePath && fs.existsSync(storeFilePath) && fs.statSync(storeFilePath).isFile())
+  };
+}
+
+function getReleaseSigningValue(key) {
+  if (isNonEmptyString(process.env[key])) {
+    return process.env[key];
+  }
+
+  for (const source of getAndroidSigningPropertySources()) {
+    const value = source[key];
+    if (isNonEmptyString(value)) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function getAndroidSigningPropertySources() {
+  return [
+    readPropertiesFile(path.join(androidDir, 'local.properties')),
+    readPropertiesFile(path.join(androidDir, 'gradle.properties')),
+    readPropertiesFile(path.join(process.env.GRADLE_USER_HOME || path.join(process.env.HOME || process.env.USERPROFILE || '', '.gradle'), 'gradle.properties'))
+  ];
+}
+
+function readPropertiesFile(target) {
+  if (!target || !fs.existsSync(target)) {
+    return {};
+  }
+
+  const values = {};
+  for (const line of fs.readFileSync(target, 'utf8').split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('!')) {
+      continue;
+    }
+
+    const separatorIndex = trimmed.search(/[:=]/);
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim();
+    values[key] = value;
+  }
+
+  return values;
+}
+
+function resolveReleaseStoreFilePath(value) {
+  return path.isAbsolute(value) ? value : path.resolve(androidDir, 'app', value);
+}
+
+function getSigningMode() {
+  if (variant === 'debug') {
+    return 'debug';
+  }
+
+  return releaseSigningStatus?.complete ? 'release' : 'debug-scaffold';
 }
 
 function readJson(target) {
@@ -182,6 +336,10 @@ function getOption(name, fallback) {
 
 function needsWindowsCommandShell(command) {
   return process.platform === 'win32' && /\.(cmd|bat)$/i.test(command);
+}
+
+function isNonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function capitalize(value) {

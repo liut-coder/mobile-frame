@@ -97,7 +97,17 @@ For scaffold Release validation, use the explicit debug-signing allowance:
 pnpm mf:android-build:release -- --allow-debug-release-signing
 ```
 
-That command writes Release build evidence under `data/runtime-evidence/android/`. Production apps must replace the scaffold debug signing config with real release signing.
+That command writes Release build evidence under `data/runtime-evidence/android/` with `signingMode: "debug-scaffold"`. Production release builds must provide all four signing values, either as environment variables, CI secrets, `apps/<app-name>/android/local.properties`, or another uncommitted Gradle properties source:
+
+```bash
+MF_ANDROID_RELEASE_STORE_FILE=/path/to/release.keystore
+MF_ANDROID_RELEASE_STORE_PASSWORD=...
+MF_ANDROID_RELEASE_KEY_ALIAS=...
+MF_ANDROID_RELEASE_KEY_PASSWORD=...
+pnpm mf:android-build -- --app apps/<app-name> --variant release
+```
+
+`android/local.properties` is ignored by Git. Keep keystore files outside the repository or inject them from CI secrets before the build.
 
 Older direct Gradle invocation still works after strict preflight passes:
 

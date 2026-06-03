@@ -198,7 +198,17 @@ corepack pnpm mf:android-build:debug
 corepack pnpm mf:android-build:release -- --allow-debug-release-signing
 ```
 
-正式业务 App 不应使用该参数，应先配置真实 release signing。
+正式业务 App 不应使用该参数，应先配置真实 release signing。构建脚本要求以下四项全部存在，来源可以是环境变量、CI secret、`apps/<app-name>/android/local.properties`、`apps/<app-name>/android/gradle.properties` 或 `$GRADLE_USER_HOME/gradle.properties`：
+
+```powershell
+$env:MF_ANDROID_RELEASE_STORE_FILE="C:\secure\release.keystore"
+$env:MF_ANDROID_RELEASE_STORE_PASSWORD="..."
+$env:MF_ANDROID_RELEASE_KEY_ALIAS="..."
+$env:MF_ANDROID_RELEASE_KEY_PASSWORD="..."
+corepack pnpm mf:android-build -- --app apps\<app-name> --variant release
+```
+
+`android/local.properties` 已加入 Git 忽略规则。keystore 文件建议放在仓库外，或由 CI secret 在构建前写入临时路径。
 
 如需直接调用 Gradle，先执行 Android 构建环境严格预检：
 

@@ -515,7 +515,13 @@ pnpm mf:create-preset field-ops</code></pre>
   <p>The resulting debug APK is written to <code>apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk</code>, and build evidence is written under <code>data/runtime-evidence/android/</code>.</p>
   <p>For scaffold Release validation, use the explicit debug-signing allowance:</p>
   <pre><code class="language-bash">pnpm mf:android-build:release -- --allow-debug-release-signing</code></pre>
-  <p>That command writes Release build evidence under <code>data/runtime-evidence/android/</code>. Production apps must replace the scaffold debug signing config with real release signing.</p>
+  <p>That command writes Release build evidence under <code>data/runtime-evidence/android/</code> with <code>signingMode: &quot;debug-scaffold&quot;</code>. Production release builds must provide all four signing values, either as environment variables, CI secrets, <code>apps/&lt;app-name&gt;/android/local.properties</code>, or another uncommitted Gradle properties source:</p>
+  <pre><code class="language-bash">MF_ANDROID_RELEASE_STORE_FILE=/path/to/release.keystore
+MF_ANDROID_RELEASE_STORE_PASSWORD=...
+MF_ANDROID_RELEASE_KEY_ALIAS=...
+MF_ANDROID_RELEASE_KEY_PASSWORD=...
+pnpm mf:android-build -- --app apps/&lt;app-name&gt; --variant release</code></pre>
+  <p><code>android/local.properties</code> is ignored by Git. Keep keystore files outside the repository or inject them from CI secrets before the build.</p>
   <p>Older direct Gradle invocation still works after strict preflight passes:</p>
   <pre><code class="language-powershell">$env:JAVA_HOME='C:\Program Files\Java\jdk-17'
 $env:ANDROID_HOME=Join-Path $env:LOCALAPPDATA 'Android\Sdk'
@@ -672,7 +678,13 @@ $env:PATH=&quot;$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH&qu
   <pre><code class="language-powershell">corepack pnpm mf:android-build:debug</code></pre>
   <p>如需验证 scaffold Release 构建流程，需要显式允许当前模板使用 debug signingConfig：</p>
   <pre><code class="language-powershell">corepack pnpm mf:android-build:release -- --allow-debug-release-signing</code></pre>
-  <p>正式业务 App 不应使用该参数，应先配置真实 release signing。</p>
+  <p>正式业务 App 不应使用该参数，应先配置真实 release signing。构建脚本要求以下四项全部存在，来源可以是环境变量、CI secret、<code>apps/&lt;app-name&gt;/android/local.properties</code>、<code>apps/&lt;app-name&gt;/android/gradle.properties</code> 或 <code>$GRADLE_USER_HOME/gradle.properties</code>：</p>
+  <pre><code class="language-powershell">$env:MF_ANDROID_RELEASE_STORE_FILE=&quot;C:\secure\release.keystore&quot;
+$env:MF_ANDROID_RELEASE_STORE_PASSWORD=&quot;...&quot;
+$env:MF_ANDROID_RELEASE_KEY_ALIAS=&quot;...&quot;
+$env:MF_ANDROID_RELEASE_KEY_PASSWORD=&quot;...&quot;
+corepack pnpm mf:android-build -- --app apps\&lt;app-name&gt; --variant release</code></pre>
+  <p><code>android/local.properties</code> 已加入 Git 忽略规则。keystore 文件建议放在仓库外，或由 CI secret 在构建前写入临时路径。</p>
   <p>如需直接调用 Gradle，先执行 Android 构建环境严格预检：</p>
   <pre><code class="language-powershell">corepack pnpm mf:native-build-preflight -- --platform android --strict
 cd apps\showcase\android
@@ -1833,10 +1845,15 @@ pnpm run mf:android-runtime-run</code></pre>
   <p>Release 构建需要业务 App 配置签名信息后再执行。当前底座只提供 preflight 和原生工程模板，不提交密钥。</p>
   <p>推荐流程：</p>
   <pre><code class="language-bash">pnpm run mf:android-build -- --app apps/&lt;app-name&gt; --variant release</code></pre>
-  <p>签名文件、密码和发布渠道配置必须通过本地环境变量、CI secret 或未提交的 Gradle 配置注入。</p>
+  <p>签名文件、密码和发布渠道配置必须通过本地环境变量、CI secret 或未提交的 Gradle 配置注入。当前 Android 模板支持以下四项，缺任何一项都会被 <code>mf:android-build</code> 视为不完整配置：</p>
+  <pre><code class="language-bash">MF_ANDROID_RELEASE_STORE_FILE=/path/to/release.keystore
+MF_ANDROID_RELEASE_STORE_PASSWORD=...
+MF_ANDROID_RELEASE_KEY_ALIAS=...
+MF_ANDROID_RELEASE_KEY_PASSWORD=...</code></pre>
+  <p>这四项可以来自环境变量、CI secret、<code>apps/&lt;app-name&gt;/android/local.properties</code>、<code>apps/&lt;app-name&gt;/android/gradle.properties</code> 或 <code>$GRADLE_USER_HOME/gradle.properties</code>。<code>android/local.properties</code> 已加入 Git 忽略规则；keystore 文件建议放在仓库外，或由 CI secret 在构建前解码到临时路径。</p>
   <p>当前 Showcase 模板仍使用 debug signingConfig 作为 scaffold 占位。只有为了验证脚手架 release build 流程时，才允许显式运行：</p>
   <pre><code class="language-bash">pnpm run mf:android-build:release -- --allow-debug-release-signing</code></pre>
-  <p>正式业务 App 不应使用该参数。</p>
+  <p>正式业务 App 不应使用该参数。scaffold 构建写出的 Android build evidence 会标记 <code>signingMode: &quot;debug-scaffold&quot;</code>；生产签名配置完整时会标记 <code>signingMode: &quot;release&quot;</code>。</p>
   <h2 id="doc-docs-release-heading-9">iOS Debug</h2>
   <p>iOS 必须在 macOS 上执行，环境要求：</p>
   <ul>

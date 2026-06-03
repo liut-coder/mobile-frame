@@ -12,6 +12,7 @@ Thumbs.db
 # Native dependency and build outputs
 **/ios/Pods/
 **/ios/build/
+**/android/local.properties
 **/android/.gradle/
 **/android/.kotlin/
 **/android/app/.cxx/

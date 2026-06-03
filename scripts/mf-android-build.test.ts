@@ -37,6 +37,7 @@ describe('mf-android-build', () => {
       expect(evidence.applicationId).toBe('com.misk.mobileframe');
       expect(evidence.apkPath).toBe('apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk');
       expect(evidence.apkSha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(evidence.signingMode).toBe('debug');
     });
   });
 
@@ -54,6 +55,46 @@ describe('mf-android-build', () => {
       expect(evidence.variant).toBe('release');
       expect(evidence.gradleTask).toBe(':app:assembleRelease');
       expect(evidence.apkPath).toBe('apps/showcase/android/app/build/outputs/apk/release/app-release.apk');
+      expect(evidence.signingMode).toBe('debug-scaffold');
+    });
+  });
+
+  it('runs a production release build when release signing is fully configured', () => {
+    withWorkspace((workspaceRoot) => {
+      writeAndroidBuildWorkspace(workspaceRoot);
+      writeFile(workspaceRoot, 'apps/showcase/android/app/release.keystore', 'keystore\n');
+
+      const result = runAndroidBuild(workspaceRoot, ['--variant', 'release', '--skip-preflight'], {
+        MF_ANDROID_RELEASE_KEY_ALIAS: 'mobile-frame',
+        MF_ANDROID_RELEASE_KEY_PASSWORD: 'key-password',
+        MF_ANDROID_RELEASE_STORE_FILE: 'release.keystore',
+        MF_ANDROID_RELEASE_STORE_PASSWORD: 'store-password'
+      });
+      const output = `${result.stdout}\n${result.stderr}`;
+
+      expect(result.status, output).toBe(0);
+      expect(output).toContain('Android release APK verified');
+
+      const evidence = readJson(workspaceRoot, 'data/runtime-evidence/android/apps-showcase-release-build-evidence.json');
+      expect(evidence.variant).toBe('release');
+      expect(evidence.signingMode).toBe('release');
+    });
+  });
+
+  it('fails release builds when signing config is partial even if scaffold signing is allowed', () => {
+    withWorkspace((workspaceRoot) => {
+      writeAndroidBuildWorkspace(workspaceRoot);
+      writeFile(workspaceRoot, 'apps/showcase/android/app/release.keystore', 'keystore\n');
+
+      const result = runAndroidBuild(workspaceRoot, ['--variant', 'release', '--skip-preflight', '--allow-debug-release-signing'], {
+        MF_ANDROID_RELEASE_STORE_FILE: 'release.keystore',
+        MF_ANDROID_RELEASE_STORE_PASSWORD: 'store-password'
+      });
+      const output = `${result.stdout}\n${result.stderr}`;
+
+      expect(result.status).toBe(1);
+      expect(output).toContain('release signing config is incomplete');
+      expect(output).toContain('MF_ANDROID_RELEASE_KEY_ALIAS');
     });
   });
 });
@@ -68,10 +109,14 @@ function withWorkspace(verify: (workspaceRoot: string) => void) {
   }
 }
 
-function runAndroidBuild(workspaceRoot: string, args: string[] = []) {
+function runAndroidBuild(workspaceRoot: string, args: string[] = [], env: Record<string, string> = {}) {
   return spawnSync(process.execPath, [scriptPath, ...args], {
     cwd: workspaceRoot,
     encoding: 'utf8',
+    env: {
+      ...process.env,
+      ...env
+    },
     stdio: 'pipe'
   });
 }
@@ -84,12 +129,16 @@ function writeAndroidBuildWorkspace(workspaceRoot: string) {
     'apps/showcase/android/app/build.gradle',
     [
       'android {',
+      '  def releaseSigningConfigComplete = [System.getenv("MF_ANDROID_RELEASE_STORE_FILE"), System.getenv("MF_ANDROID_RELEASE_STORE_PASSWORD"), System.getenv("MF_ANDROID_RELEASE_KEY_ALIAS"), System.getenv("MF_ANDROID_RELEASE_KEY_PASSWORD")].every { it != null }',
       '  signingConfigs {',
       '    debug {}',
+      '    if (releaseSigningConfigComplete) {',
+      '      release {}',
+      '    }',
       '  }',
       '  buildTypes {',
       '    release {',
-      '      signingConfig signingConfigs.debug',
+      '      signingConfig releaseSigningConfigComplete ? signingConfigs.release : signingConfigs.debug',
       '    }',
       '  }',
       '}',

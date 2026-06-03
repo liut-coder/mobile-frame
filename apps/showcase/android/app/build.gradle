@@ -3,6 +3,41 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 def hermescBinary = System.getProperty("os.name").toLowerCase().contains("windows") ? "hermesc.exe" : "hermesc"
+def androidLocalProperties = new Properties()
+def androidLocalPropertiesFile = rootProject.file("local.properties")
+if (androidLocalPropertiesFile.exists()) {
+    androidLocalPropertiesFile.withInputStream { androidLocalProperties.load(it) }
+}
+
+def releaseSigningValue = { name ->
+    def envValue = System.getenv(name)
+    if (envValue != null && envValue.toString().trim()) {
+        return envValue.toString()
+    }
+
+    def projectValue = project.findProperty(name)
+    if (projectValue != null && projectValue.toString().trim()) {
+        return projectValue.toString()
+    }
+
+    def rootProjectValue = rootProject.findProperty(name)
+    if (rootProjectValue != null && rootProjectValue.toString().trim()) {
+        return rootProjectValue.toString()
+    }
+
+    def localValue = androidLocalProperties.getProperty(name)
+    if (localValue != null && localValue.toString().trim()) {
+        return localValue.toString()
+    }
+
+    return null
+}
+
+def releaseStoreFile = releaseSigningValue("MF_ANDROID_RELEASE_STORE_FILE")
+def releaseStorePassword = releaseSigningValue("MF_ANDROID_RELEASE_STORE_PASSWORD")
+def releaseKeyAlias = releaseSigningValue("MF_ANDROID_RELEASE_KEY_ALIAS")
+def releaseKeyPassword = releaseSigningValue("MF_ANDROID_RELEASE_KEY_PASSWORD")
+def releaseSigningConfigComplete = [releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword].every { it != null }
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -102,15 +137,21 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (releaseSigningConfigComplete) {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig releaseSigningConfigComplete ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
