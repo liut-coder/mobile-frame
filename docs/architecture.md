@@ -18,6 +18,7 @@ packages/ui-native             React Native 通用 UI 组件
 packages/ui-admin              后台管理移动端通用组件、筛选和分页列表
 packages/auth-admin            后台管理移动端鉴权、Token 映射和权限门禁
 packages/realtime              后台管理移动端实时订阅、WebSocket 传输和轮询降级契约
+packages/mobile-bff            后台管理移动端 /api/v1/mobile typed client、fixture/http transport
 packages/app-shell             App Provider、主题、Toast、Sheet、模块挂载状态
 packages/core                  通用工具、Native Contract、mock adapter
 packages/module-sdk            模块声明、路由、权限和 Tab 元数据
@@ -64,6 +65,7 @@ App
 └── MFAppProvider
     ├── AppNavigator
     ├── AdminAuthProvider
+    ├── Mobile BFF client
     ├── Realtime subscriptions
     ├── Screen Templates
     ├── UI Native Components
@@ -72,7 +74,7 @@ App
     └── Core Native Contracts
 ```
 
-页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`，通过 `@mobile-frame/auth-admin` 统一处理管理员 Token 映射、权限判断、路由级 `ProtectedScreen` 和动作级 `PermissionGate`，并通过 `@mobile-frame/realtime` 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 `@mobile-frame/core/native-modules` 或 `@mobile-frame/ui-native/native-modules` 访问；`game-helper-admin-mobile` 进一步用 `src/services/native-actions.ts` 封装扫码、复制、分享和打开链接动作，避免业务页面直接调用系统 API。
+页面应优先使用 `@mobile-frame/screen-templates` 和 `@mobile-frame/ui-native`。后台管理端页面可在此基础上使用 `@mobile-frame/ui-admin`，通过 `@mobile-frame/auth-admin` 统一处理管理员 Token 映射、权限判断、路由级 `ProtectedScreen` 和动作级 `PermissionGate`，通过 `@mobile-frame/mobile-bff` 统一处理 `/api/v1/mobile` dashboard、设备、任务、日志、分页筛选和动作回执契约，并通过 `@mobile-frame/realtime` 统一处理设备状态、任务进度和全局告警订阅。平台能力应通过 `@mobile-frame/core/native-modules` 或 `@mobile-frame/ui-native/native-modules` 访问；`game-helper-admin-mobile` 进一步用 `src/services/native-actions.ts` 封装扫码、复制、分享和打开链接动作，避免业务页面直接调用系统 API。
 
 ## 验证边界
 

@@ -787,6 +787,8 @@ alert.created
 
 两套接口不要混在一起。
 
+当前落地状态更新于 2026-06-03：`@mobile-frame/mobile-bff` 已提供 `/api/v1/mobile` typed client、fixture transport、HTTP transport、分页/筛选/facet 契约、任务日志读取和设备绑定/任务停止/重试动作回执。`game-helper-admin-mobile` 已通过 `src/services/mobile-bff.ts` 把 dashboard、设备列表/详情、任务列表/详情、任务日志、扫码绑定、停止和重试接到该服务边界后面。后续仍需把 fixture client 切换成真实后端 HTTP client，并接入真实鉴权 token、错误处理和生产数据。
+
 ---
 
 ## 15. 第一阶段页面范围
@@ -854,7 +856,7 @@ App 管理
 9. /api/v1/mobile BFF
 ```
 
-当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约和 admin app 服务层已完成首轮接入；真实 WebSocket/BFF 传输、真实 Android/iOS 原生实现和真实 `/api/v1/mobile` BFF 仍待继续推进。
+当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约、`packages/mobile-bff` typed client 和 admin app 服务层已完成首轮接入；真实 WebSocket 传输、真实 `/api/v1/mobile` 后端切换和真实 Android/iOS 原生实现仍待继续推进。
 
 不要第一阶段就加入：
 

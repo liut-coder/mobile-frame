@@ -52,6 +52,11 @@ const documents = [
     summary: 'TypeScript-facing native capability contracts, mocks, and compatibility boundary.'
   },
   {
+    path: 'docs/mobile-bff.md',
+    category: 'Native',
+    summary: 'Mobile admin BFF TypeScript contracts, fixture transport, HTTP mapping, pagination, and action receipts.'
+  },
+  {
     path: 'docs/release.md',
     category: 'Release',
     summary: 'Local validation, GitHub Actions workflow, Android/iOS build prerequisites, and release gates.'

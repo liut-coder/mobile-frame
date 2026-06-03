@@ -19,6 +19,9 @@
       "path": "../../packages/module-sdk"
     },
     {
+      "path": "../../packages/mobile-bff"
+    },
+    {
       "path": "../../packages/presets"
     },
     {

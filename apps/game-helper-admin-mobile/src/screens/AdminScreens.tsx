@@ -38,20 +38,23 @@ import {
   adminBoundaries,
   adminSession,
   bffContracts,
-  dashboardAlerts,
-  dashboardSummary,
-  devices,
-  findDevice,
-  findTask,
   getDeviceStatusLabel,
   getTaskStatusLabel,
   managementEntries,
   statusTone,
-  tasks,
   type AdminTone,
   type DeviceRecord,
   type TaskRecord
 } from '../store';
+import {
+  adminMobileBffClient,
+  useMobileBffDashboard,
+  useMobileBffDevice,
+  useMobileBffDevices,
+  useMobileBffTask,
+  useMobileBffTaskLogs,
+  useMobileBffTasks
+} from '../services/mobile-bff';
 import { adminNativeActions } from '../services/native-actions';
 import { useRealtimeDeviceStatus, useRealtimeGlobalAlerts, useRealtimeTaskProgress } from '../services/realtime';
 import { appTheme } from '../theme';
@@ -100,28 +103,6 @@ type NativeActionFeedback = {
 };
 
 const listPageSize = 2;
-const deviceFilterOptions = [
-  { count: devices.filter((device) => device.status === 'online').length, label: 'Online', value: 'online' },
-  { count: devices.filter((device) => device.status === 'warning').length, label: 'Warning', value: 'warning' },
-  { count: devices.filter((device) => device.status === 'offline').length, label: 'Offline', value: 'offline' }
-] satisfies Array<{ count: number; label: string; value: DeviceRecord['status'] }>;
-const deviceSegmentOptions = [
-  { label: `All ${devices.length}`, value: 'all' },
-  { label: `Online ${devices.filter((device) => device.status === 'online').length}`, value: 'online' },
-  { label: `Attention ${devices.filter((device) => device.status !== 'online').length}`, value: 'attention' }
-] satisfies Array<{ label: string; value: DeviceListSegment }>;
-const taskFilterOptions = [
-  { count: tasks.filter((task) => task.status === 'running').length, label: 'Running', value: 'running' },
-  { count: tasks.filter((task) => task.status === 'failed').length, label: 'Failed', value: 'failed' },
-  { count: tasks.filter((task) => task.status === 'queued').length, label: 'Queued', value: 'queued' },
-  { count: tasks.filter((task) => task.status === 'paused').length, label: 'Paused', value: 'paused' },
-  { count: tasks.filter((task) => task.status === 'completed').length, label: 'Completed', value: 'completed' }
-] satisfies Array<{ count: number; label: string; value: TaskRecord['status'] }>;
-const taskSegmentOptions = [
-  { label: `All ${tasks.length}`, value: 'all' },
-  { label: `Running ${tasks.filter((task) => task.status === 'running').length}`, value: 'running' },
-  { label: `Failed ${tasks.filter((task) => task.status === 'failed').length}`, value: 'failed' }
-] satisfies Array<{ label: string; value: TaskListSegment }>;
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
@@ -154,17 +135,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 }
 
 export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenProps) {
+  const dashboard = useMobileBffDashboard();
   const { alerts, connection } = useRealtimeGlobalAlerts();
-  const activeAlerts =
-    alerts.length > 0
-      ? alerts
-      : dashboardAlerts.map((alert, index) => ({
-          createdAt: `fixture-${index}`,
-          id: alert.title,
-          message: alert.message,
-          title: alert.title,
-          tone: alert.tone
-        }));
+  const activeAlerts = alerts.length > 0 ? alerts : dashboard.alerts;
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -176,19 +149,19 @@ export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenPro
           title="Operations overview"
         />
         <RealtimeConnectionSummary connection={connection} />
-        <DashboardStatGrid />
+        <DashboardStatGrid metrics={dashboard.metrics} />
         {activeAlerts.map((alert) => (
           <MFBanner key={alert.id} message={alert.message} theme={appTheme} title={alert.title} tone={alert.tone} />
         ))}
         <MFStack gap={appTheme.spacing.md}>
           <SectionTitle title="Recent devices" />
-          {devices.slice(0, 2).map((device) => (
+          {dashboard.recentDevices.map((device) => (
             <DeviceListItem compact device={device} key={device.id} onPress={() => onOpenDevice(device.id)} />
           ))}
         </MFStack>
         <MFStack gap={appTheme.spacing.md}>
           <SectionTitle title="Active tasks" />
-          {tasks.slice(0, 2).map((task) => (
+          {dashboard.activeTasks.map((task) => (
             <TaskListItem compact key={task.id} onPress={() => onOpenTask(task.id)} task={task} />
           ))}
         </MFStack>
@@ -199,11 +172,18 @@ export function DashboardScreen({ onOpenDevice, onOpenTask }: DashboardScreenPro
 
 export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<DeviceRecord['status'][]>([]);
   const [segment, setSegment] = useState<DeviceListSegment>('all');
   const [visibleCount, setVisibleCount] = useState(listPageSize);
-  const filteredDevices = filterDevices(devices, segment, selectedStatuses);
-  const visibleDevices = filteredDevices.slice(0, visibleCount);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : deviceStatusesForSegment(segment);
+  const deviceList = useMobileBffDevices({ limit: visibleCount, query, statuses: requestedStatuses });
+  const deviceFilterOptions = deviceList.facets;
+  const deviceSegmentOptions = [
+    { label: `All ${sumFacetCount(deviceList.facets)}`, value: 'all' },
+    { label: `Online ${facetCount(deviceList.facets, 'online')}`, value: 'online' },
+    { label: `Attention ${facetCount(deviceList.facets, 'warning') + facetCount(deviceList.facets, 'offline')}`, value: 'attention' }
+  ] satisfies Array<{ label: string; value: DeviceListSegment }>;
 
   const changeSegment = (value: DeviceListSegment) => {
     setSegment(value);
@@ -231,23 +211,31 @@ export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
           theme={appTheme}
           title="Device fleet"
         />
-        <MFSearchBar placeholder="Search device, user, or app version" theme={appTheme} value="" />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search device, user, or app version"
+          theme={appTheme}
+          value={query}
+        />
         <SegmentTabs onChange={changeSegment} options={deviceSegmentOptions} theme={appTheme} value={segment} />
         <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
-          <StatusBadge label={`Showing ${filteredDevices.length}`} theme={appTheme} tone="info" />
+          <StatusBadge label={`Showing ${deviceList.total}`} theme={appTheme} tone="info" />
           <StatusBadge label={`Filters ${selectedStatuses.length}`} theme={appTheme} tone={selectedStatuses.length > 0 ? 'warning' : 'neutral'} />
           <MFButton fullWidth={false} onPress={() => setFilterSheetVisible(true)} theme={appTheme} title="Filters" variant="outline" />
         </MFRow>
         <InfiniteList
           emptyMessage="No devices match the current status filters."
           emptyTitle="No devices"
-          hasMore={visibleCount < filteredDevices.length}
-          items={visibleDevices}
+          hasMore={Boolean(deviceList.nextCursor)}
+          items={deviceList.items}
           keyExtractor={(device) => device.id}
           loadMoreLabel="Load more devices"
-          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, filteredDevices.length))}
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, deviceList.total))}
           renderItem={(device) => <DeviceListItem device={device} onPress={() => onOpenDevice(device.id)} />}
-          summary={`Showing ${visibleDevices.length} of ${filteredDevices.length} devices`}
+          summary={`Showing ${deviceList.items.length} of ${deviceList.total} devices`}
           theme={appTheme}
         />
         <FilterSheet
@@ -270,13 +258,13 @@ export function DeviceListScreen({ onOpenDevice }: DeviceListScreenProps) {
 export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetailScreenProps) {
   const [nativeFeedback, setNativeFeedback] = useState<NativeActionFeedback | null>(null);
   const { connection, snapshot } = useRealtimeDeviceStatus(deviceId);
-  const device = findDevice(deviceId);
+  const device = useMobileBffDevice(deviceId);
+  const currentTask = useMobileBffTask(device?.currentTaskId ?? null);
 
   if (!device) {
     return <MissingEntityScreen entity="device" onBack={onBack} />;
   }
 
-  const currentTask = device.currentTaskId ? findTask(device.currentTaskId) : undefined;
   const latestAppVersion = snapshot?.appVersion ?? device.appVersion;
   const latestHeartbeat = snapshot?.heartbeat ?? device.heartbeat;
   const latestRisk = snapshot?.risk ?? device.risk;
@@ -293,7 +281,7 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
 
     setNativeFeedback(
       result.data
-        ? { message: `Scanned ${result.data.value}`, title: 'Scan bind', tone: 'success' }
+        ? await bindScannedDevice(device.id, result.data.value)
         : { message: 'No QR code result is available from the native adapter.', title: 'Scan bind', tone: 'warning' }
     );
   };
@@ -359,11 +347,18 @@ export function DeviceDetailScreen({ deviceId, onBack, onOpenTask }: DeviceDetai
 
 export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<TaskRecord['status'][]>([]);
   const [segment, setSegment] = useState<TaskListSegment>('all');
   const [visibleCount, setVisibleCount] = useState(listPageSize);
-  const filteredTasks = filterTasks(tasks, segment, selectedStatuses);
-  const visibleTasks = filteredTasks.slice(0, visibleCount);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : taskStatusesForSegment(segment);
+  const taskList = useMobileBffTasks({ limit: visibleCount, query, statuses: requestedStatuses });
+  const taskFilterOptions = taskList.facets;
+  const taskSegmentOptions = [
+    { label: `All ${sumFacetCount(taskList.facets)}`, value: 'all' },
+    { label: `Running ${facetCount(taskList.facets, 'running')}`, value: 'running' },
+    { label: `Failed ${facetCount(taskList.facets, 'failed')}`, value: 'failed' }
+  ] satisfies Array<{ label: string; value: TaskListSegment }>;
 
   const changeSegment = (value: TaskListSegment) => {
     setSegment(value);
@@ -391,23 +386,31 @@ export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
           theme={appTheme}
           title="Task queue"
         />
-        <MFSearchBar placeholder="Search task, user, or device" theme={appTheme} value="" />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search task, user, or device"
+          theme={appTheme}
+          value={query}
+        />
         <SegmentTabs onChange={changeSegment} options={taskSegmentOptions} theme={appTheme} value={segment} />
         <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
-          <StatusBadge label={`Showing ${filteredTasks.length}`} theme={appTheme} tone="info" />
+          <StatusBadge label={`Showing ${taskList.total}`} theme={appTheme} tone="info" />
           <StatusBadge label={`Filters ${selectedStatuses.length}`} theme={appTheme} tone={selectedStatuses.length > 0 ? 'warning' : 'neutral'} />
           <MFButton fullWidth={false} onPress={() => setFilterSheetVisible(true)} theme={appTheme} title="Filters" variant="outline" />
         </MFRow>
         <InfiniteList
           emptyMessage="No tasks match the current status filters."
           emptyTitle="No tasks"
-          hasMore={visibleCount < filteredTasks.length}
-          items={visibleTasks}
+          hasMore={Boolean(taskList.nextCursor)}
+          items={taskList.items}
           keyExtractor={(task) => task.id}
           loadMoreLabel="Load more tasks"
-          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, filteredTasks.length))}
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, taskList.total))}
           renderItem={(task) => <TaskListItem onPress={() => onOpenTask(task.id)} task={task} />}
-          summary={`Showing ${visibleTasks.length} of ${filteredTasks.length} tasks`}
+          summary={`Showing ${taskList.items.length} of ${taskList.total} tasks`}
           theme={appTheme}
         />
         <FilterSheet
@@ -430,14 +433,15 @@ export function TaskListScreen({ onOpenTask }: TaskListScreenProps) {
 export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScreenProps) {
   const [nativeFeedback, setNativeFeedback] = useState<NativeActionFeedback | null>(null);
   const { connection, snapshot } = useRealtimeTaskProgress(taskId);
-  const task = findTask(taskId);
+  const task = useMobileBffTask(taskId);
+  const taskLogs = useMobileBffTaskLogs(taskId);
 
   if (!task) {
     return <MissingEntityScreen entity="task" onBack={onBack} />;
   }
 
   const latestCurrentStep = snapshot?.currentStep ?? task.currentStep;
-  const latestLogs = mergeRealtimeLog(task.logs, snapshot?.log);
+  const latestLogs = mergeRealtimeLog(taskLogs.items, snapshot?.log);
   const latestProgress = snapshot?.progress ?? task.progress;
   const latestStatus = snapshot?.status ?? task.status;
   const latestSteps = snapshot?.steps ?? task.steps;
@@ -460,6 +464,24 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
     const result = await adminNativeActions.share.shareText(logText);
 
     setNativeFeedback(result.ok ? { message: 'Shared task logs through the native adapter.', title: 'Share logs', tone: 'success' } : nativeFailure('Share logs', result.error));
+  };
+
+  const stopTask = async () => {
+    try {
+      const receipt = await adminMobileBffClient.stopTask(task.id);
+      setNativeFeedback({ message: `${receipt.action} accepted for ${receipt.id}.`, title: 'Stop task', tone: 'warning' });
+    } catch (error) {
+      setNativeFeedback(serviceFailure('Stop task', error));
+    }
+  };
+
+  const retryTask = async () => {
+    try {
+      const receipt = await adminMobileBffClient.retryTask(task.id);
+      setNativeFeedback({ message: `${receipt.action} accepted for ${receipt.id}.`, title: 'Retry task', tone: 'success' });
+    } catch (error) {
+      setNativeFeedback(serviceFailure('Retry task', error));
+    }
   };
 
   return (
@@ -488,10 +510,10 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
         <NativeActionBanner feedback={nativeFeedback} />
         <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
           <PermissionGate permission="task.stop">
-            <MFButton fullWidth={false} theme={appTheme} title="Stop" variant="danger" />
+            <MFButton fullWidth={false} onPress={stopTask} theme={appTheme} title="Stop" variant="danger" />
           </PermissionGate>
           <PermissionGate permission="task.retry">
-            <MFButton fullWidth={false} theme={appTheme} title="Retry" variant="secondary" />
+            <MFButton fullWidth={false} onPress={retryTask} theme={appTheme} title="Retry" variant="secondary" />
           </PermissionGate>
           <PermissionGate permission="device.view">
             <MFButton fullWidth={false} onPress={() => onOpenDevice(task.deviceId)} theme={appTheme} title="Device" variant="outline" />
@@ -623,10 +645,10 @@ export function PermissionDeniedScreen({ onBack, permissions, title }: Permissio
   );
 }
 
-function DashboardStatGrid() {
+function DashboardStatGrid({ metrics }: { metrics: Array<{ label: string; tone: AdminTone; value: string }> }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: appTheme.spacing.md }}>
-      {dashboardSummary.map((item) => (
+      {metrics.map((item) => (
         <View key={item.label} style={{ flexBasis: '46%', flexGrow: 1 }}>
           <StatCard label={item.label} theme={appTheme} tone={item.tone} value={item.value} />
         </View>
@@ -729,6 +751,24 @@ function nativeFailure(title: string, error: { code: string; message: string; mo
   };
 }
 
+function serviceFailure(title: string, error: unknown): NativeActionFeedback {
+  return {
+    message: error instanceof Error ? error.message : 'Mobile BFF request failed.',
+    title,
+    tone: 'danger'
+  };
+}
+
+async function bindScannedDevice(deviceId: string, code: string): Promise<NativeActionFeedback> {
+  try {
+    const receipt = await adminMobileBffClient.bindDevice(deviceId, { code });
+
+    return { message: `${receipt.action} accepted for ${receipt.id}: ${code}`, title: 'Scan bind', tone: 'success' };
+  } catch (error) {
+    return serviceFailure('Scan bind', error);
+  }
+}
+
 function formatTaskLogs(taskId: string, logs: TaskRecord['logs']): string {
   const logLines = logs.map((log) => `[${log.time}] ${log.level.toUpperCase()} ${log.message}`);
 
@@ -752,32 +792,32 @@ function connectionTone(status: RealtimeConnectionSnapshot['status']) {
   }
 }
 
-function filterDevices(devicesToFilter: DeviceRecord[], segment: DeviceListSegment, selectedStatuses: DeviceRecord['status'][]): DeviceRecord[] {
-  if (selectedStatuses.length > 0) {
-    return devicesToFilter.filter((device) => selectedStatuses.includes(device.status));
-  }
-
+function deviceStatusesForSegment(segment: DeviceListSegment): DeviceRecord['status'][] {
   switch (segment) {
     case 'online':
-      return devicesToFilter.filter((device) => device.status === 'online');
+      return ['online'];
     case 'attention':
-      return devicesToFilter.filter((device) => device.status !== 'online');
+      return ['warning', 'offline'];
     case 'all':
     default:
-      return devicesToFilter;
+      return [];
   }
 }
 
-function filterTasks(tasksToFilter: TaskRecord[], segment: TaskListSegment, selectedStatuses: TaskRecord['status'][]): TaskRecord[] {
-  if (selectedStatuses.length > 0) {
-    return tasksToFilter.filter((task) => selectedStatuses.includes(task.status));
-  }
-
+function taskStatusesForSegment(segment: TaskListSegment): TaskRecord['status'][] {
   if (segment === 'all') {
-    return tasksToFilter;
+    return [];
   }
 
-  return tasksToFilter.filter((task) => task.status === segment);
+  return [segment];
+}
+
+function facetCount<TValue extends string>(facets: Array<{ count: number; value: TValue }>, value: TValue): number {
+  return facets.find((facet) => facet.value === value)?.count ?? 0;
+}
+
+function sumFacetCount(facets: Array<{ count: number }>): number {
+  return facets.reduce((total, facet) => total + facet.count, 0);
 }
 
 function mergeRealtimeLog(logs: TaskRecord['logs'], latestLog: TaskRealtimeLogEntry | undefined): TaskRecord['logs'] {

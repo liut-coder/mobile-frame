@@ -18,6 +18,7 @@
       "@mobile-frame/core/native-modules": ["packages/core/src/native-modules.ts"],
       "@mobile-frame/design-tokens": ["packages/design-tokens/src/index.ts"],
       "@mobile-frame/module-sdk": ["packages/module-sdk/src/index.ts"],
+      "@mobile-frame/mobile-bff": ["packages/mobile-bff/src/index.ts"],
       "@mobile-frame/presets": ["packages/presets/src/index.ts"],
       "@mobile-frame/realtime": ["packages/realtime/src/index.ts"],
       "@mobile-frame/screen-templates": ["packages/screen-templates/src/index.tsx"],

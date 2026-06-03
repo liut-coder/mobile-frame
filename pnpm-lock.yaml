@@ -99,6 +99,9 @@ importers:
       '@mobile-frame/auth-admin':
         specifier: workspace:*
         version: link:../../packages/auth-admin
+      '@mobile-frame/mobile-bff':
+        specifier: workspace:*
+        version: link:../../packages/mobile-bff
       '@mobile-frame/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
@@ -187,6 +190,8 @@ importers:
   packages/core: {}
 
   packages/design-tokens: {}
+
+  packages/mobile-bff: {}
 
   packages/module-sdk: {}
 

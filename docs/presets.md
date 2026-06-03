@@ -79,7 +79,7 @@ const presets = listPresets();
 
 `device-agent` 适合设备端 App，预留设备状态、权限、已安装应用、日志和设置模块。
 
-`admin-mobile` 适合管理员移动端，预留总览、设备、任务、告警、审批、账号和设置模块。
+`admin-mobile` 适合管理员移动端，预留总览、设备、任务、告警、审批、账号和设置模块，并搭配 `ui-admin`、`auth-admin`、`realtime` 和 `mobile-bff` 这类后台移动端通用能力。
 
 ## 生成扩展 preset
 

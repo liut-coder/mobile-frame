@@ -1,52 +1,23 @@
 import { createAdminSession, type AdminPermission, type AdminTokenPayload } from '@mobile-frame/auth-admin';
+import type {
+  MobileBffDevice,
+  MobileBffDeviceStatus,
+  MobileBffLogLevel,
+  MobileBffTask,
+  MobileBffTaskLogEntry,
+  MobileBffTaskStatus,
+  MobileBffTone
+} from '@mobile-frame/mobile-bff';
 import { getPreset } from '@mobile-frame/presets';
 
 export type AdminTab = 'dashboard' | 'devices' | 'tasks' | 'management' | 'profile';
-export type AdminTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
-export type DeviceStatus = 'online' | 'offline' | 'warning';
-export type TaskStatus = 'running' | 'failed' | 'paused' | 'completed' | 'queued';
-export type LogLevel = 'info' | 'warn' | 'error';
-
-export type DeviceRecord = {
-  appVersion: string;
-  battery: number;
-  currentTaskId?: string;
-  heartbeat: string;
-  id: string;
-  model: string;
-  owner: string;
-  risk?: string;
-  status: DeviceStatus;
-  worker: 'active' | 'stopped' | 'idle';
-};
-
-export type TaskLogEntry = {
-  level: LogLevel;
-  message: string;
-  time: string;
-};
-
-export type TaskRecord = {
-  currentStep: string;
-  deviceId: string;
-  deviceName: string;
-  error?: string;
-  id: string;
-  name: string;
-  owner: string;
-  progress: {
-    done: number;
-    total: number;
-  };
-  startedAt: string;
-  status: TaskStatus;
-  steps: Array<{
-    label: string;
-    state: 'done' | 'running' | 'blocked' | 'waiting';
-    time: string;
-  }>;
-  logs: TaskLogEntry[];
-};
+export type AdminTone = MobileBffTone;
+export type DeviceStatus = MobileBffDeviceStatus;
+export type TaskStatus = MobileBffTaskStatus;
+export type LogLevel = MobileBffLogLevel;
+export type DeviceRecord = MobileBffDevice;
+export type TaskLogEntry = MobileBffTaskLogEntry;
+export type TaskRecord = MobileBffTask;
 
 export const appPreset = getPreset('admin-mobile');
 
@@ -250,9 +221,13 @@ export const adminBoundaries = [
 export const bffContracts = [
   'GET /api/v1/mobile/dashboard',
   'GET /api/v1/mobile/devices',
+  'GET /api/v1/mobile/devices/{id}',
+  'POST /api/v1/mobile/devices/{id}/bind',
   'GET /api/v1/mobile/tasks',
-  'POST /api/v1/mobile/tasks/{id}:stop',
-  'POST /api/v1/mobile/tasks/{id}:retry'
+  'GET /api/v1/mobile/tasks/{id}',
+  'POST /api/v1/mobile/tasks/{id}/stop',
+  'POST /api/v1/mobile/tasks/{id}/retry',
+  'GET /api/v1/mobile/tasks/{id}/logs'
 ];
 
 export function findDevice(deviceId: string): DeviceRecord | undefined {

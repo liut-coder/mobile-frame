@@ -171,12 +171,13 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 - `packages/auth-admin` is wired into `game-helper-admin-mobile` for mobile BFF token payload normalization, route-level `ProtectedScreen` checks, action-level `PermissionGate` checks, management-entry filtering, and Keychain/Keystore-only storage assertions.
 - `packages/realtime` is wired into `game-helper-admin-mobile` for fixture-backed global alert, device status, and task progress subscriptions; the app now shows realtime connection state and applies snapshots to overview alerts, device heartbeats/status, task progress, timelines, and logs.
 - Scanner, clipboard, share, and browser action contracts are available through the native mock adapter, and `game-helper-admin-mobile` now routes scan-bind, copy ID/error, share logs, and open-link actions through `apps/game-helper-admin-mobile/src/services/native-actions.ts`.
+- `packages/mobile-bff` now defines the `/api/v1/mobile` typed client, fixture transport, HTTP transport, list filtering/pagination contracts, facets, task logs, and action receipts; `game-helper-admin-mobile` reads dashboard, device, task, and log data through `src/services/mobile-bff.ts` instead of directly simulating BFF queries inside screens.
 
 ## Open Risks And Gaps
 
 - iOS native build is not proven on this Windows host. It needs macOS, Xcode, and CocoaPods.
 - Production Android Release signing still needs business keystore/secrets and a production evidence run; the Android template and build script now support injected `MF_ANDROID_RELEASE_*` signing values without committing secrets.
-- `game-helper-admin-mobile` still uses local fixture data. It needs real WebSocket/BFF transport integration, server-backed pagination/search data flows, and real `/api/v1/mobile` BFF integration.
+- `game-helper-admin-mobile` still uses local fixture data for BFF and realtime. It needs the real backend URL/token wiring for `@mobile-frame/mobile-bff`, real WebSocket transport, and server-backed data behind the current typed client contracts.
 - Scanner, clipboard, share, and browser actions are currently contract-backed mock surfaces; real Android/iOS platform implementations still need to replace the mock adapter behind the same TypeScript boundary.
 - The global `JAVA_HOME` mismatch can confuse future Android commands if the temporary JDK 17 environment is not applied.
 - Generated build outputs and Gradle caches should not be committed.
@@ -186,6 +187,6 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 
 1. On macOS, run iOS preflight and a real iOS simulator build.
 2. Inject real Android release signing secrets with `MF_ANDROID_RELEASE_*`, run a production release build, and capture production Release evidence.
-3. Continue the `game-helper-admin-mobile` adaptation by replacing fixture realtime with the real WebSocket/BFF transport, server-backed pagination/search data flows, and real `/api/v1/mobile` API clients behind the current fixture-backed screens.
+3. Continue the `game-helper-admin-mobile` adaptation by replacing fixture realtime with the real WebSocket transport and switching `src/services/mobile-bff.ts` from fixture data to the HTTP client against the real `/api/v1/mobile` backend.
 4. Decide whether to update the persistent user `JAVA_HOME` to JDK 17.
 5. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.

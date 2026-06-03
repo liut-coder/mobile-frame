@@ -8,6 +8,7 @@
     "@mobile-frame/app-shell": "workspace:*",
     "@mobile-frame/auth-admin": "workspace:*",
     "@mobile-frame/module-sdk": "workspace:*",
+    "@mobile-frame/mobile-bff": "workspace:*",
     "@mobile-frame/presets": "workspace:*",
     "@mobile-frame/realtime": "workspace:*",
     "@mobile-frame/screen-templates": "workspace:*",
