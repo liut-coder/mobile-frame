@@ -34,7 +34,43 @@ import {
 
 type ScreenKey = 'splash' | 'login' | 'main';
 type MainTab = 'dashboard' | 'devices' | 'tasks' | 'manage' | 'profile';
+type RouteKey =
+  | 'tabs'
+  | 'managedUsers'
+  | 'managedUserDetail'
+  | 'managedUserForm'
+  | 'bindDevice'
+  | 'gameAccounts'
+  | 'userTaskHistory'
+  | 'pendingDevices'
+  | 'deviceDetail'
+  | 'deviceAlert';
 type Tone = 'info' | 'success' | 'warning' | 'danger';
+type UserFormMode = 'create' | 'edit';
+
+type ManagedUser = {
+  accountCount: number;
+  autoSchedule: boolean;
+  code: string;
+  currentTask: string;
+  device: string;
+  deviceStatus: string;
+  id: string;
+  name: string;
+  progress: number;
+  status: string;
+};
+
+type DeviceRecord = {
+  adb: string;
+  app: string;
+  id: string;
+  name: string;
+  status: string;
+  tone: Tone;
+  user: string;
+  worker: string;
+};
 
 const theme = createTheme('light');
 const preset = getPreset('admin-mobile');
@@ -60,10 +96,72 @@ const runningTasks = [
   { device: 'Galaxy S24', progress: 0.18, status: '排队中', title: '日常采集', user: '用户 K / 王国 09' }
 ];
 
-const devices = [
-  { adb: 'ADB 正常', app: 'v0.3.2', name: 'Pixel 7 Pro', status: '在线', tone: 'success' as const, user: '用户 A' },
-  { adb: 'ADB 异常', app: 'v0.3.2', name: 'Redmi K70', status: '异常', tone: 'danger' as const, user: '用户 D' },
-  { adb: 'Worker 离线', app: 'v0.3.1', name: 'Galaxy S24', status: '离线', tone: 'warning' as const, user: '用户 K' }
+const fallbackManagedUser: ManagedUser = {
+  accountCount: 2,
+  autoSchedule: true,
+  code: 'managed-user-10001',
+  currentTask: '随缘打熊',
+  device: 'Pixel 7 Pro',
+  deviceStatus: '在线',
+  id: 'mu-10001',
+  name: '用户 A',
+  progress: 0.72,
+  status: '托管中'
+};
+
+const managedUsers: ManagedUser[] = [
+  fallbackManagedUser,
+  {
+    accountCount: 1,
+    autoSchedule: true,
+    code: 'managed-user-10004',
+    currentTask: '联盟签到',
+    device: 'Redmi K70',
+    deviceStatus: '异常',
+    id: 'mu-10004',
+    name: '用户 D',
+    progress: 0.41,
+    status: '需处理'
+  },
+  {
+    accountCount: 3,
+    autoSchedule: false,
+    code: 'managed-user-10011',
+    currentTask: '日常采集',
+    device: 'Galaxy S24',
+    deviceStatus: '离线',
+    id: 'mu-10011',
+    name: '用户 K',
+    progress: 0.18,
+    status: '暂停托管'
+  }
+];
+
+const devices: DeviceRecord[] = [
+  { adb: 'ADB 正常', app: 'v0.3.2', id: 'dev-pixel-7-pro', name: 'Pixel 7 Pro', status: '在线', tone: 'success', user: '用户 A', worker: 'Worker v0.3.2' },
+  { adb: 'ADB 异常', app: 'v0.3.2', id: 'dev-redmi-k70', name: 'Redmi K70', status: '异常', tone: 'danger', user: '用户 D', worker: 'Worker v0.3.2' },
+  { adb: 'Worker 离线', app: 'v0.3.1', id: 'dev-galaxy-s24', name: 'Galaxy S24', status: '离线', tone: 'warning', user: '用户 K', worker: 'Worker v0.3.1' }
+];
+
+const fallbackDevice = devices[0] ?? {
+  adb: 'ADB 正常',
+  app: 'v0.3.2',
+  id: 'dev-placeholder',
+  name: 'Pixel 7 Pro',
+  status: '在线',
+  tone: 'success' as const,
+  user: '用户 A',
+  worker: 'Worker v0.3.2'
+};
+
+const gameAccounts = [
+  { accountId: 'ACCT-10001-0001', name: '王国 01', role: '战神无双', server: 'S23-荣耀之巅', status: '启用' },
+  { accountId: 'ACCT-10001-0002', name: '王国 02', role: '云中游侠', server: 'S24-曙光前线', status: '备用' }
+];
+
+const pendingDevices = [
+  { bindingCode: '9X7Q-2M4K-8L3R', name: 'OnePlus 12', status: '等待绑定' },
+  { bindingCode: '837291', name: 'Pixel 8', status: '已识别' }
 ];
 
 const taskCards = [
@@ -96,7 +194,11 @@ export function App() {
   const [tab, setTab] = useState<MainTab>('dashboard');
   const [rememberLogin, setRememberLogin] = useState(true);
   const [deviceFilter, setDeviceFilter] = useState<'all' | 'online' | 'alert'>('all');
+  const [route, setRoute] = useState<RouteKey>('tabs');
+  const [selectedDeviceId, setSelectedDeviceId] = useState(fallbackDevice.id);
+  const [selectedUserId, setSelectedUserId] = useState(fallbackManagedUser.id);
   const [taskFilter, setTaskFilter] = useState<'running' | 'failed' | 'finished'>('running');
+  const [userFormMode, setUserFormMode] = useState<UserFormMode>('create');
 
   const closeSheet = useMFAppShellStore((state) => state.closeSheet);
   const hideToast = useMFAppShellStore((state) => state.hideToast);
@@ -127,10 +229,37 @@ export function App() {
   const actions = {
     goLogin: () => setScreen('login'),
     goMain: (nextTab: MainTab = 'dashboard') => {
+      setRoute('tabs');
       setTab(nextTab);
       setScreen('main');
     },
+    goRoute: (nextRoute: RouteKey) => setRoute(nextRoute),
+    goTabs: (nextTab?: MainTab) => {
+      if (nextTab) {
+        setTab(nextTab);
+      }
+      setRoute('tabs');
+    },
     openSheet: (title: string, body: string) => openShellSheet({ body, title }),
+    openDevice: (deviceId: string, nextRoute: 'deviceDetail' | 'deviceAlert' = 'deviceDetail') => {
+      setSelectedDeviceId(deviceId);
+      setRoute(nextRoute);
+    },
+    openBindDevice: (userId: string) => {
+      setSelectedUserId(userId);
+      setRoute('bindDevice');
+    },
+    openManagedUser: (userId: string) => {
+      setSelectedUserId(userId);
+      setRoute('managedUserDetail');
+    },
+    openUserForm: (mode: UserFormMode, userId?: string) => {
+      if (userId) {
+        setSelectedUserId(userId);
+      }
+      setUserFormMode(mode);
+      setRoute('managedUserForm');
+    },
     setDeviceFilter,
     setRememberLogin,
     setTab,
@@ -143,7 +272,19 @@ export function App() {
       <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
         {screen === 'splash' ? <SplashScreen actions={actions} theme={theme} /> : null}
         {screen === 'login' ? <LoginScreen actions={actions} rememberLogin={rememberLogin} theme={theme} /> : null}
-        {screen === 'main' ? <MainScreen actions={actions} activeTab={tab} deviceFilter={deviceFilter} taskFilter={taskFilter} theme={theme} /> : null}
+        {screen === 'main' ? (
+          <MainScreen
+            actions={actions}
+            activeTab={tab}
+            deviceFilter={deviceFilter}
+            route={route}
+            selectedDevice={devices.find((device) => device.id === selectedDeviceId) ?? fallbackDevice}
+            selectedUser={managedUsers.find((user) => user.id === selectedUserId) ?? fallbackManagedUser}
+            taskFilter={taskFilter}
+            theme={theme}
+            userFormMode={userFormMode}
+          />
+        ) : null}
         <MFToastHost toast={toast} theme={theme} />
         <MFSheetHost onClose={closeSheet} sheet={sheet} theme={theme} />
       </View>
@@ -154,7 +295,13 @@ export function App() {
 type AdminActions = {
   goLogin: () => void;
   goMain: (nextTab?: MainTab) => void;
+  goRoute: (nextRoute: RouteKey) => void;
+  goTabs: (nextTab?: MainTab) => void;
+  openBindDevice: (userId: string) => void;
+  openDevice: (deviceId: string, nextRoute?: 'deviceDetail' | 'deviceAlert') => void;
+  openManagedUser: (userId: string) => void;
   openSheet: (title: string, body: string) => void;
+  openUserForm: (mode: UserFormMode, userId?: string) => void;
   setDeviceFilter: (value: 'all' | 'online' | 'alert') => void;
   setRememberLogin: (value: boolean) => void;
   setTab: (value: MainTab) => void;
@@ -236,15 +383,59 @@ function MainScreen({
   actions,
   activeTab,
   deviceFilter,
+  route,
+  selectedDevice,
+  selectedUser,
   taskFilter,
-  theme
+  theme,
+  userFormMode
 }: {
   actions: AdminActions;
   activeTab: MainTab;
   deviceFilter: 'all' | 'online' | 'alert';
+  route: RouteKey;
+  selectedDevice: DeviceRecord;
+  selectedUser: ManagedUser;
   taskFilter: 'running' | 'failed' | 'finished';
   theme: MFTheme;
+  userFormMode: UserFormMode;
 }) {
+  if (route === 'managedUsers') {
+    return <ManagedUsersScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'managedUserDetail') {
+    return <ManagedUserDetailScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'managedUserForm') {
+    return <ManagedUserFormScreen actions={actions} mode={userFormMode} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'bindDevice') {
+    return <BindDeviceScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'gameAccounts') {
+    return <GameAccountsScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'userTaskHistory') {
+    return <UserTaskHistoryScreen actions={actions} theme={theme} user={selectedUser} />;
+  }
+
+  if (route === 'pendingDevices') {
+    return <PendingDevicesScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'deviceDetail') {
+    return <DeviceDetailScreen actions={actions} device={selectedDevice} theme={theme} />;
+  }
+
+  if (route === 'deviceAlert') {
+    return <DeviceAlertScreen actions={actions} device={selectedDevice} theme={theme} />;
+  }
+
   return (
     <View style={{ flex: 1 }}>
       {activeTab === 'dashboard' ? <DashboardScreen actions={actions} theme={theme} /> : null}
@@ -328,7 +519,7 @@ function DevicesScreen({ actions, filter, theme }: { actions: AdminActions; filt
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={16}>
-        <Header title="设备" subtitle="设备在线状态、绑定和 Worker 管理" theme={theme} rightLabel="待绑定" onRightPress={() => actions.openSheet('待绑定设备', '9X7Q-2M4K-8L3R 等待绑定。Phase 2 会接入扫码和绑定码查询。')} />
+        <Header title="设备" subtitle="设备在线状态、绑定和 Worker 管理" theme={theme} rightLabel="待绑定" onRightPress={() => actions.goRoute('pendingDevices')} />
         <MFSearchBar placeholder="搜索设备、托管用户或绑定码" theme={theme} />
         <MFSegmentedControl
           onChange={actions.setDeviceFilter}
@@ -361,7 +552,8 @@ function DevicesScreen({ actions, filter, theme }: { actions: AdminActions; filt
               </MFRow>
               <MFKeyValue label="运行状态" theme={theme} value={device.adb} />
               <MFRow gap={10}>
-                <MFButton fullWidth={false} onPress={() => actions.showToast(`${device.name} 测试连接已下发`)} theme={theme} title="测试连接" variant="secondary" />
+                <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id)} theme={theme} title="详情" variant="secondary" />
+                <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id, 'deviceAlert')} theme={theme} title="异常" variant="ghost" />
                 <MFButton fullWidth={false} onPress={() => actions.openSheet('设备操作', '可重启 Worker、复制设备 ID、查看日志或解绑。危险操作会写入审计。')} theme={theme} title="更多" variant="ghost" />
               </MFRow>
             </MFStack>
@@ -420,13 +612,20 @@ function ManageScreen({ actions, theme }: { actions: AdminActions; theme: MFThem
   return (
     <MFScrollPage theme={theme}>
       <MFStack gap={16}>
-        <Header title="管理" subtitle="托管用户、游戏模块和 APP 发版中心" theme={theme} rightLabel="新增" onRightPress={() => actions.openSheet('新增入口', '可新增托管用户、模块分组或具体任务模块。')} />
+        <Header title="管理" subtitle="托管用户、游戏模块和 APP 发版中心" theme={theme} rightLabel="新增" onRightPress={() => actions.openUserForm('create')} />
         <MFCard padded={false} theme={theme}>
           {managementEntries.map((entry, index) => (
             <View key={entry.title}>
               <MFListItem
                 meta={entry.meta}
-                onPress={() => actions.openSheet(entry.target, `${entry.target} 页面将按原型继续拆分列表、详情、编辑、排序和确认弹窗。`)}
+                onPress={() => {
+                  if (entry.title === '托管用户') {
+                    actions.goRoute('managedUsers');
+                    return;
+                  }
+
+                  actions.openSheet(entry.target, `${entry.target} 页面将按原型继续拆分列表、详情、编辑、排序和确认弹窗。`);
+                }}
                 theme={theme}
                 title={entry.title}
               />
@@ -441,6 +640,323 @@ function ManageScreen({ actions, theme }: { actions: AdminActions; theme: MFThem
           <MFStatCard label="审计记录" theme={theme} value="26" />
         </MFRow>
         <MFStatusCard message="模块分组、具体任务模块、脚本、运行模板和视觉资产将在 Phase 3 接入 CRUD 与排序。" theme={theme} title="模块管理计划" tone="info" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ManagedUsersScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="manage" subtitle="托管用户、绑定设备、游戏账号和当前任务" theme={theme} title="托管用户" />
+        <MFSearchBar placeholder="搜索用户名称、编号、设备或任务" theme={theme} />
+        <MFSegmentedControl
+          onChange={() => actions.showToast('筛选条件将在接口接入后生效')}
+          options={[
+            { label: '全部', value: 'all' },
+            { label: '托管中', value: 'active' },
+            { label: '异常', value: 'alert' }
+          ]}
+          theme={theme}
+          value="all"
+        />
+        {managedUsers.map((user) => (
+          <MFCard key={user.id} theme={theme}>
+            <MFStack gap={12}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4} style={{ flex: 1 }}>
+                  <MFText theme={theme} style={{ fontSize: 17, fontWeight: '900' }}>
+                    {user.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {user.code} · {user.device}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={user.status} tone={user.deviceStatus === '在线' ? 'success' : 'warning'} theme={theme} />
+              </MFRow>
+              <MFProgress label={user.currentTask} theme={theme} value={user.progress} />
+              <MFRow gap={10}>
+                <MFButton fullWidth={false} onPress={() => actions.openManagedUser(user.id)} theme={theme} title="详情" variant="secondary" />
+                <MFButton fullWidth={false} onPress={() => actions.openBindDevice(user.id)} theme={theme} title="更换设备" variant="ghost" />
+                <MFButton fullWidth={false} onPress={() => actions.openUserForm('edit', user.id)} theme={theme} title="编辑" variant="ghost" />
+              </MFRow>
+            </MFStack>
+          </MFCard>
+        ))}
+        <MFButton onPress={() => actions.openUserForm('create')} theme={theme} title="新建托管用户" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ManagedUserDetailScreen({ actions, theme, user }: { actions: AdminActions; theme: MFTheme; user: ManagedUser }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="managedUsers" subtitle={`${user.code} · ${user.status}`} theme={theme} title={user.name} />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  {user.currentTask}
+                </MFText>
+                <MFCaption theme={theme}>当前托管任务</MFCaption>
+              </MFStack>
+              <MFBadge label={`${Math.round(user.progress * 100)}%`} tone="info" theme={theme} />
+            </MFRow>
+            <MFProgress theme={theme} value={user.progress} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="基本信息" />
+            <MFKeyValue label="用户编号" theme={theme} value={user.code} />
+            <MFKeyValue label="托管状态" theme={theme} value={user.status} />
+            <MFKeyValue label="自动调度" theme={theme} value={user.autoSchedule ? '允许' : '暂停'} />
+          </MFStack>
+        </MFCard>
+        <MFCard padded={false} theme={theme}>
+          <MFListItem meta={`${user.deviceStatus} · ${user.device}`} onPress={() => actions.openBindDevice(user.id)} theme={theme} title="绑定设备" />
+          <MFDivider />
+          <MFListItem meta={`${user.accountCount} 个游戏账号`} onPress={() => actions.goRoute('gameAccounts')} theme={theme} title="游戏账号" />
+          <MFDivider />
+          <MFListItem meta="总数 128 · 成功率 85.9%" onPress={() => actions.goRoute('userTaskHistory')} theme={theme} title="任务记录" />
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.openUserForm('edit', user.id)} theme={theme} title="编辑" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.showToast(`${user.name} 已暂停托管`)} theme={theme} title="暂停托管" variant="danger" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ManagedUserFormScreen({ actions, mode, theme, user }: { actions: AdminActions; mode: UserFormMode; theme: MFTheme; user: ManagedUser }) {
+  const isEdit = mode === 'edit';
+
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute={isEdit ? 'managedUserDetail' : 'managedUsers'} subtitle="基本信息、托管设置和状态" theme={theme} title={isEdit ? '编辑托管用户' : '新建托管用户'} />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="用户名称" required theme={theme}>
+              <MFInput defaultValue={isEdit ? user.name : ''} placeholder="例如：用户 A" theme={theme} />
+            </MFFormField>
+            <MFFormField helperText="留空时由服务端自动生成。" label="用户编号" theme={theme}>
+              <MFInput defaultValue={isEdit ? user.code : ''} placeholder="managed-user-10001" theme={theme} />
+            </MFFormField>
+            <MFCheckbox label="允许自动调度" onValueChange={() => actions.showToast('托管设置已切换')} theme={theme} value={isEdit ? user.autoSchedule : true} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="状态" />
+            <MFBadge label={isEdit ? user.status : '托管中'} tone="success" theme={theme} />
+            <MFCaption theme={theme}>保存后会写入审计日志，并同步移动端 BFF 缓存。</MFCaption>
+          </MFStack>
+        </MFCard>
+        <MFButton
+          onPress={() => {
+            actions.showToast(isEdit ? '托管用户已保存' : '托管用户已创建');
+            actions.goRoute(isEdit ? 'managedUserDetail' : 'managedUsers');
+          }}
+          theme={theme}
+          title="保存"
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function BindDeviceScreen({ actions, theme, user }: { actions: AdminActions; theme: MFTheme; user: ManagedUser }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="managedUserDetail" subtitle="输入绑定码或选择待绑定设备" theme={theme} title="绑定设备" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title={user.name} />
+            <MFKeyValue label="当前设备" theme={theme} value={user.device} />
+            <MFKeyValue label="绑定状态" theme={theme} value={user.deviceStatus} />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="绑定码" required theme={theme}>
+              <MFInput defaultValue="837291" keyboardType="number-pad" placeholder="请输入设备绑定码" theme={theme} />
+            </MFFormField>
+            <MFButton onPress={() => actions.showToast('已识别 Pixel 8，等待确认绑定')} theme={theme} title="查询设备" variant="secondary" />
+          </MFStack>
+        </MFCard>
+        {pendingDevices.map((device) => (
+          <MFCard key={device.bindingCode} theme={theme}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontWeight: '900' }}>
+                  {device.name}
+                </MFText>
+                <MFCaption theme={theme}>{device.bindingCode}</MFCaption>
+              </MFStack>
+              <MFBadge label={device.status} tone="info" theme={theme} />
+            </MFRow>
+          </MFCard>
+        ))}
+        <MFButton
+          onPress={() => {
+            actions.showToast('设备 Token 已下发，绑定完成');
+            actions.goRoute('managedUserDetail');
+          }}
+          theme={theme}
+          title="确认绑定"
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function GameAccountsScreen({ actions, theme, user }: { actions: AdminActions; theme: MFTheme; user: ManagedUser }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="managedUserDetail" subtitle={`${user.name} · ${user.accountCount} 个账号`} theme={theme} title="游戏账号" />
+        {gameAccounts.map((account) => (
+          <MFCard key={account.accountId} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {account.name}
+                  </MFText>
+                  <MFCaption theme={theme}>
+                    {account.server} · {account.role}
+                  </MFCaption>
+                </MFStack>
+                <MFBadge label={account.status} tone="success" theme={theme} />
+              </MFRow>
+              <MFKeyValue label="账号 ID" theme={theme} value={account.accountId} />
+              <MFButton fullWidth={false} onPress={() => actions.openSheet('编辑游戏账号', `${account.name} 表单会在后续接入保存、删除和状态切换。`)} theme={theme} title="编辑" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+        <MFButton onPress={() => actions.openSheet('新建游戏账号', '需要填写账号名称、区服、角色名、备注和状态。')} theme={theme} title="新建游戏账号" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function UserTaskHistoryScreen({ actions, theme, user }: { actions: AdminActions; theme: MFTheme; user: ManagedUser }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="managedUserDetail" subtitle={`${user.name} · 总数 128 · 成功率 85.9%`} theme={theme} title="任务记录" />
+        {taskCards.map((task) => (
+          <MFCard key={`${user.id}-${task.title}`} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {task.title}
+                  </MFText>
+                  <MFCaption theme={theme}>{task.worker}</MFCaption>
+                </MFStack>
+                <TaskBadge status={task.status} theme={theme} />
+              </MFRow>
+              <MFProgress label="执行进度" theme={theme} value={task.progress} />
+              <MFButton fullWidth={false} onPress={() => actions.openSheet('任务执行详情', '任务链路、实时日志和证据截图会在 Phase 4/5 接入。')} theme={theme} title="查看详情" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function PendingDevicesScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="devices" subtitle="自动注册但尚未绑定托管用户的设备" theme={theme} title="待绑定设备" />
+        <MFSearchBar placeholder="搜索绑定码或设备名称" theme={theme} />
+        {pendingDevices.map((device) => (
+          <MFCard key={device.bindingCode} theme={theme}>
+            <MFStack gap={10}>
+              <MFRow style={{ justifyContent: 'space-between' }}>
+                <MFStack gap={4}>
+                  <MFText theme={theme} style={{ fontWeight: '900' }}>
+                    {device.name}
+                  </MFText>
+                  <MFCaption theme={theme}>{device.bindingCode}</MFCaption>
+                </MFStack>
+                <MFBadge label={device.status} tone="warning" theme={theme} />
+              </MFRow>
+              <MFButton fullWidth={false} onPress={() => actions.openBindDevice(fallbackManagedUser.id)} theme={theme} title="立即绑定" variant="secondary" />
+            </MFStack>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function DeviceDetailScreen({ actions, device, theme }: { actions: AdminActions; device: DeviceRecord; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="devices" subtitle={`${device.id} · ${device.status}`} theme={theme} title={device.name} />
+        <MFCard glass theme={theme}>
+          <MFStack gap={12}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4}>
+                <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                  {device.worker}
+                </MFText>
+                <MFCaption theme={theme}>{device.user} · APP {device.app}</MFCaption>
+              </MFStack>
+              <MFBadge label={device.status} tone={device.tone} theme={theme} />
+            </MFRow>
+            <MFKeyValue label="ADB 状态" theme={theme} value={device.adb} />
+            <MFKeyValue label="当前任务" theme={theme} value="随缘打熊 72%" />
+          </MFStack>
+        </MFCard>
+        <MFStatusCard message="最近 10 分钟心跳正常，任务 claim/report/finish 链路等待后端实时事件接入。" theme={theme} title="最近运行" tone={device.tone === 'danger' ? 'danger' : 'success'} />
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.showToast(`${device.name} 测试连接已下发`)} theme={theme} title="测试连接" variant="secondary" />
+          <MFButton fullWidth={false} onPress={() => actions.openDevice(device.id, 'deviceAlert')} theme={theme} title="异常详情" variant="ghost" />
+        </MFRow>
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function DeviceAlertScreen({ actions, device, theme }: { actions: AdminActions; device: DeviceRecord; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backRoute="deviceDetail" subtitle={`${device.name} · ${device.adb}`} theme={theme} title="设备异常详情" />
+        <MFStatusCard message="ADB 连接异常，Worker 最近一次 report 未完成。建议先尝试恢复连接，再决定是否重启 Worker。" theme={theme} title="ADB 连接异常" tone="danger" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="异常信息" />
+            <MFKeyValue label="设备" theme={theme} value={device.name} />
+            <MFKeyValue label="托管用户" theme={theme} value={device.user} />
+            <MFKeyValue label="APP 版本" theme={theme} value={device.app} />
+            <MFKeyValue label="恢复状态" theme={theme} value="未恢复" />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={8}>
+            <SectionTitle theme={theme} title="处理建议" />
+            {['检查无障碍权限和悬浮窗权限', '重启 Worker 后重新 claim 当前任务', '必要时解绑并重新生成 device_token'].map((item) => (
+              <MFCaption key={item} theme={theme}>
+                {item}
+              </MFCaption>
+            ))}
+          </MFStack>
+        </MFCard>
+        <MFButton onPress={() => actions.showToast('恢复连接指令已下发')} theme={theme} title="尝试恢复连接" />
       </MFStack>
     </MFScrollPage>
   );
@@ -502,6 +1018,42 @@ function Header({
       </MFStack>
       {rightLabel && onRightPress ? <MFButton fullWidth={false} onPress={onRightPress} theme={theme} title={rightLabel} variant="secondary" /> : null}
     </MFRow>
+  );
+}
+
+function BackHeader({
+  actions,
+  backRoute,
+  backTab,
+  subtitle,
+  theme,
+  title
+}: {
+  actions: AdminActions;
+  backRoute?: RouteKey;
+  backTab?: MainTab;
+  subtitle: string;
+  theme: MFTheme;
+  title: string;
+}) {
+  return (
+    <MFStack gap={10}>
+      <MFButton
+        fullWidth={false}
+        onPress={() => {
+          if (backRoute) {
+            actions.goRoute(backRoute);
+            return;
+          }
+
+          actions.goTabs(backTab);
+        }}
+        theme={theme}
+        title="返回"
+        variant="ghost"
+      />
+      <Header subtitle={subtitle} theme={theme} title={title} />
+    </MFStack>
   );
 }
 
