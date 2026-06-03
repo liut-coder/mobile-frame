@@ -51,7 +51,7 @@ pnpm run mf:runtime-evidence:strict
 - push 到 `main` 或 `game-helper-app`；
 - 手动 `workflow_dispatch`。
 
-远端 GitHub Actions run `26904447920` 已在 2026-06-03 跑通 `source-validation`、`showcase-android-debug` 和 `showcase-android-runtime`。该 run 的 `mobile-frame-showcase-debug-apk` artifact 包含 debug APK、`output-metadata.json`、`apps-showcase-debug-build-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.debug-build-evidence` 的 `requiredPassed` 为 `true`。`mobile-frame-showcase-runtime-evidence` artifact 包含 `apps-showcase-runtime-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.runtime-evidence` 的 `requiredPassed` 为 `true`，并记录了 `emulator-5554` 上的安装、启动和前台窗口校验。Android Release scaffold job 已配置，等待下一次远端 Actions 产出 `mobile-frame-showcase-release-apk` artifact 证明；iOS Debug/Release 和 iOS IPA 导出仍需要相应平台/签名环境继续产出证据。
+远端 GitHub Actions run `26906180713` 已在 2026-06-03 跑通 `source-validation`、`showcase-android-debug`、`showcase-android-release` 和 `showcase-android-runtime`。该 run 的 `mobile-frame-showcase-debug-apk` artifact 包含 debug APK、`output-metadata.json`、`apps-showcase-debug-build-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.debug-build-evidence` 的 `requiredPassed` 为 `true`。`mobile-frame-showcase-release-apk` artifact 包含 Release scaffold APK、`output-metadata.json`、`apps-showcase-release-build-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.release-build-evidence` 的 `requiredPassed` 为 `true`。`mobile-frame-showcase-runtime-evidence` artifact 包含 `apps-showcase-runtime-evidence.json` 和 `runtime-evidence-report.json`，其中 `android.runtime-evidence` 的 `requiredPassed` 为 `true`，并记录了 `emulator-5554` 上的安装、启动和前台窗口校验。生产 Android Release 签名、iOS Debug/Release 和 iOS IPA 导出仍需要相应平台/签名环境继续产出证据。
 
 本地使用以下命令守住 workflow 结构：
 
