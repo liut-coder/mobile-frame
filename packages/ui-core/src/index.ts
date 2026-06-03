@@ -13,7 +13,7 @@ export function createTheme(mode: MFThemeMode = 'light'): MFTheme {
   };
 }
 
-export type MFVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+export type MFVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
 export type MFSize = 'sm' | 'md' | 'lg';
 
 export type MFComponentState = {
@@ -68,6 +68,12 @@ export function resolveVariantColor(theme: MFTheme, variant: MFVariant): { backg
         background: theme.colors.danger,
         border: theme.colors.danger,
         text: '#FFFFFF'
+      };
+    case 'outline':
+      return {
+        background: 'transparent',
+        border: theme.colors.border,
+        text: theme.colors.text
       };
     case 'ghost':
       return {

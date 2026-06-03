@@ -246,11 +246,11 @@ function getAndroidSdkRoot() {
 function getDefaultAndroidSdkCandidates() {
   const candidates = [];
 
-  if (process.platform === 'win32') {
-    if (process.env.LOCALAPPDATA) {
-      candidates.push(path.join(process.env.LOCALAPPDATA, 'Android', 'Sdk'));
-    }
+  if (process.env.LOCALAPPDATA) {
+    candidates.push(path.join(process.env.LOCALAPPDATA, 'Android', 'Sdk'));
+  }
 
+  if (process.platform === 'win32') {
     if (process.env.USERPROFILE) {
       candidates.push(path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Android', 'Sdk'));
     }

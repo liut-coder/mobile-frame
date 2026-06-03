@@ -23,6 +23,9 @@
       "path": "./packages/presets"
     },
     {
+      "path": "./packages/screen-templates"
+    },
+    {
       "path": "./apps/showcase"
     }
   ]

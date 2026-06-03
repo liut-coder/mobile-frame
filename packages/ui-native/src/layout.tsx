@@ -35,8 +35,8 @@ export function MFSpacer({ size = 8 }: { size?: number }) {
   return <View style={{ height: size, width: size }} />;
 }
 
-export function MFDivider() {
-  return <View style={{ backgroundColor: defaultTheme.colors.border, height: 1 }} />;
+export function MFDivider({ theme = defaultTheme }: { theme?: MFTheme }) {
+  return <View style={{ backgroundColor: theme.colors.border, height: 1 }} />;
 }
 
 export function MFSafeArea({
@@ -51,12 +51,18 @@ export function MFSafeArea({
   );
 }
 
+export type MFPageProps = PropsWithChildren<{
+  centered?: boolean;
+  style?: StyleProp<ViewStyle>;
+  theme?: MFTheme;
+}>;
+
 export function MFPage({
   children,
   centered = false,
   style,
   theme = defaultTheme
-}: PropsWithChildren<{ centered?: boolean; style?: StyleProp<ViewStyle>; theme?: MFTheme }>) {
+}: MFPageProps) {
   return (
     <MFSafeArea
       style={[
@@ -71,6 +77,10 @@ export function MFPage({
       {children}
     </MFSafeArea>
   );
+}
+
+export function MFScreen(props: MFPageProps) {
+  return <MFPage {...props} />;
 }
 
 export function MFScrollPage({

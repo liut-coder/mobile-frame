@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Pressable,
   Switch,
@@ -17,6 +18,7 @@ import { MFRow, MFStack } from './layout';
 import { MFCaption, MFText } from './typography';
 
 const defaultTheme = createTheme('light');
+type MFStatusTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
 
 function shadow(theme: MFTheme, level: 'sm' | 'md' | 'lg' = 'md') {
   const value = theme.shadow[level];
@@ -30,36 +32,74 @@ function shadow(theme: MFTheme, level: 'sm' | 'md' | 'lg' = 'md') {
 }
 
 export function MFCard({
+  background,
+  border = true,
   children,
   glass = false,
+  onPress,
+  padding,
   padded = true,
+  pressable = false,
+  radius,
+  shadow: shadowLevel,
   style,
   theme = defaultTheme
-}: PropsWithChildren<{ glass?: boolean; padded?: boolean; style?: StyleProp<ViewStyle>; theme?: MFTheme }>) {
-  return (
+}: PropsWithChildren<{
+  background?: string;
+  border?: boolean;
+  glass?: boolean;
+  onPress?: () => void;
+  padded?: boolean;
+  padding?: number;
+  pressable?: boolean;
+  radius?: number;
+  shadow?: boolean | 'sm' | 'md' | 'lg';
+  style?: StyleProp<ViewStyle>;
+  theme?: MFTheme;
+}>) {
+  const cardStyle = [
+    {
+      backgroundColor: background ?? (glass ? theme.colors.surfaceGlass : theme.colors.surface),
+      borderColor: theme.colors.border,
+      borderRadius: radius ?? theme.radius.lg,
+      borderWidth: border ? 1 : 0,
+      padding: padding ?? (padded ? theme.spacing.lg : 0)
+    },
+    shadowLevel === false ? null : shadow(theme, typeof shadowLevel === 'string' ? shadowLevel : glass ? 'md' : 'sm'),
+    style
+  ];
+
+  const content = (
     <View
-      style={[
-        {
-          backgroundColor: glass ? theme.colors.surfaceGlass : theme.colors.surface,
-          borderColor: theme.colors.border,
-          borderRadius: theme.radius.lg,
-          borderWidth: 1,
-          padding: padded ? theme.spacing.lg : 0
-        },
-        shadow(theme, glass ? 'md' : 'sm'),
-        style
-      ]}
+      style={cardStyle}
     >
       {children}
     </View>
   );
+
+  if (!pressable && !onPress) {
+    return content;
+  }
+
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.86 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+      {content}
+    </Pressable>
+  );
+}
+
+export function MFSectionCard(props: Parameters<typeof MFCard>[0]) {
+  return <MFCard {...props} />;
 }
 
 export function MFButton({
   children,
   fullWidth = true,
   disabled = false,
+  leftIcon,
+  loading = false,
   onPress,
+  rightIcon,
   size = 'md',
   style,
   theme = defaultTheme,
@@ -68,7 +108,10 @@ export function MFButton({
 }: PropsWithChildren<{
   disabled?: boolean;
   fullWidth?: boolean;
+  leftIcon?: ReactNode;
+  loading?: boolean;
   onPress?: () => void;
+  rightIcon?: ReactNode;
   size?: MFSize;
   style?: StyleProp<ViewStyle>;
   theme?: MFTheme;
@@ -76,11 +119,12 @@ export function MFButton({
   variant?: MFVariant;
 }>) {
   const colors = resolveVariantColor(theme, variant);
+  const unavailable = disabled || loading;
 
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={disabled}
+      disabled={unavailable}
       onPress={onPress}
       style={({ pressed }) => [
         {
@@ -92,15 +136,39 @@ export function MFButton({
           borderWidth: 1,
           justifyContent: 'center',
           minHeight: getControlHeight(size),
-          opacity: disabled ? 0.48 : pressed ? 0.9 : 1,
+          opacity: unavailable ? 0.48 : pressed ? 0.9 : 1,
           paddingHorizontal: theme.spacing.lg,
-          transform: [{ scale: pressed && !disabled ? 0.985 : 1 }]
+          transform: [{ scale: pressed && !unavailable ? 0.985 : 1 }]
         },
         style
       ]}
     >
-      <MFText theme={theme} style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>
-        {title ?? children}
+      <MFRow gap={8} style={{ justifyContent: 'center' }}>
+        {loading ? <ActivityIndicator color={colors.text} size="small" /> : leftIcon}
+        <MFText theme={theme} style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>
+          {title ?? children}
+        </MFText>
+        {rightIcon}
+      </MFRow>
+    </Pressable>
+  );
+}
+
+export function MFTextButton({
+  disabled = false,
+  onPress,
+  theme = defaultTheme,
+  title
+}: {
+  disabled?: boolean;
+  onPress?: () => void;
+  theme?: MFTheme;
+  title: string;
+}) {
+  return (
+    <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => ({ opacity: disabled ? 0.48 : pressed ? 0.72 : 1 })}>
+      <MFText theme={theme} style={{ color: theme.colors.primary, fontWeight: '800' }}>
+        {title}
       </MFText>
     </Pressable>
   );
@@ -137,14 +205,46 @@ export function MFIconButton({
   );
 }
 
-export function MFBadge({ label, tone = 'info', theme = defaultTheme }: { label: string; tone?: 'info' | 'success' | 'warning' | 'danger'; theme?: MFTheme }) {
-  const color = tone === 'success' ? theme.colors.success : tone === 'warning' ? theme.colors.warning : tone === 'danger' ? theme.colors.danger : theme.colors.primary;
+export function MFBadge({ label, tone = 'info', theme = defaultTheme }: { label: string; tone?: MFStatusTone; theme?: MFTheme }) {
+  const color = getToneColor(theme, tone);
   return (
-    <View style={{ alignSelf: 'flex-start', backgroundColor: theme.colors.primarySoft, borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 5 }}>
+    <View style={{ alignSelf: 'flex-start', backgroundColor: getToneBackground(theme, tone), borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 5 }}>
       <MFText theme={theme} style={{ color, fontSize: 12, fontWeight: '800', lineHeight: 16 }}>
         {label}
       </MFText>
     </View>
+  );
+}
+
+export function MFStatusPill({
+  icon,
+  label,
+  status = 'info',
+  theme = defaultTheme
+}: {
+  icon?: ReactNode;
+  label: string;
+  status?: MFStatusTone;
+  theme?: MFTheme;
+}) {
+  const color = getToneColor(theme, status);
+
+  return (
+    <MFRow
+      gap={6}
+      style={{
+        alignSelf: 'flex-start',
+        backgroundColor: getToneBackground(theme, status),
+        borderRadius: theme.radius.pill,
+        paddingHorizontal: 10,
+        paddingVertical: 5
+      }}
+    >
+      {icon ?? <View style={{ backgroundColor: color, borderRadius: 4, height: 8, width: 8 }} />}
+      <MFText theme={theme} style={{ color, fontSize: 12, fontWeight: '900', lineHeight: 16 }}>
+        {label}
+      </MFText>
+    </MFRow>
   );
 }
 
@@ -410,6 +510,48 @@ export function MFListItem({
   );
 }
 
+export function MFInfoRow({ label, theme = defaultTheme, value }: { label: string; theme?: MFTheme; value: ReactNode }) {
+  return (
+    <MFRow style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <MFText muted theme={theme} style={{ flex: 1, fontSize: 13, lineHeight: 18 }}>
+        {label}
+      </MFText>
+      {typeof value === 'string' || typeof value === 'number' ? (
+        <MFText theme={theme} style={{ flex: 1, fontWeight: '900', textAlign: 'right' }}>
+          {value}
+        </MFText>
+      ) : (
+        value
+      )}
+    </MFRow>
+  );
+}
+
+export function MFInfoGrid({
+  items,
+  theme = defaultTheme
+}: {
+  items: Array<{ label: string; tone?: MFStatusTone; value: string }>;
+  theme?: MFTheme;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.md }}>
+      {items.map((item) => (
+        <View key={item.label} style={{ flexBasis: '46%', flexGrow: 1 }}>
+          <MFCard theme={theme}>
+            <MFStack gap={8}>
+              <MFStatusPill label={item.label} status={item.tone ?? 'info'} theme={theme} />
+              <MFText theme={theme} style={{ color: getToneColor(theme, item.tone ?? 'info'), fontSize: 28, fontWeight: '900', lineHeight: 36 }}>
+                {item.value}
+              </MFText>
+            </MFStack>
+          </MFCard>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function MFSwitch({ onValueChange, theme = defaultTheme, value }: { onValueChange?: (value: boolean) => void; theme?: MFTheme; value: boolean }) {
   return <Switch onValueChange={onValueChange} thumbColor="#FFFFFF" trackColor={{ false: theme.colors.border, true: theme.colors.primary }} value={value} />;
 }
@@ -576,28 +718,124 @@ export function MFProgress({
 
 export function MFEmptyState({
   actionLabel,
+  description,
+  headline,
+  illustration,
   message,
   onAction,
   theme = defaultTheme,
   title
 }: {
   actionLabel?: string;
-  message: string;
+  description?: string;
+  headline?: string;
+  illustration?: ReactNode;
+  message?: string;
   onAction?: () => void;
   theme?: MFTheme;
-  title: string;
+  title?: string;
 }) {
+  const resolvedTitle = headline ?? title ?? 'Empty state';
+  const resolvedMessage = description ?? message ?? 'There is no content to display.';
+
   return (
     <MFCard theme={theme}>
       <MFStack gap={10} style={{ alignItems: 'center' }}>
+        {illustration}
+        <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900', textAlign: 'center' }}>
+          {resolvedTitle}
+        </MFText>
+        <MFText muted theme={theme} style={{ textAlign: 'center' }}>
+          {resolvedMessage}
+        </MFText>
+        {actionLabel && onAction ? <MFButton fullWidth={false} onPress={onAction} theme={theme} title={actionLabel} variant="secondary" /> : null}
+      </MFStack>
+    </MFCard>
+  );
+}
+
+export function MFLoadingState({
+  message = 'Loading content.',
+  theme = defaultTheme,
+  title = 'Loading'
+}: {
+  message?: string;
+  theme?: MFTheme;
+  title?: string;
+}) {
+  return (
+    <MFCard theme={theme}>
+      <MFStack gap={12} style={{ alignItems: 'center' }}>
+        <ActivityIndicator color={theme.colors.primary} size="large" />
         <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900', textAlign: 'center' }}>
           {title}
         </MFText>
         <MFText muted theme={theme} style={{ textAlign: 'center' }}>
           {message}
         </MFText>
-        {actionLabel && onAction ? <MFButton fullWidth={false} onPress={onAction} theme={theme} title={actionLabel} variant="secondary" /> : null}
       </MFStack>
+    </MFCard>
+  );
+}
+
+export function MFErrorState({
+  actionLabel,
+  message = 'The requested content could not be loaded.',
+  onAction,
+  theme = defaultTheme,
+  title = 'Unable to continue'
+}: {
+  actionLabel?: string;
+  message?: string;
+  onAction?: () => void;
+  theme?: MFTheme;
+  title?: string;
+}) {
+  return (
+    <MFCard theme={theme}>
+      <MFStack gap={10} style={{ alignItems: 'center' }}>
+        <MFStatusPill label="Error" status="danger" theme={theme} />
+        <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900', textAlign: 'center' }}>
+          {title}
+        </MFText>
+        <MFText muted theme={theme} style={{ textAlign: 'center' }}>
+          {message}
+        </MFText>
+        {actionLabel && onAction ? <MFButton fullWidth={false} onPress={onAction} theme={theme} title={actionLabel} variant="outline" /> : null}
+      </MFStack>
+    </MFCard>
+  );
+}
+
+export function MFBanner({
+  actionLabel,
+  message,
+  onAction,
+  theme = defaultTheme,
+  title,
+  tone = 'info'
+}: {
+  actionLabel?: string;
+  message: string;
+  onAction?: () => void;
+  theme?: MFTheme;
+  title: string;
+  tone?: MFStatusTone;
+}) {
+  return (
+    <MFCard background={getToneBackground(theme, tone)} border={false} shadow={false} theme={theme}>
+      <MFRow gap={12} style={{ alignItems: 'flex-start' }}>
+        <View style={{ backgroundColor: getToneColor(theme, tone), borderRadius: 5, height: 10, marginTop: 7, width: 10 }} />
+        <MFStack gap={4} style={{ flex: 1 }}>
+          <MFText theme={theme} style={{ color: getToneColor(theme, tone), fontWeight: '900' }}>
+            {title}
+          </MFText>
+          <MFText muted theme={theme} style={{ fontSize: 13, lineHeight: 18 }}>
+            {message}
+          </MFText>
+          {actionLabel && onAction ? <MFTextButton onPress={onAction} theme={theme} title={actionLabel} /> : null}
+        </MFStack>
+      </MFRow>
     </MFCard>
   );
 }
@@ -621,4 +859,32 @@ export function MFToastView({ message, opacity, theme = defaultTheme }: { messag
       <MFText style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '700' }}>{message}</MFText>
     </Animated.View>
   );
+}
+
+function getToneColor(theme: MFTheme, tone: MFStatusTone): string {
+  if (tone === 'success') {
+    return theme.colors.success;
+  }
+
+  if (tone === 'warning') {
+    return theme.colors.warning;
+  }
+
+  if (tone === 'danger') {
+    return theme.colors.danger;
+  }
+
+  if (tone === 'neutral') {
+    return theme.colors.textMuted;
+  }
+
+  return theme.colors.info;
+}
+
+function getToneBackground(theme: MFTheme, tone: MFStatusTone): string {
+  if (tone === 'neutral') {
+    return theme.colors.surfaceMuted;
+  }
+
+  return tone === 'info' ? theme.colors.primarySoft : theme.colors.primarySoft;
 }

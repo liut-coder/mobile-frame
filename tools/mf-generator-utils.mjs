@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { Buffer } from 'node:buffer';
 
 const workspaceRoot = process.cwd();
 
@@ -106,6 +107,42 @@ export function createFile(relativePath, content) {
   };
 }
 
+export function createBinaryFile(relativePath, content) {
+  return {
+    content,
+    relativePath: normalizePath(relativePath)
+  };
+}
+
+export function createFilesFromDirectory(sourceRelativePath, targetRelativePath, options = {}) {
+  const sourceRoot = safeResolve(sourceRelativePath);
+  if (!fs.existsSync(sourceRoot) || !fs.statSync(sourceRoot).isDirectory()) {
+    throw new Error(`Missing template directory: ${normalizePath(sourceRelativePath)}`);
+  }
+
+  const files = [];
+  for (const sourceFile of listFiles(sourceRoot)) {
+    const sourceRelativeFile = normalizePath(path.relative(sourceRoot, sourceFile));
+    if (options.filter && !options.filter(sourceRelativeFile)) {
+      continue;
+    }
+
+    const targetRelativeFile = options.transformPath?.(sourceRelativeFile) ?? sourceRelativeFile;
+    const targetPath = normalizePath(path.join(targetRelativePath, targetRelativeFile));
+    const content = fs.readFileSync(sourceFile);
+
+    if (isTextTemplateFile(sourceRelativeFile)) {
+      const text = content.toString('utf8');
+      files.push({ ...createFile(targetPath, options.transformText?.(text, sourceRelativeFile) ?? text), mode: fs.statSync(sourceFile).mode });
+      continue;
+    }
+
+    files.push({ ...createBinaryFile(targetPath, content), mode: fs.statSync(sourceFile).mode });
+  }
+
+  return files;
+}
+
 export function writeFiles(files, { dryRun = false, force = false } = {}) {
   const existing = files.filter((entry) => fs.existsSync(safeResolve(entry.relativePath)));
 
@@ -121,7 +158,14 @@ export function writeFiles(files, { dryRun = false, force = false } = {}) {
 
     const target = safeResolve(entry.relativePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, entry.content, 'utf8');
+    if (Buffer.isBuffer(entry.content)) {
+      fs.writeFileSync(target, entry.content);
+    } else {
+      fs.writeFileSync(target, entry.content, 'utf8');
+    }
+    if (typeof entry.mode === 'number') {
+      fs.chmodSync(target, entry.mode);
+    }
     console.log(`created ${entry.relativePath}`);
   }
 }
@@ -250,4 +294,47 @@ export function runCli(handler) {
 
 function normalizePath(value) {
   return value.replace(/\\/g, '/');
+}
+
+function listFiles(directory) {
+  const files = [];
+
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolutePath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...listFiles(absolutePath));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(absolutePath);
+    }
+  }
+
+  return files;
+}
+
+function isTextTemplateFile(relativePath) {
+  const basename = path.basename(relativePath);
+  const extension = path.extname(relativePath);
+
+  return (
+    [
+      '.bat',
+      '.cjs',
+      '.env',
+      '.gradle',
+      '.json',
+      '.kt',
+      '.pbxproj',
+      '.plist',
+      '.properties',
+      '.storyboard',
+      '.swift',
+      '.xcprivacy',
+      '.xcscheme',
+      '.xml'
+    ].includes(extension) || ['Podfile', 'gradlew'].includes(basename)
+  );
 }

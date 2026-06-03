@@ -11,6 +11,8 @@ export type MFTextProps = PropsWithChildren<Omit<TextProps, 'style'> & {
   style?: StyleProp<TextStyle>;
 }>;
 
+export type MFHeadingLevel = 'display' | 'title' | 'section';
+
 export function MFText({ children, muted = false, style, theme = defaultTheme, ...props }: MFTextProps) {
   return (
     <Text
@@ -29,9 +31,16 @@ export function MFText({ children, muted = false, style, theme = defaultTheme, .
   );
 }
 
-export function MFHeading({ children, style, ...props }: MFTextProps) {
+export function MFHeading({ children, level = 'display', style, ...props }: MFTextProps & { level?: MFHeadingLevel }) {
+  const headingStyle =
+    level === 'section'
+      ? { fontSize: 18, fontWeight: '800' as const, lineHeight: 24 }
+      : level === 'title'
+        ? { fontSize: 24, fontWeight: '800' as const, lineHeight: 32 }
+        : { fontSize: 30, fontWeight: '800' as const, lineHeight: 38 };
+
   return (
-    <MFText {...props} style={[{ fontSize: 30, fontWeight: '800', lineHeight: 38 }, style]}>
+    <MFText {...props} style={[headingStyle, style]}>
       {children}
     </MFText>
   );

@@ -18,6 +18,7 @@ try {
   assertInvalidArgumentsFail();
   runGenerator('create-app.mjs', ['smoke-app', '--preset', 'operations']);
   runGenerator('create-module.mjs', ['smoke-module']);
+  runGenerator('create-preset.mjs', ['smoke-dashboard']);
   runGenerator('create-screen.mjs', ['module-sdk', 'SmokeList', '--type', 'list']);
   runGenerator('create-native-component.mjs', ['SmokePanel']);
   runGenerator('create-native-module.mjs', ['SmokeBridge']);
@@ -30,9 +31,22 @@ try {
     'apps/smoke-app/tsconfig.json',
     'apps/smoke-app/src/index.ts',
     'apps/smoke-app/src/App.tsx',
+    'apps/smoke-app/src/modules/index.ts',
+    'apps/smoke-app/src/navigation/index.tsx',
+    'apps/smoke-app/src/screens/index.ts',
+    'apps/smoke-app/src/screens/HomeScreen.tsx',
+    'apps/smoke-app/src/store/index.ts',
+    'apps/smoke-app/src/theme/index.ts',
+    'apps/smoke-app/android/settings.gradle',
+    'apps/smoke-app/android/app/build.gradle',
+    'apps/smoke-app/android/app/src/main/java/com/misk/smokeapp/MainActivity.kt',
+    'apps/smoke-app/ios/SmokeApp/AppDelegate.swift',
+    'apps/smoke-app/ios/SmokeApp.xcodeproj/project.pbxproj',
     'packages/smoke-module/package.json',
     'packages/smoke-module/tsconfig.json',
     'packages/smoke-module/src/index.ts',
+    'packages/presets/src/generated/index.ts',
+    'packages/presets/src/generated/smokeDashboard.ts',
     'packages/module-sdk/src/screens/SmokeListScreen.tsx',
     'packages/module-sdk/src/screens/index.ts',
     'packages/ui-native/src/native-components/NativeSmokePanel.tsx',
@@ -47,6 +61,8 @@ try {
 
   assertJson('apps/smoke-app/package.json', (manifest) => {
     assert(manifest.main === 'index.js', 'app generator package main must point to React Native entry');
+    assert(manifest.dependencies?.['@mobile-frame/module-sdk'] === 'workspace:*', 'app generator missing module-sdk dependency');
+    assert(manifest.dependencies?.['@mobile-frame/screen-templates'] === 'workspace:*', 'app generator missing screen-templates dependency');
   });
 
   assertJson('apps/smoke-app/app.json', (metadata) => {
@@ -54,8 +70,14 @@ try {
     assert(metadata.displayName === 'Smoke App', 'app generator app.json missing display name');
   });
 
+  assertJson('apps/smoke-app/tsconfig.json', (config) => {
+    const references = config.references?.map((reference) => reference.path) ?? [];
+    assert(references.includes('../../packages/module-sdk'), 'app generator missing module-sdk tsconfig reference');
+    assert(references.includes('../../packages/screen-templates'), 'app generator missing screen-templates tsconfig reference');
+  });
+
   assertJson('packages/module-sdk/package.json', (manifest) => {
-    assert(manifest.dependencies?.['@mobile-frame/ui-native'] === 'workspace:*', 'screen generator missing ui-native dependency');
+    assert(manifest.dependencies?.['@mobile-frame/screen-templates'] === 'workspace:*', 'screen generator missing screen-templates dependency');
     assert(manifest.dependencies?.react === '19.2.7', 'screen generator missing react dependency');
     assert(manifest.dependencies?.['react-native'] === '0.85.3', 'screen generator missing react-native dependency');
   });
@@ -63,7 +85,7 @@ try {
   assertJson('packages/module-sdk/tsconfig.json', (config) => {
     const references = config.references?.map((reference) => reference.path) ?? [];
     assert(config.compilerOptions?.jsx === 'react-jsx', 'screen generator missing jsx compiler option');
-    assert(references.includes('../ui-native'), 'screen generator missing ui-native tsconfig reference');
+    assert(references.includes('../screen-templates'), 'screen generator missing screen-templates tsconfig reference');
   });
 
   assertTextIncludes('packages/ui-native/src/index.ts', [
@@ -75,7 +97,41 @@ try {
     "import { name as appName } from './app.json';",
     'AppRegistry.registerComponent(appName, () => App);'
   ]);
+  assertTextIncludes('apps/smoke-app/src/App.tsx', [
+    "import { appModules } from './modules';",
+    "import { AppNavigator } from './navigation';",
+    'modules: appModules,',
+    '<AppNavigator />'
+  ]);
+  assertTextIncludes('apps/smoke-app/src/screens/HomeScreen.tsx', [
+    "import { DashboardScreen, ListScreen, SettingsScreen } from '@mobile-frame/screen-templates';",
+    "import { appHomeState, appPreset, appTabs } from '../store';"
+  ]);
+  assertTextIncludes('apps/smoke-app/src/store/index.ts', [
+    "export const appPreset = getPreset('operations');",
+    'featureRows: appPreset.features.map((feature) => ({'
+  ]);
+  assertTextIncludes('apps/smoke-app/src/modules/index.ts', [
+    "import { defineModule } from '@mobile-frame/module-sdk';",
+    'export const appModules = appPreset.modules.map((moduleName, index) => {'
+  ]);
+  assertTextIncludes('apps/smoke-app/android/settings.gradle', ["rootProject.name = 'SmokeApp'"]);
+  assertTextIncludes('apps/smoke-app/android/app/build.gradle', ['namespace "com.misk.smokeapp"', 'applicationId "com.misk.smokeapp"']);
+  assertTextIncludes('apps/smoke-app/android/app/src/main/java/com/misk/smokeapp/MainActivity.kt', [
+    'package com.misk.smokeapp',
+    'getMainComponentName(): String = "SmokeApp"'
+  ]);
+  assertTextIncludes('apps/smoke-app/ios/SmokeApp/AppDelegate.swift', ['withModuleName: "SmokeApp"']);
+  assertTextIncludes('apps/smoke-app/ios/SmokeApp/Info.plist', ['<string>Smoke App</string>']);
   assertTextIncludes('packages/module-sdk/src/index.ts', ["export * from './screens';"]);
+  assertTextIncludes('packages/presets/src/index.ts', ["export * from './generated';"]);
+  assertTextIncludes('packages/presets/src/generated/index.ts', ["export * from './smokeDashboard';"]);
+  assertTextIncludes('packages/presets/src/generated/smokeDashboard.ts', [
+    "import type { MFPresetDefinition } from '../index';",
+    "export const smokeDashboardPreset = {",
+    "name: 'smoke-dashboard'",
+    "} satisfies MFPresetDefinition<'smoke-dashboard'>;"
+  ]);
 
   runWorkspaceCheck();
   runTypeScriptBuild();
@@ -97,13 +153,17 @@ function prepareSmokeWorkspace() {
       { path: './packages/ui-core' },
       { path: './packages/ui-native' },
       { path: './packages/app-shell' },
-      { path: './packages/presets' }
+      { path: './packages/presets' },
+      { path: './packages/screen-templates' }
     ]
   });
 
-  for (const packageName of ['design-tokens', 'core', 'module-sdk', 'ui-core', 'ui-native', 'app-shell', 'presets']) {
+  for (const packageName of ['design-tokens', 'core', 'module-sdk', 'ui-core', 'ui-native', 'app-shell', 'presets', 'screen-templates']) {
     copyWorkspacePackage(packageName);
   }
+
+  copyDirectory('apps/showcase/android');
+  copyDirectory('apps/showcase/ios');
 }
 
 function copyFile(relativePath) {
@@ -215,6 +275,7 @@ function assertMissingFiles(relativePaths) {
 function assertDryRunCreatesNoFiles() {
   runGenerator('create-app.mjs', ['dry-run-app', '--preset', 'minimal', '--dry-run']);
   runGenerator('create-module.mjs', ['dry-run-module', '--dry-run']);
+  runGenerator('create-preset.mjs', ['dry-run-preset', '--dry-run']);
   runGenerator('create-screen.mjs', ['module-sdk', 'DryRunList', '--type', 'list', '--dry-run']);
   runGenerator('create-native-component.mjs', ['DryRunPanel', '--dry-run']);
   runGenerator('create-native-module.mjs', ['DryRunBridge', '--dry-run']);
@@ -222,6 +283,7 @@ function assertDryRunCreatesNoFiles() {
   assertMissingFiles([
     'apps/dry-run-app',
     'packages/dry-run-module',
+    'packages/presets/src/generated/dryRunPreset.ts',
     'packages/module-sdk/src/screens/DryRunListScreen.tsx',
     'packages/module-sdk/src/screens/index.ts',
     'packages/ui-native/src/native-components/NativeDryRunPanel.tsx',
@@ -240,7 +302,7 @@ function assertDryRunCreatesNoFiles() {
   });
 
   assertJson('packages/module-sdk/package.json', (manifest) => {
-    assert(!manifest.dependencies?.['@mobile-frame/ui-native'], 'dry-run screen updated module-sdk dependencies');
+    assert(!manifest.dependencies?.['@mobile-frame/screen-templates'], 'dry-run screen updated module-sdk dependencies');
     assert(!manifest.dependencies?.react, 'dry-run screen updated module-sdk react dependency');
     assert(!manifest.dependencies?.['react-native'], 'dry-run screen updated module-sdk react-native dependency');
   });
@@ -248,10 +310,11 @@ function assertDryRunCreatesNoFiles() {
   assertJson('packages/module-sdk/tsconfig.json', (config) => {
     const references = config.references?.map((reference) => reference.path) ?? [];
     assert(config.compilerOptions?.jsx !== 'react-jsx', 'dry-run screen updated module-sdk jsx compiler option');
-    assert(!references.includes('../ui-native'), 'dry-run screen updated module-sdk tsconfig reference');
+    assert(!references.includes('../screen-templates'), 'dry-run screen updated module-sdk tsconfig reference');
   });
 
   assertTextExcludes('packages/module-sdk/src/index.ts', ["export * from './screens';"]);
+  assertTextExcludes('packages/presets/src/index.ts', ["export * from './generated';"]);
 
   assertTextExcludes('packages/ui-native/src/index.ts', [
     "export * from './native-components/NativeDryRunPanel';",
@@ -268,6 +331,7 @@ function assertInvalidArgumentsFail() {
 function assertDuplicateGenerationFails() {
   runGeneratorExpectFailure('create-app.mjs', ['smoke-app'], 'Refusing to overwrite existing file(s): apps/smoke-app/package.json');
   runGeneratorExpectFailure('create-module.mjs', ['smoke-module'], 'Refusing to overwrite existing file(s): packages/smoke-module/package.json');
+  runGeneratorExpectFailure('create-preset.mjs', ['smoke-dashboard'], 'Refusing to overwrite existing file(s): packages/presets/src/generated/smokeDashboard.ts');
   runGeneratorExpectFailure('create-screen.mjs', ['module-sdk', 'SmokeList'], 'Refusing to overwrite existing file(s): packages/module-sdk/src/screens/SmokeListScreen.tsx');
   runGeneratorExpectFailure('create-native-component.mjs', ['SmokePanel'], 'Refusing to overwrite existing file(s): packages/ui-native/src/native-components/NativeSmokePanel.tsx');
   runGeneratorExpectFailure('create-native-module.mjs', ['SmokeBridge'], 'Refusing to overwrite existing file(s): packages/ui-native/src/native-modules/SmokeBridgeModule.ts');

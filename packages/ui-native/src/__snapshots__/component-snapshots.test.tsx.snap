@@ -1,0 +1,1352 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ui-native component snapshots > matches the core feedback component snapshot 1`] = `
+<View
+  style={
+    [
+      {
+        "gap": 12,
+      },
+      undefined,
+    ]
+  }
+>
+  <Pressable
+    accessibilityRole="button"
+    disabled={false}
+    style={[Function]}
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          },
+          {
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#15181D",
+              "fontSize": 15,
+              "lineHeight": 21,
+            },
+            {
+              "color": "#FFFFFF",
+              "fontSize": 16,
+              "fontWeight": "800",
+            },
+          ]
+        }
+      >
+        Primary action
+      </Text>
+    </View>
+  </Pressable>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#DDE1E6",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "padding": 16,
+        },
+        {
+          "elevation": 2,
+          "shadowColor": "rgba(71,112,166,0.16)",
+          "shadowOffset": {
+            "height": 4,
+            "width": 0,
+          },
+          "shadowOpacity": 0.08,
+          "shadowRadius": 10,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#EAF3FF",
+            "borderColor": "#DDE1E6",
+            "borderRadius": 20,
+            "borderWidth": 0,
+            "padding": 16,
+          },
+          null,
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 12,
+            },
+            {
+              "alignItems": "flex-start",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#1677FF",
+              "borderRadius": 5,
+              "height": 10,
+              "marginTop": 7,
+              "width": 10,
+            }
+          }
+        />
+        <View
+          style={
+            [
+              {
+                "gap": 4,
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#15181D",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#1677FF",
+                  "fontWeight": "900",
+                },
+              ]
+            }
+          >
+            Feedback
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "color": "#7A828E",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                {
+                  "fontSize": 13,
+                  "lineHeight": 18,
+                },
+              ]
+            }
+          >
+            Snapshot coverage for feedback components.
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexBasis": "46%",
+          "flexGrow": 1,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DDE1E6",
+              "borderRadius": 20,
+              "borderWidth": 1,
+              "padding": 16,
+            },
+            {
+              "elevation": 2,
+              "shadowColor": "rgba(71,112,166,0.16)",
+              "shadowOffset": {
+                "height": 4,
+                "width": 0,
+              },
+              "shadowOpacity": 0.08,
+              "shadowRadius": 10,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "gap": 8,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 6,
+                },
+                {
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#EAF3FF",
+                  "borderRadius": 999,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 5,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#22A06B",
+                  "borderRadius": 4,
+                  "height": 8,
+                  "width": 8,
+                }
+              }
+            />
+            <Text
+              style={
+                [
+                  {
+                    "color": "#15181D",
+                    "fontSize": 15,
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#22A06B",
+                    "fontSize": 12,
+                    "fontWeight": "900",
+                    "lineHeight": 16,
+                  },
+                ]
+              }
+            >
+              Ready
+            </Text>
+          </View>
+          <Text
+            style={
+              [
+                {
+                  "color": "#15181D",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#22A06B",
+                  "fontSize": 28,
+                  "fontWeight": "900",
+                  "lineHeight": 36,
+                },
+              ]
+            }
+          >
+            4
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexBasis": "46%",
+          "flexGrow": 1,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DDE1E6",
+              "borderRadius": 20,
+              "borderWidth": 1,
+              "padding": 16,
+            },
+            {
+              "elevation": 2,
+              "shadowColor": "rgba(71,112,166,0.16)",
+              "shadowOffset": {
+                "height": 4,
+                "width": 0,
+              },
+              "shadowOpacity": 0.08,
+              "shadowRadius": 10,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "gap": 8,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 6,
+                },
+                {
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#EAF3FF",
+                  "borderRadius": 999,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 5,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#D97B00",
+                  "borderRadius": 4,
+                  "height": 8,
+                  "width": 8,
+                }
+              }
+            />
+            <Text
+              style={
+                [
+                  {
+                    "color": "#15181D",
+                    "fontSize": 15,
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#D97B00",
+                    "fontSize": 12,
+                    "fontWeight": "900",
+                    "lineHeight": 16,
+                  },
+                ]
+              }
+            >
+              Queued
+            </Text>
+          </View>
+          <Text
+            style={
+              [
+                {
+                  "color": "#15181D",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#D97B00",
+                  "fontSize": 28,
+                  "fontWeight": "900",
+                  "lineHeight": 36,
+                },
+              ]
+            }
+          >
+            2
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`ui-native component snapshots > matches the navigation and overlay component snapshot 1`] = `
+[
+  <View
+    style={
+      [
+        {
+          "gap": 10,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          },
+          {
+            "alignItems": "flex-start",
+            "justifyContent": "space-between",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "gap": 6,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignSelf": "flex-start",
+              "backgroundColor": "rgba(106,166,255,0.14)",
+              "borderRadius": 999,
+              "paddingHorizontal": 10,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#F5F8FF",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#6AA6FF",
+                  "fontSize": 12,
+                  "fontWeight": "800",
+                  "lineHeight": 16,
+                },
+              ]
+            }
+          >
+            Library
+          </Text>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "color": "#F5F8FF",
+                "fontSize": 15,
+                "lineHeight": 21,
+              },
+              [
+                {
+                  "fontSize": 30,
+                  "fontWeight": "800",
+                  "lineHeight": 38,
+                },
+                undefined,
+              ],
+            ]
+          }
+        >
+          Components
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "color": "#9DB0C8",
+                "fontSize": 15,
+                "lineHeight": 21,
+              },
+              [
+                {
+                  "fontSize": 12,
+                  "lineHeight": 16,
+                },
+                undefined,
+              ],
+            ]
+          }
+        >
+          Snapshot state
+        </Text>
+      </View>
+    </View>
+  </View>,
+  <View
+    pointerEvents="none"
+    style={
+      {
+        "alignSelf": "center",
+        "backgroundColor": "rgba(19,33,53,0.94)",
+        "borderRadius": 16,
+        "bottom": 100,
+        "maxWidth": "86%",
+        "paddingHorizontal": 16,
+        "paddingVertical": 12,
+        "position": "absolute",
+        "zIndex": 30,
+      }
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#15181D",
+            "fontSize": 15,
+            "lineHeight": 21,
+          },
+          {
+            "color": "#FFFFFF",
+            "fontSize": 13,
+            "fontWeight": "800",
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      Toast preview
+    </Text>
+  </View>,
+  <Modal
+    animationType="slide"
+    onRequestClose={[Function]}
+    transparent={true}
+    visible={true}
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+          "justifyContent": "flex-end",
+        }
+      }
+    >
+      <Pressable
+        onPress={[Function]}
+        style={
+          {
+            "backgroundColor": "rgba(0,0,0,0.2)",
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "backgroundColor": "#172033",
+            "borderTopLeftRadius": 28,
+            "borderTopRightRadius": 28,
+            "padding": 24,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "gap": 12,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                },
+                {
+                  "justifyContent": "space-between",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#F5F8FF",
+                    "fontSize": 15,
+                    "lineHeight": 21,
+                  },
+                  {
+                    "fontSize": 18,
+                    "fontWeight": "900",
+                  },
+                ]
+              }
+            >
+              Sheet
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#F5F8FF",
+                      "fontSize": 15,
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#6AA6FF",
+                      "fontWeight": "900",
+                    },
+                  ]
+                }
+              >
+                Close
+              </Text>
+            </Pressable>
+          </View>
+          <Text
+            style={
+              [
+                {
+                  "color": "#9DB0C8",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                undefined,
+              ]
+            }
+          >
+            Sheet body
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={false}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  },
+                  {
+                    "justifyContent": "center",
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#F5F8FF",
+                      "fontSize": 15,
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#08111F",
+                      "fontSize": 16,
+                      "fontWeight": "800",
+                    },
+                  ]
+                }
+              >
+                Done
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  </Modal>,
+  <Modal
+    animationType="fade"
+    onRequestClose={[Function]}
+    transparent={true}
+    visible={true}
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "rgba(0,0,0,0.28)",
+          "flex": 1,
+          "justifyContent": "center",
+          "padding": 24,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "backgroundColor": "#172033",
+            "borderColor": "rgba(180,205,240,0.16)",
+            "borderRadius": 28,
+            "borderWidth": 1,
+            "padding": 24,
+            "width": "100%",
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "gap": 16,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                },
+                {
+                  "alignItems": "flex-start",
+                  "justifyContent": "space-between",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#F5F8FF",
+                    "fontSize": 15,
+                    "lineHeight": 21,
+                  },
+                  {
+                    "flex": 1,
+                    "fontSize": 20,
+                    "fontWeight": "900",
+                    "lineHeight": 26,
+                  },
+                ]
+              }
+            >
+              Dialog
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={false}
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#F5F8FF",
+                      "fontSize": 15,
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#6AA6FF",
+                      "fontWeight": "800",
+                    },
+                  ]
+                }
+              >
+                Close
+              </Text>
+            </Pressable>
+          </View>
+          <Text
+            style={
+              [
+                {
+                  "color": "#9DB0C8",
+                  "fontSize": 15,
+                  "lineHeight": 21,
+                },
+                undefined,
+              ]
+            }
+          >
+            Dialog body
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "gap": 10,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Pressable
+              accessibilityRole="button"
+              disabled={false}
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    },
+                    {
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#F5F8FF",
+                        "fontSize": 15,
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#F5F8FF",
+                        "fontSize": 16,
+                        "fontWeight": "800",
+                      },
+                    ]
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={false}
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    },
+                    {
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#F5F8FF",
+                        "fontSize": 15,
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#08111F",
+                        "fontSize": 16,
+                        "fontWeight": "800",
+                      },
+                    ]
+                  }
+                >
+                  Confirm
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </View>
+  </Modal>,
+  <Modal
+    animationType="slide"
+    onRequestClose={[Function]}
+    transparent={true}
+    visible={true}
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+          "justifyContent": "flex-end",
+        }
+      }
+    >
+      <Pressable
+        onPress={[Function]}
+        style={
+          {
+            "backgroundColor": "rgba(0,0,0,0.2)",
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "backgroundColor": "#172033",
+            "borderTopLeftRadius": 28,
+            "borderTopRightRadius": 28,
+            "maxHeight": "82%",
+            "padding": 24,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "gap": 16,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                },
+                {
+                  "alignItems": "flex-start",
+                  "justifyContent": "space-between",
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "gap": 4,
+                  },
+                  {
+                    "flex": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#F5F8FF",
+                      "fontSize": 15,
+                      "lineHeight": 21,
+                    },
+                    {
+                      "fontSize": 18,
+                      "fontWeight": "900",
+                      "lineHeight": 24,
+                    },
+                  ]
+                }
+              >
+                Filters
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              disabled={false}
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#F5F8FF",
+                      "fontSize": 15,
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#6AA6FF",
+                      "fontWeight": "800",
+                    },
+                  ]
+                }
+              >
+                Close
+              </Text>
+            </Pressable>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "gap": 8,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Pressable
+              accessibilityRole="button"
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    },
+                    {
+                      "justifyContent": "space-between",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#F5F8FF",
+                        "fontSize": 15,
+                        "lineHeight": 21,
+                      },
+                      {
+                        "flex": 1,
+                        "fontWeight": "800",
+                      },
+                    ]
+                  }
+                >
+                  Feedback
+                </Text>
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 6,
+                        },
+                        {
+                          "alignSelf": "flex-start",
+                          "backgroundColor": "#21304A",
+                          "borderRadius": 999,
+                          "paddingHorizontal": 10,
+                          "paddingVertical": 5,
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#9DB0C8",
+                          "borderRadius": 4,
+                          "height": 8,
+                          "width": 8,
+                        }
+                      }
+                    />
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#F5F8FF",
+                            "fontSize": 15,
+                            "lineHeight": 21,
+                          },
+                          {
+                            "color": "#9DB0C8",
+                            "fontSize": 12,
+                            "fontWeight": "900",
+                            "lineHeight": 16,
+                          },
+                        ]
+                      }
+                    >
+                      3
+                    </Text>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 6,
+                        },
+                        {
+                          "alignSelf": "flex-start",
+                          "backgroundColor": "rgba(106,166,255,0.14)",
+                          "borderRadius": 999,
+                          "paddingHorizontal": 10,
+                          "paddingVertical": 5,
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#6AA6FF",
+                          "borderRadius": 4,
+                          "height": 8,
+                          "width": 8,
+                        }
+                      }
+                    />
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#F5F8FF",
+                            "fontSize": 15,
+                            "lineHeight": 21,
+                          },
+                          {
+                            "color": "#6AA6FF",
+                            "fontSize": 12,
+                            "fontWeight": "900",
+                            "lineHeight": 16,
+                          },
+                        ]
+                      }
+                    >
+                      Selected
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    },
+                    {
+                      "justifyContent": "space-between",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#F5F8FF",
+                        "fontSize": 15,
+                        "lineHeight": 21,
+                      },
+                      {
+                        "flex": 1,
+                        "fontWeight": "800",
+                      },
+                    ]
+                  }
+                >
+                  Navigation
+                </Text>
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </Pressable>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 10,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <Pressable
+                accessibilityRole="button"
+                disabled={false}
+                style={[Function]}
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      },
+                      {
+                        "justifyContent": "center",
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#F5F8FF",
+                          "fontSize": 15,
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#F5F8FF",
+                          "fontSize": 16,
+                          "fontWeight": "800",
+                        },
+                      ]
+                    }
+                  >
+                    Reset
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <Pressable
+                accessibilityRole="button"
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      },
+                      {
+                        "justifyContent": "center",
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#F5F8FF",
+                          "fontSize": 15,
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#08111F",
+                          "fontSize": 16,
+                          "fontWeight": "800",
+                        },
+                      ]
+                    }
+                  >
+                    Apply
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </Modal>,
+]
+`;

@@ -59,10 +59,10 @@ ADB runtime preflight is available for install/launch closure:
 
 ```powershell
 corepack pnpm mf:android-runtime-preflight:strict
-corepack pnpm mf:android-runtime-preflight -- --install --launch
+corepack pnpm mf:android-runtime-run
 ```
 
-The runtime preflight checks debug APK existence, Gradle APK metadata, launcher manifest evidence, adb availability, and at least one online adb device before performing install or launch actions.
+The runtime preflight checks debug APK existence, Gradle APK metadata, launcher manifest evidence, adb availability, and at least one online adb device before performing install or launch actions. The GitHub Actions workflow also contains a `showcase-android-runtime` job that downloads the debug APK artifact, starts an Android emulator, runs `mf:android-runtime-run`, and uploads runtime evidence.
 
 The full validation chain has passed:
 
@@ -138,10 +138,15 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 1. `mf:workspace-check`
 2. `mf:native-readiness`
 3. `mf:native-build-preflight`
-4. `typecheck`
-5. `lint`
-6. `test`
-7. `mf:generator-smoke`
+4. `mf:android-runtime-preflight`
+5. `mf:runtime-evidence`
+6. `mf:source-control-preflight`
+7. `mf:docs-site:check`
+8. `mf:ci-workflow-check`
+9. `typecheck`
+10. `lint`
+11. `test`
+12. `mf:generator-smoke`
 
 `mf:native-build-preflight` is intentionally non-strict by default so that a Windows workstation can still validate source health while reporting iOS and local toolchain gaps.
 
@@ -155,11 +160,12 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 - Generator smoke tests cover positive generation, dry-run behavior, duplicate protection, generated TypeScript builds, and invalid argument failures.
 - Real React Native bare iOS/Android folders exist under `apps/showcase`.
 - Android debug APK assembly has been proven locally.
+- Android runtime install/launch evidence is scripted locally and configured in GitHub Actions through the `showcase-android-runtime` emulator job.
 
 ## Open Risks And Gaps
 
 - iOS native build is not proven on this Windows host. It needs macOS, Xcode, and CocoaPods.
-- Android real-device or emulator launch has not been proven yet; current evidence stops at APK assembly.
+- Android real-device or emulator launch is not closed until a local device run or remote GitHub Actions run produces runtime evidence.
 - The global `JAVA_HOME` mismatch can confuse future Android commands if the temporary JDK 17 environment is not applied.
 - Generated build outputs and Gradle caches should not be committed.
 - Some older Chinese planning documents in the repository appear to have encoding issues; prefer these newer UTF-8 docs for handoff and product context.
@@ -167,7 +173,6 @@ The validation chain is defined in `scripts/mf-validate.mjs` and currently runs:
 ## Recommended Next Steps
 
 1. On macOS, run iOS preflight and a real iOS simulator build.
-2. On Windows, install or connect an Android emulator/device and run the assembled debug APK.
+2. On Windows, install or connect an Android emulator/device and run the assembled debug APK, or use a remote GitHub Actions run to prove the emulator runtime job.
 3. Decide whether to update the persistent user `JAVA_HOME` to JDK 17.
-4. Add a small native runtime smoke check once device or emulator access is available.
-5. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.
+4. Continue replacing mock native capability adapters with real platform implementations behind the same TypeScript contracts.

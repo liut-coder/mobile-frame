@@ -15,9 +15,24 @@ import {
   writeFiles
 } from './mf-generator-utils.mjs';
 
-const allowedTypes = new Set(['list', 'detail', 'editor', 'dashboard', 'fullscreen', 'settings']);
+const screenTemplates = {
+  blank: 'BlankScreen',
+  dashboard: 'DashboardScreen',
+  detail: 'DetailScreen',
+  editor: 'DetailScreen',
+  empty: 'EmptyStateScreen',
+  error: 'ErrorStateScreen',
+  fullscreen: 'BlankScreen',
+  'installed-apps': 'InstalledAppsScreen',
+  list: 'ListScreen',
+  loading: 'LoadingScreen',
+  permission: 'PermissionScreen',
+  settings: 'SettingsScreen'
+};
 
-const usage = `Usage: pnpm mf:create-screen <module-name> <screen-name> [--type list|detail|editor|dashboard|fullscreen|settings] [--dry-run]
+const allowedTypes = new Set(Object.keys(screenTemplates));
+
+const usage = `Usage: pnpm mf:create-screen <module-name> <screen-name> [--type blank|dashboard|list|detail|settings|permission|installed-apps|empty|error|loading] [--dry-run]
 
 Creates a screen under packages/<module-name>/src/screens. Run mf:create-module first when the module package does not exist.`;
 
@@ -46,13 +61,14 @@ runCli(() => {
 
   const screenName = toPascalCase(screenInput);
   const componentName = `${screenName}Screen`;
+  const templateName = screenTemplates[screenType];
   const title = titleFromName(screenInput);
 
   writeFiles(
     [
       createFile(
         `packages/${moduleName}/src/screens/${componentName}.tsx`,
-        `import { MFCard, MFHeading, MFListItem, MFScrollPage, MFStack, MFText } from '@mobile-frame/ui-native';
+        `import { ${templateName} } from '@mobile-frame/screen-templates';
 
 export type ${componentName}Props = {
   title?: string;
@@ -60,17 +76,11 @@ export type ${componentName}Props = {
 
 export function ${componentName}({ title = '${title}' }: ${componentName}Props) {
   return (
-    <MFScrollPage>
-      <MFStack gap={18}>
-        <MFHeading>{title}</MFHeading>
-        <MFText muted>${screenType} screen scaffold generated for ${moduleName}.</MFText>
-        <MFCard padded={false}>
-          {['Overview', 'Activity', 'Settings'].map((item) => (
-            <MFListItem key={item} meta="${screenType} item" title={item} />
-          ))}
-        </MFCard>
-      </MFStack>
-    </MFScrollPage>
+    <${templateName}
+      eyebrow="Generated"
+      subtitle="${screenType} screen scaffold generated for ${moduleName}."
+      title={title}
+    />
   );
 }
 
@@ -85,13 +95,13 @@ export default ${componentName};`
   addPackageDependencies(
     `packages/${moduleName}/package.json`,
     {
-      '@mobile-frame/ui-native': 'workspace:*',
+      '@mobile-frame/screen-templates': 'workspace:*',
       react: '19.2.7',
       'react-native': '0.85.3'
     },
     { dryRun }
   );
-  addTsconfigReference(`packages/${moduleName}/tsconfig.json`, '../ui-native', { dryRun });
+  addTsconfigReference(`packages/${moduleName}/tsconfig.json`, '../screen-templates', { dryRun });
   updateJson(
     `packages/${moduleName}/tsconfig.json`,
     (config) => {

@@ -3,6 +3,17 @@ import { Pressable, View } from 'react-native';
 
 import { MFAppProvider, useMFAppShellStore, type MFThemePreference } from '@mobile-frame/app-shell';
 import { defineModule } from '@mobile-frame/module-sdk';
+import {
+  DashboardScreen as DashboardTemplateScreen,
+  DetailScreen as DetailTemplateScreen,
+  EmptyStateScreen as EmptyStateTemplateScreen,
+  ErrorStateScreen as ErrorStateTemplateScreen,
+  InstalledAppsScreen as InstalledAppsTemplateScreen,
+  ListScreen as ListTemplateScreen,
+  LoadingScreen as LoadingTemplateScreen,
+  PermissionScreen as PermissionTemplateScreen,
+  SettingsScreen as SettingsTemplateScreen
+} from '@mobile-frame/screen-templates';
 import { type MFTheme } from '@mobile-frame/ui-core';
 import {
   MFBadge,
@@ -12,7 +23,9 @@ import {
   MFCaption,
   MFCheckbox,
   MFDivider,
+  MFDialog,
   MFEmptyState,
+  MFFilterSheet,
   MFFormField,
   MFGlassPanel,
   MFHeading,
@@ -82,6 +95,46 @@ const themeOptions: Array<{ label: string; value: ThemeChoice }> = [
   { label: 'System', value: 'system' }
 ];
 
+const templateCatalogRows = [
+  { component: DashboardTemplateScreen, name: 'DashboardScreen' },
+  { component: ListTemplateScreen, name: 'ListScreen' },
+  { component: DetailTemplateScreen, name: 'DetailScreen' },
+  { component: SettingsTemplateScreen, name: 'SettingsScreen' },
+  { component: PermissionTemplateScreen, name: 'PermissionScreen' },
+  { component: InstalledAppsTemplateScreen, name: 'InstalledAppsScreen' },
+  { component: EmptyStateTemplateScreen, name: 'EmptyStateScreen' },
+  { component: ErrorStateTemplateScreen, name: 'ErrorStateScreen' },
+  { component: LoadingTemplateScreen, name: 'LoadingScreen' }
+] as const;
+
+const componentCatalogRows = [
+  'MFScreen',
+  'MFHeader',
+  'MFCard',
+  'MFSectionCard',
+  'MFButton',
+  'MFIconButton',
+  'MFTextButton',
+  'MFStatusPill',
+  'MFInfoRow',
+  'MFInfoGrid',
+  'MFListItem',
+  'MFSwitch',
+  'MFSegmentedControl',
+  'MFTabBar',
+  'MFEmptyState',
+  'MFErrorState',
+  'MFLoadingState',
+  'MFDialog',
+  'MFSheet',
+  'MFToast',
+  'MFBanner',
+  'MFSearchBar',
+  'MFFilterSheet'
+] as const;
+
+type ComponentFilter = 'feedback' | 'forms' | 'navigation' | 'status';
+
 const showcaseConfig = {
   appId: 'com.misk.mobileframe.showcase',
   displayName: 'MobileFrame Showcase',
@@ -109,6 +162,9 @@ const onboardingPages = [
 export function App() {
   const [screen, setScreen] = useState<ScreenKey>('splash');
   const [tab, setTab] = useState<MainTab>('home');
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [componentFilters, setComponentFilters] = useState<ComponentFilter[]>(['feedback', 'status']);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [registerAgreed, setRegisterAgreed] = useState(false);
   const [registerCodeSent, setRegisterCodeSent] = useState(false);
@@ -155,8 +211,12 @@ export function App() {
 
   const appActions = {
     closeSheet,
+    closeComponentDialog: () => setDialogVisible(false),
+    closeComponentFilter: () => setFilterSheetVisible(false),
     goMain,
     openSheet,
+    openComponentDialog: () => setDialogVisible(true),
+    openComponentFilter: () => setFilterSheetVisible(true),
     setOnboardingStep,
     setRegisterAgreed,
     setRegisterCodeSent,
@@ -164,6 +224,8 @@ export function App() {
     setSwitches,
     setTab,
     setThemeChoice: setShellThemeMode,
+    toggleComponentFilter: (value: ComponentFilter) =>
+      setComponentFilters((current) => (current.includes(value) ? current.filter((item) => item !== value) : [...current, value])),
     showToast
   };
 
@@ -182,13 +244,54 @@ export function App() {
         {screen === 'about' ? <AboutScreen actions={appActions} theme={theme} /> : null}
         <MFToastHost toast={toast} theme={theme} />
         <MFSheetHost onClose={closeSheet} sheet={sheet} theme={theme} />
+        <MFDialog
+          actions={[
+            { label: 'Cancel', onPress: () => setDialogVisible(false), variant: 'outline' },
+            {
+              label: 'Confirm',
+              onPress: () => {
+                setDialogVisible(false);
+                showToast('Dialog action confirmed');
+              }
+            }
+          ]}
+          body="MFDialog provides a centered confirmation surface for destructive, blocking, or high-friction decisions."
+          onClose={() => setDialogVisible(false)}
+          theme={theme}
+          title="Dialog preview"
+          visible={dialogVisible}
+        />
+        <MFFilterSheet<ComponentFilter>
+          onApply={() => {
+            setFilterSheetVisible(false);
+            showToast('Filters applied');
+          }}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={() => setComponentFilters([])}
+          onToggle={appActions.toggleComponentFilter}
+          options={[
+            { count: 8, label: 'Feedback', value: 'feedback' },
+            { count: 6, label: 'Forms', value: 'forms' },
+            { count: 4, label: 'Navigation', value: 'navigation' },
+            { count: 5, label: 'Status', value: 'status' }
+          ]}
+          selectedValues={componentFilters}
+          subtitle="MFFilterSheet keeps filtering controls in a reusable bottom-sheet surface."
+          theme={theme}
+          title="Filter components"
+          visible={filterSheetVisible}
+        />
       </View>
     </MFAppProvider>
   );
 }
 
 type AppActions = {
+  closeComponentDialog: () => void;
+  closeComponentFilter: () => void;
   goMain: (nextTab?: MainTab) => void;
+  openComponentDialog: () => void;
+  openComponentFilter: () => void;
   openSheet: (title: string, body: string) => void;
   setOnboardingStep: (step: number) => void;
   setRegisterAgreed: (value: boolean) => void;
@@ -205,6 +308,7 @@ type AppActions = {
   >;
   setTab: (tab: MainTab) => void;
   setThemeChoice: (choice: ThemeChoice) => void;
+  toggleComponentFilter: (value: ComponentFilter) => void;
   showToast: (message: string) => void;
 };
 
@@ -436,7 +540,7 @@ function HomeScreen({ actions, theme }: { actions: AppActions; theme: MFTheme })
           <MFStatCard label="Native" onPress={() => actions.setTab('native')} theme={theme} value="28" />
         </MFRow>
         <MFRow gap={12}>
-          <MFStatCard label="Templates" onPress={() => actions.setTab('templates')} theme={theme} value="16" />
+          <MFStatCard label="Templates" onPress={() => actions.setTab('templates')} theme={theme} value={String(templateCatalogRows.length)} />
           <MFStatCard label="Modules" onPress={() => actions.openSheet('Modules', 'Module creation is available through mf:create-module.')} theme={theme} value="12" />
         </MFRow>
         <ActionGrid
@@ -470,17 +574,29 @@ function CatalogScreen({ actions, kind, theme }: { actions: AppActions; kind: 'c
     components: {
       title: 'Components',
       subtitle: 'Primitive, component, pattern, and feedback building blocks.',
-      rows: ['MFButton', 'MFInput', 'MFCard', 'MFListItem', 'MFToast']
+      rows: componentCatalogRows
     },
     native: {
       title: 'Native capabilities',
-      subtitle: 'Contracts for secure storage, permissions, biometrics, network state, and files.',
-      rows: ['SecureVaultModule', 'BiometricModule', 'PermissionModule', 'NetworkMonitorModule', 'LoggerModule']
+      subtitle: 'Contracts for device info, permissions, installed apps, overlay, network, and secure storage.',
+      rows: [
+        'DeviceInfoNative',
+        'PermissionNative',
+        'InstalledAppsNative',
+        'OverlayNative',
+        'SecureStorageNative',
+        'NetworkNative',
+        'SecureVaultModule',
+        'BiometricModule',
+        'PermissionModule',
+        'NetworkMonitorModule',
+        'LoggerModule'
+      ]
     },
     templates: {
       title: 'Page templates',
       subtitle: 'Reusable page shapes for generated apps and modules.',
-      rows: ['ListPage', 'DetailPage', 'DashboardPage', 'EditorPage', 'SettingsPage']
+      rows: templateCatalogRows.map((row) => row.name)
     }
   }[kind];
 
@@ -499,7 +615,28 @@ function CatalogScreen({ actions, kind, theme }: { actions: AppActions; kind: 'c
                     return;
                   }
 
-                  actions.openSheet(row, `${row} is documented as part of the MobileFrame first-version catalog.`);
+                  if (kind === 'templates') {
+                    const template = templateCatalogRows.find((entry) => entry.name === row);
+                    actions.openSheet(row, `${template?.component.name ?? row} is exported from @mobile-frame/screen-templates.`);
+                    return;
+                  }
+
+                  if (row === 'MFDialog') {
+                    actions.openComponentDialog();
+                    return;
+                  }
+
+                  if (row === 'MFFilterSheet') {
+                    actions.openComponentFilter();
+                    return;
+                  }
+
+                  if (row === 'MFToast') {
+                    actions.showToast('MFToast preview');
+                    return;
+                  }
+
+                  actions.openSheet(row, `${row} is exported from @mobile-frame/ui-native and documented as part of the first-version catalog.`);
                 }}
                 theme={theme}
                 title={row}

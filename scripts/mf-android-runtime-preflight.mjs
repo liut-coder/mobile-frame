@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -10,6 +11,7 @@ const shouldLaunch = args.includes('--launch');
 const appPath = getOption('app', 'apps/showcase');
 const explicitDevice = getOption('device', null);
 const apkPath = resolve(getOption('apk', `${appPath}/android/app/build/outputs/apk/debug/app-debug.apk`));
+const evidenceDir = resolve(getOption('evidence-dir', 'data/runtime-evidence/android'));
 const metadataPath = resolve(`${appPath}/android/app/build/outputs/apk/debug/output-metadata.json`);
 const manifestPath = resolve(`${appPath}/android/app/src/main/AndroidManifest.xml`);
 
@@ -73,13 +75,19 @@ if (failed.length > 0) {
   process.exit(0);
 }
 
+const actionEvidence = [];
+
 if (shouldInstall) {
-  runAdbAction('install debug APK', ['install', '-r', '-d', apkPath]);
+  actionEvidence.push(runAdbAction('install debug APK', ['install', '-r', '-d', apkPath]));
 }
 
 if (shouldLaunch) {
-  runAdbAction('launch debug APK', ['shell', 'monkey', '-p', metadata.applicationId, '-c', 'android.intent.category.LAUNCHER', '1']);
-  verifyForegroundPackage();
+  actionEvidence.push(runAdbAction('launch debug APK', ['shell', 'monkey', '-p', metadata.applicationId, '-c', 'android.intent.category.LAUNCHER', '1']));
+  actionEvidence.push(verifyForegroundPackage());
+}
+
+if (actionEvidence.length > 0) {
+  writeRuntimeEvidence(actionEvidence);
 }
 
 function runAdbAction(label, adbArgs) {
@@ -99,6 +107,13 @@ function runAdbAction(label, adbArgs) {
   if (result.stdout.trim()) {
     console.log(result.stdout.trim());
   }
+
+  return {
+    label,
+    passed: true,
+    stderr: result.stderr.trim(),
+    stdout: result.stdout.trim()
+  };
 }
 
 function verifyForegroundPackage() {
@@ -111,6 +126,35 @@ function verifyForegroundPackage() {
   }
 
   console.log(`launch verification passed: ${metadata.applicationId} is foreground-visible`);
+  return {
+    label: 'launch foreground verification',
+    passed: true,
+    stdout: firstMatchingLine(output, metadata.applicationId)
+  };
+}
+
+function writeRuntimeEvidence(actions) {
+  fs.mkdirSync(evidenceDir, { recursive: true });
+
+  const apkStat = fs.statSync(apkPath);
+  const evidence = {
+    actions,
+    adbCommand: relativeIfInsideRepo(adbCommand),
+    appPath,
+    applicationId: metadata.applicationId,
+    apkPath: relative(apkPath),
+    apkSha256: sha256(apkPath),
+    apkSizeBytes: apkStat.size,
+    device: selectedDevice,
+    generatedAt: new Date().toISOString(),
+    metadataPath: relative(metadataPath),
+    nodeVersion: process.version,
+    platform: process.platform
+  };
+  const evidencePath = path.join(evidenceDir, `${safeName(appPath)}-runtime-evidence.json`);
+
+  fs.writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, 'utf8');
+  console.log(`- runtime evidence: ${relative(evidencePath)}`);
 }
 
 function runAdb(adbArgs) {
@@ -233,6 +277,28 @@ function commandAvailable(command) {
   });
 
   return result.status === 0;
+}
+
+function firstMatchingLine(output, pattern) {
+  return (
+    output
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line) => line.includes(pattern)) ?? ''
+  );
+}
+
+function sha256(target) {
+  return crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex');
+}
+
+function safeName(value) {
+  return value.replace(/\\/g, '/').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+
+function relativeIfInsideRepo(target) {
+  const relativePath = relative(target);
+  return relativePath.startsWith('..') ? target : relativePath;
 }
 
 function needsWindowsCommandShell(command) {

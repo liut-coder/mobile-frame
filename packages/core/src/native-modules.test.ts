@@ -70,4 +70,81 @@ describe('createMockNativeModules', () => {
       }
     ]);
   });
+
+  it('provides direct secure storage and device info native contracts', async () => {
+    const nativeModules = createMockNativeModules({
+      deviceInfo: { appVersion: '1.2.3', model: 'Pixel Test', osVersion: '15', platform: 'android' }
+    });
+
+    await nativeModules.secureStorage.setItem('session-token', 'abc123');
+    await expect(nativeModules.secureStorage.getItem('session-token')).resolves.toBe('abc123');
+    await nativeModules.secureStorage.removeItem('session-token');
+    await expect(nativeModules.secureStorage.getItem('session-token')).resolves.toBeNull();
+    await expect(nativeModules.secureStorage.getItem('   ')).rejects.toThrow('Key must not be empty.');
+    await expect(nativeModules.deviceInfoNative.getDeviceInfo()).resolves.toEqual({
+      appVersion: '1.2.3',
+      model: 'Pixel Test',
+      osVersion: '15',
+      platform: 'android'
+    });
+  });
+
+  it('lists, filters, and launches installed app mocks', async () => {
+    const nativeModules = createMockNativeModules({
+      installedApps: [
+        { appName: 'Example Game', installed: true, packageName: 'com.example.game', versionName: '1.0.0' },
+        { appName: 'System Settings', installed: true, packageName: 'com.android.settings', systemApp: true },
+        { appName: 'Missing Game', installed: false, packageName: 'com.example.missing' }
+      ]
+    });
+
+    await expect(nativeModules.installedApps.listInstalledApps()).resolves.toEqual([
+      { appName: 'Example Game', installed: true, packageName: 'com.example.game', versionName: '1.0.0' },
+      { appName: 'Missing Game', installed: false, packageName: 'com.example.missing' }
+    ]);
+    await expect(nativeModules.installedApps.listInstalledApps({ includeSystemApps: true, query: 'settings' })).resolves.toEqual([
+      { appName: 'System Settings', installed: true, packageName: 'com.android.settings', systemApp: true }
+    ]);
+    await expect(nativeModules.installedApps.launchApp('com.example.game')).resolves.toBe(true);
+    await expect(nativeModules.installedApps.launchApp('com.example.missing')).resolves.toBe(false);
+  });
+
+  it('exposes permission snapshot and overlay mocks', async () => {
+    const nativeModules = createMockNativeModules({
+      permissions: { overlay: false, notification: true }
+    });
+
+    await expect(nativeModules.permissionNative.getPermissionSnapshot()).resolves.toMatchObject({
+      permissions: [
+        { granted: false, label: 'Overlay', type: 'overlay' },
+        { granted: true, label: 'Notification', type: 'notification' }
+      ],
+      updatedAt: 'mock'
+    });
+
+    await nativeModules.permissionNative.openPermissionSettings('overlay');
+    await nativeModules.permission.openSettings('notification');
+    expect(nativeModules.mock.openedPermissionSettings).toEqual(['overlay', 'notification']);
+
+    await expect(nativeModules.overlay.hasPermission()).resolves.toBe(true);
+    await nativeModules.overlay.show();
+    expect(nativeModules.mock.overlayVisible).toBe(true);
+    await nativeModules.overlay.hide();
+    expect(nativeModules.mock.overlayVisible).toBe(false);
+  });
+
+  it('supports direct network status subscriptions', async () => {
+    const nativeModules = createMockNativeModules({
+      networkStatus: { connected: true, isInternetReachable: true, type: 'wifi' }
+    });
+    const statuses: unknown[] = [];
+
+    const unsubscribe = nativeModules.network.subscribe((status) => statuses.push(status));
+
+    expect(statuses).toEqual([{ connected: true, isInternetReachable: true, type: 'wifi' }]);
+    expect(nativeModules.mock.networkListeners.size).toBe(1);
+    unsubscribe();
+    expect(nativeModules.mock.networkListeners.size).toBe(0);
+    await expect(nativeModules.network.getStatus()).resolves.toEqual({ connected: true, isInternetReachable: true, type: 'wifi' });
+  });
 });

@@ -1,0 +1,2509 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MobileFrame Docs</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --surface: #ffffff;
+      --surface-soft: #eef4ff;
+      --text: #172033;
+      --muted: #5e6a7d;
+      --line: #dbe2ec;
+      --blue: #2f6fff;
+      --green: #138a5b;
+      --amber: #ad6b00;
+      --code-bg: #111827;
+      --code-text: #eef2ff;
+      --shadow: 0 14px 40px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .site-header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 24px 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.05;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .quick-links a,
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 28px;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .sidebar-group {
+      margin-top: 16px;
+    }
+
+    .sidebar-group-title {
+      margin: 0 0 6px;
+      color: var(--amber);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 6px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .doc-card {
+      min-height: 168px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .doc-card p {
+      margin: 8px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .doc-card h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.25;
+    }
+
+    .category-pill {
+      display: inline-flex;
+      margin-bottom: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .doc-article {
+      margin-top: 28px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .doc-article h1,
+    .doc-article h2,
+    .doc-article h3,
+    .doc-article h4 {
+      scroll-margin-top: 18px;
+      line-height: 1.25;
+    }
+
+    .doc-article h1 {
+      margin: 0 0 18px;
+      font-size: 30px;
+    }
+
+    .doc-article h2 {
+      margin-top: 34px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 24px;
+    }
+
+    .doc-article h3 {
+      margin-top: 26px;
+      font-size: 20px;
+    }
+
+    .doc-article h4 {
+      margin-top: 22px;
+      font-size: 17px;
+    }
+
+    .doc-article p,
+    .doc-article li {
+      color: var(--text);
+    }
+
+    .doc-article blockquote {
+      margin: 16px 0;
+      padding: 12px 16px;
+      border-left: 4px solid var(--blue);
+      background: var(--surface-soft);
+      color: var(--muted);
+    }
+
+    .doc-article code {
+      border-radius: 6px;
+      background: #eef1f6;
+      padding: 2px 5px;
+      color: #263143;
+      font-size: 0.94em;
+    }
+
+    .doc-article pre {
+      overflow-x: auto;
+      margin: 18px 0;
+      padding: 16px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: var(--code-text);
+    }
+
+    .doc-article pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface-soft);
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        max-height: none;
+      }
+
+      .doc-article {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="top">
+    <div class="site-header-inner">
+      <p class="eyebrow">MobileFrame Documentation</p>
+      <h1>React Native Bare + TypeScript mobile scaffold</h1>
+      <p class="lead">This static documentation site is generated from the repository markdown files. It gives teams one browser-openable entry for architecture, design system, generators, native contracts, release gates, and the active transformation plan.</p>
+      <nav class="quick-links" aria-label="Primary links">
+        <a href="#documents">Documents</a>
+        <a href="#doc-docs-mobile-frame-app">Transformation Plan</a>
+        <a href="#doc-docs-release">Release Gates</a>
+        <a href="../README.md">README Source</a>
+      </nav>
+    </div>
+  </header>
+  <main class="shell">
+    <aside class="sidebar" aria-label="Document navigation">
+      <h2>Docs</h2>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Start</p>
+      <a href="#doc-readme">mobile-frame</a>
+      <a href="#doc-docs-usage-guide-zh-cn">MobileFrame 使用说明书</a>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Plan</p>
+      <a href="#doc-docs-mobile-frame-app">mobile-frame 改造与多 App 接入方案</a>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Foundation</p>
+      <a href="#doc-docs-architecture">MobileFrame 架构说明</a>
+      <a href="#doc-docs-design-system">MobileFrame 设计系统</a>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Generators</p>
+      <a href="#doc-docs-create-app">create-app 生成器</a>
+      <a href="#doc-docs-presets">App Presets</a>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Native</p>
+      <a href="#doc-docs-native-contracts">Native Contracts</a>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Release</p>
+      <a href="#doc-docs-release">Release 与原生构建</a>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-group-title">Reference</p>
+      <a href="#doc-docs-mobile-frame-product-overview">MobileFrame Product Overview</a>
+      <a href="#doc-docs-mobile-frame-landing-plan">MobileFrame UI 与交互落地方案</a>
+      <a href="#doc-mobile-frame-wireframes">MobileFrame 原型线框图与交互说明</a>
+      <a href="#doc-mobile-frame">mobile-frame 通用移动端原生脚手架设计方案</a>
+      </div>
+    </aside>
+    <section>
+      <section id="documents" class="docs-grid" aria-label="Document cards">
+        <article class="doc-card">
+          <span class="category-pill">Start</span>
+          <h2><a href="#doc-readme">mobile-frame</a></h2>
+          <p>Project scope, setup commands, validation commands, and workspace map.</p>
+          <a class="source-link" href="../README.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Start</span>
+          <h2><a href="#doc-docs-usage-guide-zh-cn">MobileFrame 使用说明书</a></h2>
+          <p>Chinese usage guide for setup, generators, native checks, and handoff rules.</p>
+          <a class="source-link" href="../docs/usage-guide.zh-CN.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Plan</span>
+          <h2><a href="#doc-docs-mobile-frame-app">mobile-frame 改造与多 App 接入方案</a></h2>
+          <p>Main transformation plan, target architecture, delivery phases, and acceptance checklist.</p>
+          <a class="source-link" href="../docs/mobile-frame-%E6%94%B9%E9%80%A0%E4%B8%8E%E5%A4%9AApp%E6%8E%A5%E5%85%A5%E6%96%B9%E6%A1%88.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Foundation</span>
+          <h2><a href="#doc-docs-architecture">MobileFrame 架构说明</a></h2>
+          <p>Workspace boundaries, app relationships, runtime layering, and verification scope.</p>
+          <a class="source-link" href="../docs/architecture.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Foundation</span>
+          <h2><a href="#doc-docs-design-system">MobileFrame 设计系统</a></h2>
+          <p>Design token, UI core, UI native, and screen template usage.</p>
+          <a class="source-link" href="../docs/design-system.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Generators</span>
+          <h2><a href="#doc-docs-create-app">create-app 生成器</a></h2>
+          <p>App generator usage, presets, generated file structure, and validation evidence.</p>
+          <a class="source-link" href="../docs/create-app.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Generators</span>
+          <h2><a href="#doc-docs-presets">App Presets</a></h2>
+          <p>Canonical presets, extension presets, preset data contracts, and generation rules.</p>
+          <a class="source-link" href="../docs/presets.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Native</span>
+          <h2><a href="#doc-docs-native-contracts">Native Contracts</a></h2>
+          <p>TypeScript-facing native capability contracts, mocks, and compatibility boundary.</p>
+          <a class="source-link" href="../docs/native-contracts.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Release</span>
+          <h2><a href="#doc-docs-release">Release 与原生构建</a></h2>
+          <p>Local validation, GitHub Actions workflow, Android/iOS build prerequisites, and release gates.</p>
+          <a class="source-link" href="../docs/release.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Reference</span>
+          <h2><a href="#doc-docs-mobile-frame-product-overview">MobileFrame Product Overview</a></h2>
+          <p>Product positioning, target users, product value, feature scope, and success criteria.</p>
+          <a class="source-link" href="../docs/mobile-frame-product-overview.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Reference</span>
+          <h2><a href="#doc-docs-mobile-frame-landing-plan">MobileFrame UI 与交互落地方案</a></h2>
+          <p>Showcase UI and interaction implementation plan for landing flows and component work.</p>
+          <a class="source-link" href="../docs/mobile-frame-landing-plan.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Reference</span>
+          <h2><a href="#doc-mobile-frame-wireframes">MobileFrame 原型线框图与交互说明</a></h2>
+          <p>Wireframes and interaction notes used as visual acceptance references.</p>
+          <a class="source-link" href="../mobile-frame-wireframes.md">Source</a>
+        </article>
+        <article class="doc-card">
+          <span class="category-pill">Reference</span>
+          <h2><a href="#doc-mobile-frame">mobile-frame 通用移动端原生脚手架设计方案</a></h2>
+          <p>Original scaffold design proposal retained for historical context.</p>
+          <a class="source-link" href="../mobile-frame-%E9%80%9A%E7%94%A8%E7%A7%BB%E5%8A%A8%E7%AB%AF%E5%8E%9F%E7%94%9F%E8%84%9A%E6%89%8B%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88.md">Source</a>
+        </article>
+      </section>
+<article class="doc-article" id="doc-readme">
+  <div class="article-meta">
+    <span class="category-pill">Start</span>
+    <a class="source-link" href="../README.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-readme-heading-1">mobile-frame</h1>
+  <p>React Native Bare + TypeScript mobile scaffold based on the design document in this repository.</p>
+  <h2 id="doc-readme-heading-2">Current Scope</h2>
+  <ul>
+  <li>pnpm workspace monorepo</li>
+  <li>Shared TypeScript, ESLint, and Vitest configuration</li>
+  <li>Design tokens, UI core helpers, React Native UI components, app shell state, core utilities, module SDK, and presets</li>
+  <li>Native capability contracts and mock adapters live in <code>@mobile-frame/core/native-modules</code>, with <code>@mobile-frame/ui-native/native-modules</code> kept as a compatibility re-export</li>
+  <li>Showcase app with local navigation, theme switching, Toast, Sheet, forms, settings, profile, permissions, and catalog views</li>
+  <li>Mock native capability adapters using the shared <code>MFResult</code> contract</li>
+  <li>React Native 0.85.3 iOS and Android bare project scaffolds under <code>apps/showcase</code></li>
+  <li>Reusable screen templates under <code>@mobile-frame/screen-templates</code></li>
+  <li>Generators for apps, modules, screens, presets, native components, and native modules</li>
+  <li>Static documentation site generated from repository markdown under <code>docs-site/index.html</code></li>
+  <li>Validation that runs workspace consistency checks, native readiness reporting, native build preflight reporting, docs-site checks, CI workflow checks, typecheck, lint, unit tests, and generator smoke checks</li>
+  <li>Generator smoke checks cover positive generation, generated workspace consistency, generated TypeScript builds, <code>--dry-run</code> no-write behavior, duplicate overwrite protection, and invalid argument failures</li>
+  </ul>
+  <h2 id="doc-readme-heading-3">Documentation</h2>
+  <ul>
+  <li><a href="../docs/usage-guide.zh-CN.md">使用说明书</a></li>
+  <li><a href="../docs/architecture.md">Architecture</a></li>
+  <li><a href="../docs/design-system.md">Design system</a></li>
+  <li><a href="../docs/create-app.md">create-app generator</a></li>
+  <li><a href="../docs/native-contracts.md">Native contracts</a></li>
+  <li><a href="../docs/presets.md">Presets</a></li>
+  <li><a href="../docs/release.md">Release and native builds</a></li>
+  <li><a href="../docs-site/index.html">Static docs site</a></li>
+  <li><a href="../docs/mobile-frame-product-overview.md">Product overview</a></li>
+  <li><a href="../docs/mobile-frame-handoff.md">Engineering handoff</a></li>
+  <li><a href="../docs/mobile-frame-landing-plan.md">Landing implementation plan</a></li>
+  <li><a href="../docs/mobile-frame-%E6%94%B9%E9%80%A0%E4%B8%8E%E5%A4%9AApp%E6%8E%A5%E5%85%A5%E6%96%B9%E6%A1%88.md">改造与多 App 接入方案</a></li>
+  <li><a href="../mobile-frame-wireframes.md">Prototype wireframes</a></li>
+  <li><a href="../mobile-frame-%E9%80%9A%E7%94%A8%E7%A7%BB%E5%8A%A8%E7%AB%AF%E5%8E%9F%E7%94%9F%E8%84%9A%E6%89%8B%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88.md">Original design proposal</a></li>
+  </ul>
+  <h2 id="doc-readme-heading-4">Setup</h2>
+  <pre><code class="language-bash">corepack enable
+corepack prepare pnpm@11.5.0 --activate
+pnpm install
+pnpm mf:validate</code></pre>
+  <p>If <code>pnpm</code> is not available in the current PowerShell session after Corepack activation, use <code>corepack pnpm install</code> and <code>corepack pnpm mf:validate</code>.</p>
+  <h2 id="doc-readme-heading-5">Commands</h2>
+  <pre><code class="language-bash">pnpm mf:validate
+pnpm mf:native-readiness
+pnpm mf:native-readiness:strict
+pnpm mf:native-build-preflight
+pnpm mf:native-build-preflight:strict
+pnpm mf:android-build:debug
+pnpm mf:android-build:release -- --allow-debug-release-signing
+pnpm mf:ios-build:debug
+pnpm mf:ios-build:release
+pnpm mf:ios-export -- --app apps/&lt;app-name&gt; --export-options-plist &lt;path&gt;
+pnpm mf:android-runtime-preflight
+pnpm mf:android-runtime-preflight:strict
+pnpm mf:android-runtime-run
+pnpm mf:runtime-evidence
+pnpm mf:runtime-evidence:strict
+pnpm mf:source-control-preflight
+pnpm mf:source-control-preflight:strict
+pnpm mf:docs-site
+pnpm mf:docs-site:check
+pnpm mf:ci-workflow-check
+pnpm create:app terminal-app --preset device-agent
+pnpm create:screen terminal SessionList --type list
+pnpm create:preset field-ops
+pnpm mf:create-app terminal-app --preset operations
+pnpm mf:create-module terminal
+pnpm mf:create-screen terminal SessionList --type list
+pnpm mf:create-native-component TerminalView
+pnpm mf:create-native-module SSHSession
+pnpm mf:create-preset field-ops</code></pre>
+  <p><code>pnpm validate</code> and <code>pnpm mf:validate</code> both run the same closed validation chain through <code>scripts/mf-validate.mjs</code>. The chain starts with <code>pnpm mf:workspace-check</code>, which verifies workspace package imports, dependencies, TypeScript project references, root references, and subpath aliases. It also runs <code>pnpm mf:native-readiness</code> to verify iOS/Android project files, <code>pnpm mf:native-build-preflight</code> to report local Android/iOS build-tool availability, <code>pnpm mf:android-runtime-preflight</code> to report Android APK/ADB/device readiness, <code>pnpm mf:runtime-evidence</code> to summarize native build/runtime evidence without failing by default, <code>pnpm mf:source-control-preflight</code> to report Git/push readiness and generated native-output ignore coverage, <code>pnpm mf:docs-site:check</code> to keep <code>docs-site/index.html</code> synchronized with the markdown docs, and <code>pnpm mf:ci-workflow-check</code> to guard the GitHub Actions source-validation, Showcase Android debug APK, and Showcase Android emulator runtime jobs. Use <code>pnpm mf:native-readiness:strict</code> for native project file evidence, <code>pnpm mf:native-build-preflight:strict</code> as the local native build environment gate before running real iOS/Android builds, <code>pnpm mf:android-runtime-preflight:strict</code> before installing or launching the Android APK, <code>pnpm mf:runtime-evidence:strict</code> as the final native evidence gate, <code>pnpm mf:source-control-preflight:strict</code> before committing or pushing from a real Git repository, and <code>pnpm mf:docs-site</code> after editing documentation.</p>
+  <h2 id="doc-readme-heading-6">Native Build Evidence</h2>
+  <p><code>apps/showcase</code> includes RN bare iOS/Android project scaffolds adapted for the pnpm workspace. Run Android builds through the workspace wrapper so strict preflight, Gradle execution, APK metadata verification, SHA-256 calculation, and local evidence JSON are handled consistently:</p>
+  <pre><code class="language-bash">pnpm mf:android-build:debug</code></pre>
+  <p>The resulting debug APK is written to <code>apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk</code>, and build evidence is written under <code>data/runtime-evidence/android/</code>.</p>
+  <p>Older direct Gradle invocation still works after strict preflight passes:</p>
+  <pre><code class="language-powershell">$env:JAVA_HOME='C:\Program Files\Java\jdk-17'
+$env:ANDROID_HOME=Join-Path $env:LOCALAPPDATA 'Android\Sdk'
+$env:ANDROID_SDK_ROOT=$env:ANDROID_HOME
+$env:PATH=&quot;$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH&quot;
+cd apps\showcase\android
+.\gradlew.bat :app:assembleDebug --no-daemon --stacktrace</code></pre>
+  <p>iOS native builds still require a macOS host with Xcode and CocoaPods. On macOS, run <code>pnpm mf:ios-build:debug</code> or <code>pnpm mf:ios-build:release</code> to perform strict preflight, <code>pod install</code>, <code>xcodebuild</code>, <code>.app</code> or <code>.xcarchive</code> verification, and evidence JSON output under <code>data/runtime-evidence/ios/</code>. After a Release archive exists, run <code>pnpm mf:ios-export -- --app apps/&lt;app-name&gt; --export-options-plist &lt;path&gt;</code> to call <code>xcodebuild -exportArchive</code>, verify the exported IPA, and write export evidence under <code>data/runtime-evidence/ios/</code>. On non-macOS hosts, <code>pnpm mf:native-build-preflight -- --platform ios</code> reports those expected environment gaps.</p>
+  <p>When an Android device or emulator is connected, verify runtime install/launch readiness with:</p>
+  <pre><code class="language-powershell">corepack pnpm mf:android-runtime-preflight:strict
+corepack pnpm mf:android-runtime-run</code></pre>
+  <p>Successful install/launch writes runtime evidence under <code>data/runtime-evidence/android/</code>, including the APK hash, <code>applicationId</code>, selected device, install result, launch result, and foreground visibility check.</p>
+  <p>Use <code>pnpm mf:runtime-evidence</code> to see which Android/iOS build, export, and runtime evidence files are present. Use <code>pnpm mf:runtime-evidence:strict</code> only when the machine or CI is expected to have completed all native build and runtime proof steps.</p>
+  <h2 id="doc-readme-heading-7">Workspace</h2>
+  <pre><code class="language-text">apps/showcase
+packages/app-shell
+packages/core
+packages/design-tokens
+packages/module-sdk
+packages/presets
+packages/screen-templates
+packages/ui-core
+packages/ui-native
+templates
+tools
+docs
+docs-site
+scripts</code></pre>
+  <p>Real device or simulator runs still require the corresponding local device/simulator tooling after the native build preflight passes.</p>
+</article>
+<article class="doc-article" id="doc-docs-usage-guide-zh-cn">
+  <div class="article-meta">
+    <span class="category-pill">Start</span>
+    <a class="source-link" href="../docs/usage-guide.zh-CN.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-usage-guide-zh-cn-heading-1">MobileFrame 使用说明书</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-2">1. 项目用途</h2>
+  <p>MobileFrame 是一个基于 React Native Bare、TypeScript 和 pnpm workspace 的移动端原生脚手架。它用于快速搭建多个移动应用的统一基础设施，包括：</p>
+  <ul>
+  <li>应用壳和本地导航示例。</li>
+  <li>设计令牌、UI 基础类型和 React Native UI 组件。</li>
+  <li>原生能力契约、Mock 适配器和后续原生模块扩展点。</li>
+  <li>通用页面模板。</li>
+  <li>App、业务模块、页面、Preset、原生组件、原生模块生成器。</li>
+  <li>TypeScript、ESLint、Vitest、工作区一致性、原生环境预检和 Android 运行预检。</li>
+  </ul>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-3">2. 环境要求</h2>
+  <p>基础环境：</p>
+  <ul>
+  <li>Node.js：建议使用当前 LTS 版本。</li>
+  <li>Corepack：用于启用固定版本的 pnpm。</li>
+  <li>pnpm：项目声明版本为 <code>pnpm@11.5.0</code>。</li>
+  </ul>
+  <p>Android 构建环境：</p>
+  <ul>
+  <li>JDK 17。</li>
+  <li>Android SDK。</li>
+  <li>Android SDK Platform 36。</li>
+  <li>Android Build Tools 36.0.0。</li>
+  <li>Android Platform Tools。</li>
+  <li>已接受 Android SDK licenses。</li>
+  </ul>
+  <p>iOS 构建环境：</p>
+  <ul>
+  <li>macOS。</li>
+  <li>Xcode。</li>
+  <li>CocoaPods。</li>
+  </ul>
+  <p>Windows 可以完成 TypeScript、lint、test、Android 预检和 Android debug APK 构建；iOS 构建必须在 macOS 上完成。</p>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-4">3. 首次安装</h2>
+  <p>在项目根目录执行：</p>
+  <pre><code class="language-powershell">corepack enable
+corepack prepare pnpm@11.5.0 --activate
+pnpm install
+pnpm mf:validate</code></pre>
+  <p>如果当前 PowerShell 会话找不到 <code>pnpm</code>，使用 Corepack 直接调用：</p>
+  <pre><code class="language-powershell">corepack pnpm install
+corepack pnpm mf:validate</code></pre>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-5">4. 目录结构</h2>
+  <pre><code class="language-text">apps/showcase                  示例应用和 React Native bare iOS/Android 工程
+packages/app-shell             应用壳、模块挂载、主题、Toast、Sheet 状态
+packages/core                  核心工具、原生能力契约和 Mock 适配器
+packages/design-tokens         设计令牌
+packages/module-sdk            模块定义辅助 API
+packages/presets               应用预设
+packages/screen-templates      通用页面模板
+packages/ui-core               平台无关 UI 类型和行为辅助
+packages/ui-native             React Native UI 组件
+templates                      生成器模板
+tools                          代码生成器
+scripts                        校验、预检和 smoke test 脚本
+docs                           产品、交接和使用文档</code></pre>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-6">5. 常用命令</h2>
+  <p>完整校验：</p>
+  <pre><code class="language-powershell">pnpm mf:validate</code></pre>
+  <p>该命令会依次执行 workspace 检查、原生项目文件检查、原生构建环境预检、TypeScript 构建、ESLint、Vitest 和生成器 smoke test。</p>
+  <p>单独执行质量检查：</p>
+  <pre><code class="language-powershell">pnpm typecheck
+pnpm lint
+pnpm test</code></pre>
+  <p>原生相关预检：</p>
+  <pre><code class="language-powershell">pnpm mf:native-readiness
+pnpm mf:native-readiness:strict
+pnpm mf:native-build-preflight
+pnpm mf:native-build-preflight:strict
+pnpm mf:android-build:debug
+pnpm mf:android-build:release -- --allow-debug-release-signing
+pnpm mf:ios-build:debug
+pnpm mf:ios-build:release
+pnpm mf:ios-export -- --app apps/&lt;app-name&gt; --export-options-plist &lt;path&gt;
+pnpm mf:android-runtime-preflight
+pnpm mf:android-runtime-preflight:strict
+pnpm mf:android-runtime-run
+pnpm mf:runtime-evidence
+pnpm mf:runtime-evidence:strict</code></pre>
+  <p>提交或推送前检查 Git、remote 和忽略规则：</p>
+  <pre><code class="language-powershell">pnpm mf:source-control-preflight:strict</code></pre>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-7">6. 代码生成</h2>
+  <p>生成一个应用：</p>
+  <pre><code class="language-powershell">pnpm create:app terminal-app --preset device-agent</code></pre>
+  <p>支持的预设包括 <code>basic</code>、<code>dashboard</code>、<code>device-agent</code>、<code>admin-mobile</code>，并兼容旧预设 <code>minimal</code>、<code>standard</code>、<code>operations</code>。生成 App 会包含 <code>android/</code>、<code>ios/</code>、<code>src/navigation/</code>、<code>src/screens/</code>、<code>src/modules/</code>、<code>src/store/</code> 和 <code>src/theme/</code>。</p>
+  <p>生成一个业务模块：</p>
+  <pre><code class="language-powershell">pnpm create:module terminal</code></pre>
+  <p>给模块生成页面：</p>
+  <pre><code class="language-powershell">pnpm create:screen terminal SessionList --type list</code></pre>
+  <p>页面类型支持 <code>blank</code>、<code>dashboard</code>、<code>detail</code>、<code>editor</code>、<code>empty</code>、<code>error</code>、<code>fullscreen</code>、<code>installed-apps</code>、<code>list</code>、<code>loading</code>、<code>permission</code>、<code>settings</code>。</p>
+  <p>生成一个 preset 扩展文件：</p>
+  <pre><code class="language-powershell">pnpm create:preset field-ops</code></pre>
+  <p>生成结果会写入 <code>packages/presets/src/generated/</code> 并导出，供 review 后再决定是否提升到内置 <code>mfPresets</code>。未提升前，它不会自动成为 <code>create:app --preset</code> 的可选项。</p>
+  <p>生成原生 UI 组件扩展点：</p>
+  <pre><code class="language-powershell">pnpm create:native-component TerminalView</code></pre>
+  <p>生成原生能力模块扩展点：</p>
+  <pre><code class="language-powershell">pnpm create:native-module SSHSession</code></pre>
+  <p>生成器默认会阻止覆盖已有同名目标。需要先检查生成结果时，优先使用生成器支持的 dry-run 行为。<code>mf:create-*</code> 命令仍保留为兼容别名。</p>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-8">7. 开发流程</h2>
+  <p>推荐日常流程：</p>
+  <ol>
+  <li>基于 preset 生成应用或直接修改 <code>apps/showcase</code>。</li>
+  <li>在 <code>packages/*</code> 中补充共享能力，例如 UI、app shell、module SDK 或 native contract。</li>
+  <li>使用生成器创建模块、页面、原生组件或原生模块扩展点。</li>
+  <li>在 showcase 中接入并验证交互。</li>
+  <li>执行 <code>pnpm mf:validate</code>。</li>
+  <li>在具备 Android 或 iOS 工具链的机器上执行原生构建和真机/模拟器验证。</li>
+  <li>推送前执行 <code>pnpm mf:source-control-preflight:strict</code>。</li>
+  </ol>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-9">8. Android 构建与运行</h2>
+  <p>在 Windows 上建议先临时设置 JDK 17 和 Android SDK 环境变量：</p>
+  <pre><code class="language-powershell">$env:JAVA_HOME='C:\Program Files\Java\jdk-17'
+$env:ANDROID_HOME=Join-Path $env:LOCALAPPDATA 'Android\Sdk'
+$env:ANDROID_SDK_ROOT=$env:ANDROID_HOME
+$env:PATH=&quot;$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH&quot;</code></pre>
+  <p>构建 debug APK。该命令会先执行 Android strict preflight，再运行 Gradle，最后校验 APK metadata 并写入 build evidence：</p>
+  <pre><code class="language-powershell">corepack pnpm mf:android-build:debug</code></pre>
+  <p>如需直接调用 Gradle，先执行 Android 构建环境严格预检：</p>
+  <pre><code class="language-powershell">corepack pnpm mf:native-build-preflight -- --platform android --strict
+cd apps\showcase\android
+.\gradlew.bat :app:assembleDebug --no-daemon --stacktrace</code></pre>
+  <p>APK 输出路径：</p>
+  <pre><code class="language-text">apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk
+data/runtime-evidence/android/apps-showcase-debug-build-evidence.json</code></pre>
+  <p>连接 Android 设备或启动模拟器后，回到项目根目录执行：</p>
+  <pre><code class="language-powershell">corepack pnpm mf:android-runtime-preflight:strict
+corepack pnpm mf:android-runtime-run</code></pre>
+  <p>运行成功后会写入 runtime evidence：</p>
+  <pre><code class="language-text">data/runtime-evidence/android/apps-showcase-runtime-evidence.json</code></pre>
+  <p>汇总检查 Android/iOS 构建和运行证据：</p>
+  <pre><code class="language-powershell">corepack pnpm mf:runtime-evidence
+corepack pnpm mf:runtime-evidence:strict</code></pre>
+  <p>非严格模式只报告缺失项；严格模式用于最终原生验收门禁。CI 中也可以使用 <code>--require &lt;evidence-id&gt;</code> 只强制当前 job 应产出的证据，例如 <code>android.debug-build-evidence</code> 或 <code>android.runtime-evidence</code>。</p>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-10">9. iOS 构建与运行</h2>
+  <p>iOS 构建必须在 macOS 上执行。推荐流程：</p>
+  <pre><code class="language-bash">corepack enable
+corepack prepare pnpm@11.5.0 --activate
+pnpm install
+pnpm mf:ios-build:debug
+pnpm mf:ios-build:release
+pnpm mf:ios-export -- --app apps/&lt;app-name&gt; --export-options-plist &lt;path&gt;</code></pre>
+  <p><code>mf:ios-build:debug</code> 会执行 iOS strict preflight、<code>pod install</code>、<code>xcodebuild build</code>，并校验 <code>.app</code> bundle。<code>mf:ios-build:release</code> 会执行 <code>xcodebuild archive</code> 并校验 <code>.xcarchive</code>。Release 归档完成后，<code>mf:ios-export</code> 会使用业务提供的 <code>ExportOptions.plist</code> 执行 <code>xcodebuild -exportArchive</code>、校验 IPA 并写入 export evidence。证书、描述文件、<code>ExportOptions.plist</code>、Apple 账号和签名 secret 应保留在本地或 CI secret 中，TestFlight/企业分发由业务 CI 继续配置。</p>
+  <p>默认 evidence 输出：</p>
+  <pre><code class="language-text">data/runtime-evidence/ios/apps-showcase-debug-build-evidence.json
+data/runtime-evidence/ios/apps-showcase-release-build-evidence.json
+data/runtime-evidence/ios/apps-showcase-export-evidence.json</code></pre>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-11">10. 原生能力使用原则</h2>
+  <p>业务页面不要直接调用平台 API。应优先通过 <code>@mobile-frame/core/native-modules</code> 中的 TypeScript 契约访问权限、剪贴板、网络、生物识别、安全存储、生命周期、日志、设备信息等能力。</p>
+  <p>这样可以保证：</p>
+  <ul>
+  <li>UI 和业务逻辑可以先使用 Mock 适配器开发。</li>
+  <li>后续替换成真实 iOS/Android 实现时，页面代码无需大规模改动。</li>
+  <li>平台差异集中在能力边界处理。</li>
+  <li>权限和安全策略可以统一收口。</li>
+  </ul>
+  <p>兼容旧导入路径时，可以通过 <code>@mobile-frame/ui-native/native-modules</code> 使用 re-export，但新代码优先使用 core 包。</p>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-12">11. 文档入口</h2>
+  <p>架构、设计系统、生成器、原生契约、预设和发布说明已拆成独立文档：</p>
+  <pre><code class="language-text">docs/architecture.md
+docs/design-system.md
+docs/create-app.md
+docs/native-contracts.md
+docs/presets.md
+docs/release.md
+docs/mobile-frame-改造与多App接入方案.md
+docs-site/index.html</code></pre>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-13">12. 提交与推送</h2>
+  <p>当前项目的 <code>.gitignore</code> 已忽略常见依赖和原生构建产物，包括：</p>
+  <ul>
+  <li><code>node_modules/</code></li>
+  <li><code>dist/</code></li>
+  <li><code>**/ios/Pods/</code></li>
+  <li><code>**/ios/build/</code></li>
+  <li><code>**/android/.gradle/</code></li>
+  <li><code>**/android/.kotlin/</code></li>
+  <li><code>**/android/build/</code></li>
+  <li><code>**/android/app/build/</code></li>
+  <li><code>data/runtime-evidence/</code></li>
+  </ul>
+  <p>推送前执行：</p>
+  <pre><code class="language-powershell">pnpm mf:source-control-preflight:strict
+git status
+git add README.md docs/usage-guide.zh-CN.md
+git commit -m &quot;docs: add usage guide&quot;
+git push</code></pre>
+  <p>推送到 <code>main</code> 或 <code>game-helper-app</code> 后，GitHub Actions 会运行源码验证、Showcase debug APK 构建和 Android emulator runtime 校验。远端成功时应能看到 <code>mobile-frame-showcase-debug-apk</code> artifact，以及包含 <code>data/runtime-evidence/android/apps-showcase-runtime-evidence.json</code> 的 <code>mobile-frame-showcase-runtime-evidence</code> artifact。</p>
+  <p>如果 <code>mf:source-control-preflight:strict</code> 报告没有 Git worktree 或 remote，需要先把项目放入正确仓库，或执行 <code>git init</code> 后添加远端：</p>
+  <pre><code class="language-powershell">git remote add origin &lt;remote-url&gt;
+git push -u origin main</code></pre>
+  <h2 id="doc-docs-usage-guide-zh-cn-heading-14">13. 常见问题</h2>
+  <p><code>pnpm</code> 命令不可用：</p>
+  <pre><code class="language-powershell">corepack pnpm install
+corepack pnpm mf:validate</code></pre>
+  <p>Android 构建使用了错误 JDK：</p>
+  <ul>
+  <li>检查 <code>JAVA_HOME</code>。</li>
+  <li>Android 构建使用 JDK 17，不要使用 JDK 8。</li>
+  <li>在当前 PowerShell 会话中按第 8 节临时设置环境变量。</li>
+  </ul>
+  <p>iOS 预检在 Windows 上失败：</p>
+  <ul>
+  <li>这是预期结果。</li>
+  <li>iOS 构建需要 macOS、Xcode 和 CocoaPods。</li>
+  </ul>
+  <p><code>git push</code> 失败：</p>
+  <ul>
+  <li>先运行 <code>git rev-parse --is-inside-work-tree</code> 确认当前目录是 Git 仓库。</li>
+  <li>再运行 <code>git remote -v</code> 确认 remote 已配置。</li>
+  <li>最后运行 <code>pnpm mf:source-control-preflight:strict</code> 检查忽略规则和推送前条件。</li>
+  </ul>
+</article>
+<article class="doc-article" id="doc-docs-mobile-frame-app">
+  <div class="article-meta">
+    <span class="category-pill">Plan</span>
+    <a class="source-link" href="../docs/mobile-frame-%E6%94%B9%E9%80%A0%E4%B8%8E%E5%A4%9AApp%E6%8E%A5%E5%85%A5%E6%96%B9%E6%A1%88.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-mobile-frame-app-heading-1">mobile-frame 改造与多 App 接入方案</h1>
+  <blockquote>适用范围：<code>mobile-frame</code> 通用移动端底座、后续 <code>game-helper-app</code> 接入、未来 <code>game-helper-admin-mobile</code> 接入。</blockquote>
+  <p>&gt;</p>
+  <blockquote>文档目标：把 <code>mobile-frame</code> 从“可运行 Showcase”继续沉淀为稳定的 React Native Bare 通用移动端脚手架，并明确它与业务 App 的边界。</blockquote>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-2">1. 项目定位</h2>
+  <p><code>mobile-frame</code> 不是“游戏助手 App”，也不是某个业务模块的集合。它的定位是：</p>
+  <pre><code class="language-text">React Native Bare + TypeScript 通用移动端底座</code></pre>
+  <p>它负责提供：</p>
+  <ul>
+  <li>通用 UI 组件；</li>
+  <li>主题、设计变量和视觉规范；</li>
+  <li>页面壳层；</li>
+  <li>路由和导航；</li>
+  <li>Toast、Sheet、Dialog、Loading、空状态等全局反馈；</li>
+  <li>原生能力契约和 mock adapter；</li>
+  <li>App、页面、模块、Native Module 生成器；</li>
+  <li>Android / iOS 调试与 Release 构建脚本；</li>
+  <li>Showcase 组件预览 App。</li>
+  </ul>
+  <p>它不应该直接包含：</p>
+  <ul>
+  <li>瞭望塔业务；</li>
+  <li>游戏账号绑定流程；</li>
+  <li>游戏托管队列；</li>
+  <li>OCR 识别业务；</li>
+  <li>浮窗 Worker；</li>
+  <li>具体服务端接口；</li>
+  <li><code>watchtower</code> 模块参数；</li>
+  <li>游戏助手管理员业务。</li>
+  </ul>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-3">2. 当前基础</h2>
+  <p>当前 <code>mobile-frame</code> 已经具备以下基础结构：</p>
+  <pre><code class="language-text">apps/showcase
+packages/design-tokens
+packages/ui-core
+packages/ui-native
+packages/app-shell
+packages/core
+packages/module-sdk
+packages/presets
+tools
+scripts</code></pre>
+  <p>当前能力包括：</p>
+  <ul>
+  <li>RN Bare + TypeScript monorepo；</li>
+  <li>Android / iOS 原生工程；</li>
+  <li>Showcase 演示 App；</li>
+  <li>主题和全局状态；</li>
+  <li>Toast / Sheet；</li>
+  <li>中英文切换；</li>
+  <li>Mock 原生能力；</li>
+  <li>Debug / Release 构建脚本。</li>
+  </ul>
+  <p>接下来改造重点不是继续往 Showcase 里加业务页面，而是把底座真正稳定下来。</p>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-4">3. 目标架构</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-5">3.1 总体结构</h3>
+  <pre><code class="language-text">mobile-frame/
+├── apps/
+│   └── showcase/                  # 通用底座展示与验证 App
+│
+├── packages/
+│   ├── design-tokens/             # 色彩、间距、圆角、字号、阴影
+│   ├── ui-core/                   # 主题计算、变体、平台无关 UI 逻辑
+│   ├── ui-native/                 # RN 通用组件库
+│   ├── app-shell/                 # App 壳层、全局状态、Toast、Sheet、Dialog
+│   ├── core/                      # 通用能力契约与 mock adapter
+│   ├── module-sdk/                # 模块声明、路由、权限、Tab 元数据
+│   ├── presets/                   # App 创建预设
+│   └── screen-templates/          # 通用页面模板
+│
+├── tools/
+│   ├── create-app/
+│   ├── create-screen/
+│   ├── create-module/
+│   ├── create-native-module/
+│   └── create-preset/
+│
+├── scripts/
+│   ├── validate/
+│   ├── android/
+│   ├── ios/
+│   └── release/
+│
+└── docs/
+    ├── architecture.md
+    ├── design-system.md
+    ├── create-app.md
+    ├── native-contracts.md
+    ├── presets.md
+    └── release.md</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-6">3.2 App 关系</h3>
+  <p>后续真正业务 App 不应该改造 <code>showcase</code>，而应该通过生成器创建独立 App：</p>
+  <pre><code class="language-text">mobile-frame
+├── apps/showcase                 # 仅用于展示底座
+├── apps/game-helper              # 可选：未来 RN 版游戏助手壳层
+└── apps/game-helper-admin-mobile # 未来管理员移动端</code></pre>
+  <p>短期内，<code>game-helper-app</code> 仍保持独立 Kotlin 原生项目，不强行迁入。</p>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-7">4. 设计系统改造</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-8">4.1 目标</h3>
+  <p>把现有原型图中的视觉风格沉淀为可复用 Design Tokens，避免页面里散落硬编码。</p>
+  <h3 id="doc-docs-mobile-frame-app-heading-9">4.2 设计变量</h3>
+  <p>建议目录：</p>
+  <pre><code class="language-text">packages/design-tokens/src/
+├── colors.ts
+├── spacing.ts
+├── radius.ts
+├── typography.ts
+├── shadows.ts
+├── sizes.ts
+├── opacity.ts
+└── index.ts</code></pre>
+  <p>建议定义：</p>
+  <h4 id="doc-docs-mobile-frame-app-heading-10">色彩</h4>
+  <pre><code class="language-ts">export const colors = {
+  brand: {
+    primary: '#4C8BFF',
+    primarySoft: '#E9F1FF',
+    primaryStrong: '#2F6FFF',
+  },
+  success: {
+    main: '#22C55E',
+    soft: '#E9FBEF',
+  },
+  warning: {
+    main: '#FF9F1C',
+    soft: '#FFF5E5',
+  },
+  danger: {
+    main: '#FF4D4F',
+    soft: '#FFF0F0',
+  },
+  neutral: {
+    0: '#FFFFFF',
+    50: '#F8FAFD',
+    100: '#F1F5FA',
+    300: '#D9E1EC',
+    500: '#64748B',
+    700: '#334155',
+    900: '#0F172A',
+  },
+};</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-11">间距</h4>
+  <pre><code class="language-ts">export const spacing = {
+  4: 4,
+  8: 8,
+  12: 12,
+  16: 16,
+  20: 20,
+  24: 24,
+  32: 32,
+  40: 40,
+};</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-12">圆角</h4>
+  <pre><code class="language-ts">export const radius = {
+  xs: 6,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 24,
+  pill: 999,
+};</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-13">字体层级</h4>
+  <pre><code class="language-ts">export const typography = {
+  titleLarge: { fontSize: 30, fontWeight: '700' },
+  title: { fontSize: 24, fontWeight: '700' },
+  sectionTitle: { fontSize: 18, fontWeight: '600' },
+  body: { fontSize: 15, fontWeight: '400' },
+  caption: { fontSize: 12, fontWeight: '400' },
+};</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-14">4.3 字体策略</h3>
+  <p>不要在资源包里捆绑字体文件，默认使用系统字体：</p>
+  <pre><code class="language-text">iOS：PingFang SC / San Francisco
+Android：Noto Sans CJK SC / Roboto
+Web Preview：system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif</code></pre>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-15">5. 通用 UI 组件库</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-16">5.1 基础组件</h3>
+  <p>建议补齐：</p>
+  <pre><code class="language-text">MFScreen
+MFHeader
+MFCard
+MFSectionCard
+MFButton
+MFIconButton
+MFTextButton
+MFStatusPill
+MFInfoRow
+MFInfoGrid
+MFListItem
+MFSwitch
+MFSegmentedControl
+MFTabBar
+MFEmptyState
+MFErrorState
+MFLoadingState
+MFDialog
+MFSheet
+MFToast
+MFBanner
+MFSearchBar
+MFFilterSheet</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-17">5.2 组件规范</h3>
+  <h4 id="doc-docs-mobile-frame-app-heading-18"><code>MFButton</code></h4>
+  <p>支持：</p>
+  <pre><code class="language-text">variant: primary | secondary | outline | danger | ghost
+size: sm | md | lg
+loading: boolean
+disabled: boolean
+leftIcon
+rightIcon</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-19"><code>MFCard</code></h4>
+  <p>支持：</p>
+  <pre><code class="language-text">padding
+radius
+shadow
+border
+background
+pressable</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-20"><code>MFStatusPill</code></h4>
+  <p>支持：</p>
+  <pre><code class="language-text">status: success | warning | danger | info | neutral
+label
+icon</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-21"><code>MFEmptyState</code></h4>
+  <p>支持：</p>
+  <pre><code class="language-text">illustration
+headline
+description
+actionLabel
+onAction</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-22">5.3 验收标准</h3>
+  <ul>
+  <li>所有组件可在 Showcase 单独预览；</li>
+  <li>所有颜色、间距、字号、圆角均来自 Tokens；</li>
+  <li>支持亮色主题；</li>
+  <li>暗色主题先预留接口；</li>
+  <li>Android / iOS 样式尽量一致；</li>
+  <li>所有组件支持禁用态、Loading 态和错误态。</li>
+  </ul>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-23">6. 通用页面模板</h2>
+  <p>新增：</p>
+  <pre><code class="language-text">packages/screen-templates/
+├── BlankScreen
+├── DashboardScreen
+├── ListScreen
+├── DetailScreen
+├── SettingsScreen
+├── PermissionScreen
+├── InstalledAppsScreen
+├── EmptyStateScreen
+├── ErrorStateScreen
+└── LoadingScreen</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-24">6.1 <code>DashboardScreen</code></h3>
+  <p>适合：</p>
+  <ul>
+  <li>设备型 App 首页；</li>
+  <li>管理端总览；</li>
+  <li>运行状态页。</li>
+  </ul>
+  <p>组件结构：</p>
+  <pre><code class="language-text">Header
+Status Banner
+Summary Grid
+Primary Actions
+Recent Status
+Quick Actions
+Bottom Tabs</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-25">6.2 <code>InstalledAppsScreen</code></h3>
+  <p>适合：</p>
+  <ul>
+  <li>用户选择本机已安装应用；</li>
+  <li>保存包名；</li>
+  <li>调试时显示全部用户应用。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-26">6.3 <code>PermissionScreen</code></h3>
+  <p>适合：</p>
+  <ul>
+  <li>无障碍；</li>
+  <li>悬浮窗；</li>
+  <li>通知；</li>
+  <li>截图；</li>
+  <li>后台运行；</li>
+  <li>电池优化。</li>
+  </ul>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-27">7. Native Contract 改造</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-28">7.1 原则</h3>
+  <p><code>mobile-frame</code> 只定义通用接口和 mock adapter，不承载业务逻辑。</p>
+  <h3 id="doc-docs-mobile-frame-app-heading-29">7.2 通用接口</h3>
+  <pre><code class="language-ts">export interface DeviceInfoNative {
+  getDeviceInfo(): Promise&lt;DeviceInfo&gt;;
+}
+
+export interface PermissionNative {
+  getPermissionSnapshot(): Promise&lt;PermissionSnapshot&gt;;
+  openPermissionSettings(type: PermissionType): Promise&lt;void&gt;;
+}
+
+export interface InstalledAppsNative {
+  listInstalledApps(options?: ListAppsOptions): Promise&lt;InstalledApp[]&gt;;
+  launchApp(packageName: string): Promise&lt;boolean&gt;;
+}
+
+export interface OverlayNative {
+  hasPermission(): Promise&lt;boolean&gt;;
+  openSettings(): Promise&lt;void&gt;;
+  show(): Promise&lt;void&gt;;
+  hide(): Promise&lt;void&gt;;
+}
+
+export interface SecureStorageNative {
+  getItem(key: string): Promise&lt;string | null&gt;;
+  setItem(key: string, value: string): Promise&lt;void&gt;;
+  removeItem(key: string): Promise&lt;void&gt;;
+}
+
+export interface NetworkNative {
+  getStatus(): Promise&lt;NetworkStatus&gt;;
+  subscribe(listener: (status: NetworkStatus) =&gt; void): () =&gt; void;
+}</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-30">7.3 Mock Adapter</h3>
+  <p>Showcase 中必须提供 mock：</p>
+  <pre><code class="language-ts">const installedAppsMock = [
+  {
+    packageName: 'com.example.game',
+    appName: '示例游戏',
+    versionName: '1.0.0',
+    installed: true,
+  },
+];</code></pre>
+  <p>这样没有真实 Native Module 时也能预览完整页面。</p>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-31">8. Showcase 改造</h2>
+  <p>当前 Showcase 不应该继续模拟一个业务 App，而应该成为“组件与能力展示中心”。</p>
+  <p>建议导航：</p>
+  <pre><code class="language-text">Showcase
+├── Design Tokens
+├── Buttons
+├── Cards
+├── Forms
+├── Navigation
+├── Status
+├── Feedback
+├── Screen Templates
+├── Native Capability Mock
+└── Theme Preview</code></pre>
+  <p>每个页面展示：</p>
+  <pre><code class="language-text">组件名称
+使用场景
+变体
+禁用态
+Loading 态
+错误态
+代码示例</code></pre>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-32">9. 生成器改造</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-33">9.1 创建 App</h3>
+  <pre><code class="language-bash">pnpm create:app demo-app</code></pre>
+  <p>生成：</p>
+  <pre><code class="language-text">apps/demo-app/
+├── android/
+├── ios/
+├── src/
+│   ├── App.tsx
+│   ├── navigation/
+│   ├── screens/
+│   ├── modules/
+│   ├── store/
+│   └── theme/
+├── index.js
+└── package.json</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-34">9.2 Preset</h3>
+  <p>支持：</p>
+  <pre><code class="language-bash">pnpm create:app demo-app --preset basic
+pnpm create:app demo-app --preset dashboard
+pnpm create:app demo-app --preset device-agent
+pnpm create:app demo-app --preset admin-mobile</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-35"><code>basic</code></h4>
+  <pre><code class="language-text">启动页
+首页
+设置
+主题
+Toast
+Sheet</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-36"><code>device-agent</code></h4>
+  <pre><code class="language-text">设备状态
+权限检查
+已安装应用选择
+日志
+设置</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-37"><code>admin-mobile</code></h4>
+  <pre><code class="language-text">仪表盘
+设备管理
+任务管理
+告警中心
+审批中心
+账号管理
+设置</code></pre>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-38">10. 为 game-helper-admin 移动端预留</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-39">10.1 定位</h3>
+  <p><code>game-helper-admin-mobile</code> 不应该和设备执行端混在一起。</p>
+  <p>它是：</p>
+  <pre><code class="language-text">管理员移动端</code></pre>
+  <p>负责：</p>
+  <ul>
+  <li>查看设备在线状态；</li>
+  <li>查看 Worker 状态；</li>
+  <li>查看任务队列；</li>
+  <li>查看执行日志和截图证据；</li>
+  <li>查看游戏账号绑定；</li>
+  <li>查看异常告警；</li>
+  <li>发起或审批高风险操作；</li>
+  <li>快速暂停、恢复或停止托管；</li>
+  <li>查看资源版本和 App 版本分布。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-40">10.2 推荐目录</h3>
+  <p>未来可创建：</p>
+  <pre><code class="language-text">apps/game-helper-admin-mobile/
+├── src/
+│   ├── screens/
+│   │   ├── dashboard/
+│   │   ├── devices/
+│   │   ├── tasks/
+│   │   ├── alerts/
+│   │   ├── approvals/
+│   │   ├── accounts/
+│   │   └── settings/
+│   ├── api/
+│   ├── navigation/
+│   ├── store/
+│   └── modules/
+├── android/
+└── ios/</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-41">10.3 管理端底部导航</h3>
+  <p>建议：</p>
+  <pre><code class="language-text">总览
+设备
+任务
+告警
+我的</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-42">10.4 管理端页面清单</h3>
+  <h4 id="doc-docs-mobile-frame-app-heading-43">总览</h4>
+  <pre><code class="language-text">在线设备数
+运行中 Worker
+异常设备
+待处理告警
+待审批操作
+今日任务数
+失败率</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-44">设备</h4>
+  <pre><code class="language-text">设备列表
+设备详情
+在线状态
+权限快照
+目标游戏
+账号绑定
+Worker 状态
+最近日志
+远程操作</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-45">任务</h4>
+  <pre><code class="language-text">任务列表
+运行中
+排队中
+已完成
+失败
+任务详情
+步骤详情
+证据截图</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-46">告警</h4>
+  <pre><code class="language-text">离线
+心跳超时
+OCR 失败
+截图失败
+权限丢失
+目标游戏卸载
+版本过旧
+资源包异常</code></pre>
+  <h4 id="doc-docs-mobile-frame-app-heading-47">审批</h4>
+  <pre><code class="language-text">暂停设备
+停止 Worker
+强制重连
+重新下发任务
+触发更新
+资源包回滚</code></pre>
+  <h3 id="doc-docs-mobile-frame-app-heading-48">10.5 与 mobile-frame 的关系</h3>
+  <p><code>game-helper-admin-mobile</code> 可以直接基于 <code>admin-mobile</code> preset 创建：</p>
+  <pre><code class="language-bash">pnpm create:app game-helper-admin-mobile --preset admin-mobile</code></pre>
+  <p>它只复用底座，不复用游戏助手设备端的 Kotlin 执行内核。</p>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-49">11. 开发阶段</h2>
+  <h3 id="doc-docs-mobile-frame-app-heading-50">阶段 1：设计系统稳定</h3>
+  <ul>
+  <li>整理 Tokens；</li>
+  <li>完善 UI 组件；</li>
+  <li>统一 Showcase；</li>
+  <li>增加状态页。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-51">阶段 2：Native Contract 稳定</h3>
+  <ul>
+  <li>已安装应用；</li>
+  <li>权限；</li>
+  <li>浮窗；</li>
+  <li>网络；</li>
+  <li>安全存储；</li>
+  <li>设备信息。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-52">阶段 3：Preset 与生成器</h3>
+  <ul>
+  <li><code>basic</code>；</li>
+  <li><code>device-agent</code>；</li>
+  <li><code>admin-mobile</code>；</li>
+  <li>create-app；</li>
+  <li>create-screen；</li>
+  <li>create-preset；</li>
+  <li>create-native-module。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-53">阶段 4：文档和 Release</h3>
+  <ul>
+  <li>Android Debug；</li>
+  <li>Android Release；</li>
+  <li>iOS Debug；</li>
+  <li>iOS Release；</li>
+  <li>发布说明；</li>
+  <li>脚手架使用文档。</li>
+  </ul>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-54">12. 验收清单</h2>
+  <blockquote>当前推进状态更新于 2026-06-03。源码级验证已通过 <code>typecheck</code>、<code>lint</code>、<code>test</code>、<code>mf:generator-smoke</code>、<code>mf:workspace-check</code>、<code>mf:docs-site:check</code>、<code>mf:ci-workflow-check</code>、非严格 <code>mf:runtime-evidence</code> 和非严格 <code>mf:validate</code>。原生 Debug/Release、远端示例 App 自动构建与真机/模拟器运行仍需要具备 Android SDK、ADB、Gradle wrapper distribution、macOS/Xcode/CocoaPods 或 GitHub Actions 成功记录继续验证；仓库内已配置 Android debug APK 和 emulator runtime 两段 CI 证据通道。</blockquote>
+  <h3 id="doc-docs-mobile-frame-app-heading-55">P0</h3>
+  <ul>
+  <li>[ ] Showcase 可运行；源码和 Showcase 集成已通过校验，Android runtime 已提供 <code>mf:android-runtime-run</code> 安装/启动/前台校验与 runtime evidence 输出，并已配置 <code>showcase-android-runtime</code> GitHub Actions emulator job 下载 debug APK、启动 Android emulator、运行安装/启动校验并上传 runtime evidence。当前环境缺 APK、ADB 和在线设备，仍需本地真机/模拟器或远端 Actions 成功记录闭环。</li>
+  <li>[x] Design Tokens 可统一引用；<code>packages/design-tokens</code>、<code>ui-core</code> 和 <code>ui-native</code> 已接入。</li>
+  <li>[x] 组件库可独立预览；Showcase 已覆盖组件、模板和 Native mock 能力入口。</li>
+  <li>[x] 页面模板可复用；<code>packages/screen-templates</code> 已提供通用模板并被 <code>create-screen</code>/Showcase 使用。</li>
+  <li>[x] 所有原生能力有 mock adapter；<code>@mobile-frame/core/native-modules</code> 已覆盖设备信息、权限、已安装应用、浮窗、安全存储、网络和 legacy mock。</li>
+  <li>[ ] Android Debug / Release 可打包；已提供统一 <code>mf:android-build:debug</code>/<code>mf:android-build:release</code> 构建入口，可执行 strict preflight、Gradle assemble、APK metadata 校验和 build evidence 输出。当前环境缺 Android SDK/Gradle/ADB，Release 签名也需业务侧配置或显式 scaffold 验证参数。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-56">P1</h3>
+  <ul>
+  <li>[x] create-app 可创建独立 RN Bare App；生成结果包含 <code>android/</code>、<code>ios/</code>、<code>src/navigation</code>、<code>src/screens</code>、<code>src/modules</code>、<code>src/store</code>、<code>src/theme</code>，并通过 generator smoke TypeScript 构建。</li>
+  <li>[x] create-screen 可创建页面；已支持 <code>blank</code>、<code>dashboard</code>、<code>detail</code>、<code>installed-apps</code>、<code>list</code>、<code>permission</code>、<code>settings</code> 等模板类型。</li>
+  <li>[x] create-preset 可创建 preset 扩展文件；生成结果位于 <code>packages/presets/src/generated/</code>，并通过 generator smoke 覆盖正向生成、dry-run 和重复保护。</li>
+  <li>[x] create-native-module 可创建原生模块模板；generator smoke 已覆盖生成、dry-run 和重复保护。</li>
+  <li>[x] <code>device-agent</code> preset 可用；已加入 canonical preset 并被 <code>create-app</code> 支持。</li>
+  <li>[x] <code>admin-mobile</code> preset 可用；已加入 canonical preset 并被 <code>create-app</code> 支持。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-app-heading-57">P2</h3>
+  <ul>
+  <li>[ ] iOS Release 流程稳定；已提供统一 <code>mf:ios-build:debug</code>/<code>mf:ios-build:release</code> 构建入口和 <code>mf:ios-export</code> IPA 导出入口，可执行 iOS strict preflight、<code>pod install</code>、<code>xcodebuild build/archive</code>、<code>.app</code>/<code>.xcarchive</code> 校验、<code>xcodebuild -exportArchive</code>、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、<code>ExportOptions.plist</code> 与签名配置跑出真实 Release/IPA 证据。</li>
+  <li>[x] 暗色主题；<code>design-tokens</code>、<code>ui-core</code>、<code>app-shell</code> 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。</li>
+  <li>[x] 组件快照测试；<code>packages/ui-native/src/component-snapshots.test.tsx</code> 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。</li>
+  <li>[x] 文档站点；已提供无额外依赖的 <code>docs-site/index.html</code> 静态入口，并通过 <code>mf:docs-site:check</code> 接入 <code>mf:validate</code>。</li>
+  <li>[ ] 示例 App 自动构建；<code>.github/workflows/mobile-frame.yml</code> 已配置 <code>source-validation</code>、<code>showcase-android-debug</code> 和 <code>showcase-android-runtime</code>，debug job 通过 <code>mf:android-build:debug</code> 构建并用 <code>mf:runtime-evidence --require android.debug-build-evidence</code> 强制校验 build evidence，runtime job 下载 APK、启动 Android emulator、执行 <code>mf:android-runtime-run</code> 并用 <code>mf:runtime-evidence --require android.runtime-evidence</code> 强制校验 runtime evidence，且通过 <code>mf:ci-workflow-check</code> 做本地结构校验。仍需远端 GitHub Actions 成功记录证明 APK 和 runtime evidence artifact 产出。</li>
+  </ul>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-58">13. 最终交付</h2>
+  <p><code>mobile-frame</code> 完成后应交付：</p>
+  <pre><code class="language-text">一个纯净通用底座
+一个 Showcase APK
+一套 Design Tokens
+一套 RN 通用组件库
+一套 Native Contract
+一套 mock adapter
+一套页面模板
+一套 App 生成器
+一套 device-agent preset
+一套 admin-mobile preset
+一套构建脚本
+一套完整文档</code></pre>
+  <hr />
+  <h2 id="doc-docs-mobile-frame-app-heading-59">14. 最终结论</h2>
+  <pre><code class="language-text">mobile-frame
+= 通用移动端脚手架
+= 不直接承载游戏助手业务
+= 同时服务未来 game-helper-app RN 壳层与 game-helper-admin-mobile</code></pre>
+  <p>短期重点：先把底座做稳定，不要提前把复杂游戏助手业务迁进去。</p>
+</article>
+<article class="doc-article" id="doc-docs-architecture">
+  <div class="article-meta">
+    <span class="category-pill">Foundation</span>
+    <a class="source-link" href="../docs/architecture.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-architecture-heading-1">MobileFrame 架构说明</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-architecture-heading-2">定位</h2>
+  <p>MobileFrame 是 React Native Bare + TypeScript 通用移动端底座。它提供通用 App 壳层、设计系统、页面模板、原生能力契约、生成器和验证脚本，不承载具体游戏助手业务。</p>
+  <p>业务 App 应通过 <code>tools/create-app.mjs</code> 生成独立 <code>apps/&lt;name&gt;</code>，再按需要接入业务模块。<code>apps/showcase</code> 只用于展示和验证底座能力。</p>
+  <h2 id="doc-docs-architecture-heading-3">工作区边界</h2>
+  <pre><code class="language-text">apps/showcase                  Showcase 预览 App 和原生模板来源
+packages/design-tokens         色彩、间距、圆角、字体、阴影、动效
+packages/ui-core               平台无关主题和组件状态类型
+packages/ui-native             React Native 通用 UI 组件
+packages/app-shell             App Provider、主题、Toast、Sheet、模块挂载状态
+packages/core                  通用工具、Native Contract、mock adapter
+packages/module-sdk            模块声明、路由、权限和 Tab 元数据
+packages/presets               App 创建预设
+packages/screen-templates      可复用页面模板
+tools                          App、模块、页面、Native 扩展点生成器
+scripts                        工作区、原生、生成器和发布前验证脚本
+docs                           架构、生成器、发布和使用文档</code></pre>
+  <h2 id="doc-docs-architecture-heading-4">App 关系</h2>
+  <pre><code class="language-text">mobile-frame
+├── apps/showcase                  # 底座能力展示和原生模板来源
+├── apps/&lt;generated-app&gt;           # create-app 生成的独立 RN Bare App
+└── packages/*                     # 所有 App 复用的底座能力</code></pre>
+  <p><code>create-app</code> 会复制 <code>apps/showcase/android</code> 与 <code>apps/showcase/ios</code>，并替换包名、registry name 和显示名。生成结果包含：</p>
+  <pre><code class="language-text">apps/&lt;name&gt;/
+├── android/
+├── ios/
+├── src/
+│   ├── App.tsx
+│   ├── navigation/
+│   ├── screens/
+│   ├── modules/
+│   ├── store/
+│   └── theme/
+├── app.json
+├── index.js
+├── package.json
+└── tsconfig.json</code></pre>
+  <h2 id="doc-docs-architecture-heading-5">运行时分层</h2>
+  <pre><code class="language-text">App
+└── MFAppProvider
+    ├── AppNavigator
+    ├── Screen Templates
+    ├── UI Native Components
+    ├── UI Core Theme
+    ├── Module SDK metadata
+    └── Core Native Contracts</code></pre>
+  <p>页面应优先使用 <code>@mobile-frame/screen-templates</code> 和 <code>@mobile-frame/ui-native</code>。平台能力应通过 <code>@mobile-frame/core/native-modules</code> 访问，避免业务页面直接调用系统 API。</p>
+  <h2 id="doc-docs-architecture-heading-6">验证边界</h2>
+  <p>当前源码级闭环由以下命令覆盖：</p>
+  <pre><code class="language-bash">pnpm run typecheck
+pnpm run lint
+pnpm run test
+pnpm run mf:generator-smoke
+node scripts/mf-workspace-check.mjs</code></pre>
+  <p>原生构建环境由 preflight 报告：</p>
+  <pre><code class="language-bash">pnpm run mf:native-readiness
+pnpm run mf:native-build-preflight
+pnpm run mf:android-runtime-preflight
+pnpm run mf:source-control-preflight</code></pre>
+  <p>Android/iOS 真机、模拟器和 release 构建需要本机工具链满足后再执行严格模式。</p>
+</article>
+<article class="doc-article" id="doc-docs-design-system">
+  <div class="article-meta">
+    <span class="category-pill">Foundation</span>
+    <a class="source-link" href="../docs/design-system.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-design-system-heading-1">MobileFrame 设计系统</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-design-system-heading-2">包边界</h2>
+  <p>设计系统分三层：</p>
+  <pre><code class="language-text">packages/design-tokens   L0 设计变量
+packages/ui-core         主题、变体、尺寸、状态算法
+packages/ui-native       React Native 组件实现</code></pre>
+  <p>业务 App 不应在页面中散落主色、圆角、间距和字体常量。优先使用 <code>createTheme()</code>、<code>MFTheme</code> 和 <code>ui-native</code> 组件。</p>
+  <h2 id="doc-docs-design-system-heading-3">Tokens</h2>
+  <p><code>@mobile-frame/design-tokens</code> 导出：</p>
+  <ul>
+  <li><code>mfTokens</code></li>
+  <li><code>mfColors</code></li>
+  <li><code>mfSpacing</code></li>
+  <li><code>mfRadius</code></li>
+  <li><code>mfTypography</code></li>
+  <li><code>mfGlass</code></li>
+  <li><code>mfMotion</code></li>
+  <li><code>mfShadow</code></li>
+  <li><code>createMFTheme(mode)</code></li>
+  </ul>
+  <p>当前保留 light/dark token。Showcase 和生成 App 默认使用 light，dark 接口已经保留在 token 和 theme 层。</p>
+  <h2 id="doc-docs-design-system-heading-4">UI Core</h2>
+  <p><code>@mobile-frame/ui-core</code> 提供平台无关能力：</p>
+  <ul>
+  <li><code>createTheme(mode)</code></li>
+  <li><code>MFTheme</code></li>
+  <li><code>MFThemeMode</code></li>
+  <li><code>MFVariant</code></li>
+  <li><code>MFSize</code></li>
+  <li><code>getInteractiveOpacity()</code></li>
+  <li><code>getPressedScale()</code></li>
+  <li><code>resolveVariantColor()</code></li>
+  </ul>
+  <p>组件变体包含：</p>
+  <pre><code class="language-text">primary
+secondary
+outline
+danger
+ghost</code></pre>
+  <h2 id="doc-docs-design-system-heading-5">UI Native</h2>
+  <p><code>@mobile-frame/ui-native</code> 当前导出布局、文本、反馈、导航和 overlay 组件。常用组件包括：</p>
+  <ul>
+  <li><code>MFPage</code></li>
+  <li><code>MFScreen</code></li>
+  <li><code>MFScrollPage</code></li>
+  <li><code>MFStack</code></li>
+  <li><code>MFRow</code></li>
+  <li><code>MFHeader</code></li>
+  <li><code>MFCard</code></li>
+  <li><code>MFSectionCard</code></li>
+  <li><code>MFButton</code></li>
+  <li><code>MFIconButton</code></li>
+  <li><code>MFTextButton</code></li>
+  <li><code>MFStatusPill</code></li>
+  <li><code>MFInfoRow</code></li>
+  <li><code>MFInfoGrid</code></li>
+  <li><code>MFListItem</code></li>
+  <li><code>MFSwitch</code></li>
+  <li><code>MFSegmentedControl</code></li>
+  <li><code>MFTabBar</code></li>
+  <li><code>MFEmptyState</code></li>
+  <li><code>MFErrorState</code></li>
+  <li><code>MFLoadingState</code></li>
+  <li><code>MFDialog</code></li>
+  <li><code>MFSheet</code></li>
+  <li><code>MFBanner</code></li>
+  <li><code>MFToastHost</code></li>
+  <li><code>MFToast</code></li>
+  <li><code>MFSheetHost</code></li>
+  <li><code>MFSearchBar</code></li>
+  <li><code>MFFilterSheet</code></li>
+  </ul>
+  <h2 id="doc-docs-design-system-heading-6">页面模板</h2>
+  <p><code>@mobile-frame/screen-templates</code> 将常用页面组合沉淀为可复用模板：</p>
+  <ul>
+  <li><code>BlankScreen</code></li>
+  <li><code>DashboardScreen</code></li>
+  <li><code>ListScreen</code></li>
+  <li><code>DetailScreen</code></li>
+  <li><code>SettingsScreen</code></li>
+  <li><code>PermissionScreen</code></li>
+  <li><code>InstalledAppsScreen</code></li>
+  <li><code>EmptyStateScreen</code></li>
+  <li><code>ErrorStateScreen</code></li>
+  <li><code>LoadingScreen</code></li>
+  </ul>
+  <p>生成页面时优先使用：</p>
+  <pre><code class="language-bash">pnpm run create:screen -- &lt;module-name&gt; &lt;screen-name&gt; --type list</code></pre>
+  <p>可用类型：</p>
+  <pre><code class="language-text">blank
+dashboard
+detail
+editor
+empty
+error
+fullscreen
+installed-apps
+list
+loading
+permission
+settings</code></pre>
+  <h2 id="doc-docs-design-system-heading-7">Showcase 验收</h2>
+  <p>Showcase 已接入 screen templates 和 native capability mock 预览。新增组件或模板时，应同步更新 Showcase 目录页或预览入口，并跑：</p>
+  <pre><code class="language-bash">pnpm run typecheck
+pnpm run lint
+pnpm run test</code></pre>
+</article>
+<article class="doc-article" id="doc-docs-create-app">
+  <div class="article-meta">
+    <span class="category-pill">Generators</span>
+    <a class="source-link" href="../docs/create-app.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-create-app-heading-1">create-app 生成器</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-create-app-heading-2">用法</h2>
+  <pre><code class="language-bash">pnpm run create:app -- demo-app
+pnpm run create:app -- demo-app --preset dashboard
+pnpm run create:app -- demo-app --preset device-agent
+pnpm run create:app -- demo-app --preset admin-mobile</code></pre>
+  <p>兼容旧命令：</p>
+  <pre><code class="language-bash">pnpm run mf:create-app -- demo-app --preset operations</code></pre>
+  <p>支持 dry-run：</p>
+  <pre><code class="language-bash">pnpm run create:app -- demo-app --preset basic --dry-run</code></pre>
+  <h2 id="doc-docs-create-app-heading-3">支持的 preset</h2>
+  <p>当前支持：</p>
+  <pre><code class="language-text">basic
+dashboard
+device-agent
+admin-mobile
+minimal
+standard
+operations</code></pre>
+  <p>新 App 默认使用 <code>basic</code>。<code>minimal</code>、<code>standard</code>、<code>operations</code> 是兼容旧项目的 legacy preset。</p>
+  <h2 id="doc-docs-create-app-heading-4">生成结果</h2>
+  <p><code>create-app</code> 会在 <code>apps/&lt;app-name&gt;</code> 下创建：</p>
+  <pre><code class="language-text">android/
+ios/
+src/
+  App.tsx
+  index.ts
+  navigation/index.tsx
+  screens/HomeScreen.tsx
+  screens/index.ts
+  modules/index.ts
+  store/index.ts
+  theme/index.ts
+app.json
+index.js
+package.json
+tsconfig.json</code></pre>
+  <p>Android/iOS 目录来自 <code>apps/showcase</code>，生成时会替换：</p>
+  <ul>
+  <li>Android package：<code>com.misk.&lt;appname&gt;</code></li>
+  <li>Android Kotlin package path</li>
+  <li>React Native registry name：PascalCase app name</li>
+  <li>iOS scheme/project/app folder：PascalCase app name</li>
+  <li>iOS display name：Title Case app name</li>
+  </ul>
+  <h2 id="doc-docs-create-app-heading-5">生成 App 的源码结构</h2>
+  <p><code>src/App.tsx</code> 只负责创建 <code>MFAppProvider</code> 并挂载导航入口。</p>
+  <p><code>src/navigation</code> 是生成 App 的导航入口。当前生成的轻量版本直接渲染 <code>HomeScreen</code>，后续业务 App 可以在这里接入 React Navigation 或自定义导航。</p>
+  <p><code>src/screens</code> 存放页面。默认 <code>HomeScreen</code> 会根据 preset 选择 <code>SettingsScreen</code>、<code>ListScreen</code> 或 <code>DashboardScreen</code> 模板。</p>
+  <p><code>src/modules</code> 将 preset module 列表转换成 <code>defineModule()</code> 元数据，供 app shell 和后续导航使用。</p>
+  <p><code>src/store</code> 存放从 preset 派生的本地首页状态，不绑定外部状态库。</p>
+  <p><code>src/theme</code> 统一导出 <code>appTheme</code>。</p>
+  <h2 id="doc-docs-create-app-heading-6">验证</h2>
+  <p>生成器 smoke 会验证：</p>
+  <ul>
+  <li>dry-run 不写文件；</li>
+  <li>重复生成会拒绝覆盖；</li>
+  <li>非法参数会失败；</li>
+  <li>生成 App 含 Android/iOS 原生工程；</li>
+  <li>生成 App 的 TypeScript 可以构建；</li>
+  <li>生成 App 的包名、入口名、显示名替换正确。</li>
+  </ul>
+  <p>运行：</p>
+  <pre><code class="language-bash">pnpm run mf:generator-smoke</code></pre>
+</article>
+<article class="doc-article" id="doc-docs-presets">
+  <div class="article-meta">
+    <span class="category-pill">Generators</span>
+    <a class="source-link" href="../docs/presets.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-presets-heading-1">App Presets</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-presets-heading-2">包边界</h2>
+  <p><code>@mobile-frame/presets</code> 只定义 App 起步形态，不写业务逻辑。preset 会被 <code>create-app</code> 消费，也可以被业务 App 读取来生成导航、模块和首页状态。</p>
+  <h2 id="doc-docs-presets-heading-3">当前 preset</h2>
+  <p>Canonical preset：</p>
+  <pre><code class="language-text">basic
+dashboard
+device-agent
+admin-mobile</code></pre>
+  <p>Legacy preset：</p>
+  <pre><code class="language-text">minimal
+standard
+operations</code></pre>
+  <h2 id="doc-docs-presets-heading-4">数据结构</h2>
+  <p>每个 preset 包含：</p>
+  <pre><code class="language-ts">type MFPreset = {
+  name: MFPresetName;
+  description: string;
+  entryScreen: string;
+  modules: string[];
+  features: string[];
+  screens: string[];
+  tabs: string[];
+};</code></pre>
+  <p>扩展 preset 使用可泛化名称类型：</p>
+  <pre><code class="language-ts">type MFPresetDefinition&lt;TName extends string = string&gt; = {
+  name: TName;
+  description: string;
+  entryScreen: string;
+  modules: string[];
+  features: string[];
+  screens: string[];
+  tabs: string[];
+};</code></pre>
+  <p>读取单个 preset：</p>
+  <pre><code class="language-ts">import { getPreset } from '@mobile-frame/presets';
+
+const preset = getPreset('device-agent');</code></pre>
+  <p>列出 canonical preset：</p>
+  <pre><code class="language-ts">import { listPresets } from '@mobile-frame/presets';
+
+const presets = listPresets();</code></pre>
+  <h2 id="doc-docs-presets-heading-5">使用建议</h2>
+  <p><code>basic</code> 适合最小业务 App，包含首页、设置、主题、Toast 和 Sheet 基础能力。</p>
+  <p><code>dashboard</code> 适合状态优先 App，默认使用仪表盘、列表和设置模板。</p>
+  <p><code>device-agent</code> 适合设备端 App，预留设备状态、权限、已安装应用、日志和设置模块。</p>
+  <p><code>admin-mobile</code> 适合管理员移动端，预留总览、设备、任务、告警、审批、账号和设置模块。</p>
+  <h2 id="doc-docs-presets-heading-6">生成扩展 preset</h2>
+  <p>使用：</p>
+  <pre><code class="language-bash">pnpm run create:preset -- field-ops</code></pre>
+  <p>兼容旧命令：</p>
+  <pre><code class="language-bash">pnpm run mf:create-preset -- field-ops</code></pre>
+  <p>生成结果：</p>
+  <pre><code class="language-text">packages/presets/src/generated/fieldOps.ts
+packages/presets/src/generated/index.ts</code></pre>
+  <p>生成器会把扩展 preset 导出为 <code>MFPresetDefinition&lt;'field-ops'&gt;</code>。它不会自动加入 <code>mfPresets</code>，因此也不会自动成为 <code>create:app --preset</code> 的可选值。需要内置化时，应 review 生成文件后手动加入 <code>mfPresets</code>、<code>MFPresetName</code> 和相关测试。</p>
+  <h2 id="doc-docs-presets-heading-7">验证</h2>
+  <p>preset 测试位于：</p>
+  <pre><code class="language-text">packages/presets/src/index.test.ts</code></pre>
+  <p>生成器 smoke 会额外验证 <code>create-preset</code> 的正向生成、dry-run 和重复保护：</p>
+  <pre><code class="language-bash">pnpm run mf:generator-smoke</code></pre>
+  <p>运行：</p>
+  <pre><code class="language-bash">pnpm run test</code></pre>
+</article>
+<article class="doc-article" id="doc-docs-native-contracts">
+  <div class="article-meta">
+    <span class="category-pill">Native</span>
+    <a class="source-link" href="../docs/native-contracts.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-native-contracts-heading-1">Native Contracts</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-native-contracts-heading-2">原则</h2>
+  <p>业务页面不直接调用 Android/iOS API。MobileFrame 在 <code>@mobile-frame/core/native-modules</code> 中定义 TypeScript 契约和 mock adapter，真实平台实现后续挂在同一边界后面。</p>
+  <p>Showcase 和生成 App 可以先基于 mock adapter 完成 UI、权限和状态流预览。</p>
+  <h2 id="doc-docs-native-contracts-heading-3">新契约</h2>
+  <p>当前直接契约包括：</p>
+  <pre><code class="language-ts">DeviceInfoNative
+PermissionNative
+InstalledAppsNative
+OverlayNative
+SecureStorageNative
+NetworkNative</code></pre>
+  <p>核心数据类型包括：</p>
+  <pre><code class="language-ts">DeviceInfo
+PermissionSnapshot
+PermissionState
+PermissionType
+InstalledApp
+ListAppsOptions
+NetworkStatus</code></pre>
+  <h2 id="doc-docs-native-contracts-heading-4">兼容契约</h2>
+  <p>旧 <code>MFResult</code> 风格模块仍保留：</p>
+  <pre><code class="language-ts">SecureVaultModule
+BiometricModule
+NetworkMonitorModule
+HapticsModule
+ClipboardModule
+FileSystemModule
+PermissionModule
+AppLifecycleModule
+LoggerModule
+DeviceInfoModule
+ShareModule</code></pre>
+  <p>新代码优先使用直接契约；需要兼容旧调用时继续使用 <code>MFResult</code> 模块。</p>
+  <h2 id="doc-docs-native-contracts-heading-5">Mock Adapter</h2>
+  <p>使用：</p>
+  <pre><code class="language-ts">import { createMockNativeModules } from '@mobile-frame/core/native-modules';
+
+const nativeModules = createMockNativeModules();</code></pre>
+  <p>mock adapter 支持：</p>
+  <ul>
+  <li>设备信息；</li>
+  <li>权限快照和打开设置记录；</li>
+  <li>已安装应用列表和启动结果；</li>
+  <li>浮窗权限、显示和隐藏状态；</li>
+  <li>安全存储；</li>
+  <li>网络状态订阅；</li>
+  <li>剪贴板、文件系统、日志和分享等 legacy 模块。</li>
+  </ul>
+  <h2 id="doc-docs-native-contracts-heading-6">Showcase 预览</h2>
+  <p>Showcase 的 Native tab 已列出新契约和 legacy 模块。预览动作通过 <code>apps/showcase/src/preview-actions.ts</code> 触发 mock adapter，确保没有真实 Native Module 时也能检查页面状态。</p>
+  <h2 id="doc-docs-native-contracts-heading-7">验证</h2>
+  <p>相关测试位于：</p>
+  <pre><code class="language-text">packages/core/src/native-modules.test.ts</code></pre>
+  <p>运行：</p>
+  <pre><code class="language-bash">pnpm run test</code></pre>
+</article>
+<article class="doc-article" id="doc-docs-release">
+  <div class="article-meta">
+    <span class="category-pill">Release</span>
+    <a class="source-link" href="../docs/release.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-release-heading-1">Release 与原生构建</h1>
+  <p>最后更新：2026-06-03</p>
+  <h2 id="doc-docs-release-heading-2">当前边界</h2>
+  <p>源码级验证已可在没有完整原生工具链的环境中执行。Android/iOS 真机、模拟器、Debug 和 Release 构建仍依赖本地平台工具。</p>
+  <p>默认 <code>pnpm run mf:validate</code> 会报告原生环境缺口但不因为缺少本机工具链失败。需要真正构建前使用严格模式。</p>
+  <h2 id="doc-docs-release-heading-3">通用验证</h2>
+  <pre><code class="language-bash">pnpm run mf:workspace-check
+pnpm run mf:docs-site:check
+pnpm run mf:ci-workflow-check
+pnpm run mf:runtime-evidence
+pnpm run typecheck
+pnpm run lint
+pnpm run test
+pnpm run mf:generator-smoke
+git diff --check</code></pre>
+  <p>完整非严格验证：</p>
+  <pre><code class="language-bash">pnpm run mf:validate</code></pre>
+  <p>完整原生证据门禁：</p>
+  <pre><code class="language-bash">pnpm run mf:runtime-evidence:strict</code></pre>
+  <p>非严格 <code>mf:runtime-evidence</code> 只汇总缺失项，适合本地开发机；严格模式要求 Android debug/release build evidence、Android runtime evidence、iOS debug/release build evidence 和 iOS IPA export evidence 都存在且结构有效。</p>
+  <h2 id="doc-docs-release-heading-4">GitHub Actions</h2>
+  <p>仓库提供 <code>.github/workflows/mobile-frame.yml</code>，当前包含三个 job：</p>
+  <ul>
+  <li><code>source-validation</code>：在 Ubuntu + Node 22 + pnpm 11.5.0 上安装依赖并运行 <code>pnpm run mf:validate</code>；</li>
+  <li><code>showcase-android-debug</code>：在源码验证通过后安装 JDK 17、Android SDK platform 36、build-tools 36.0.0、NDK 27.1.12297006，通过 <code>pnpm run mf:android-build:debug</code> 执行 Android strict preflight、构建 Showcase debug APK，再运行 <code>pnpm run mf:runtime-evidence -- --require android.debug-build-evidence --report data/runtime-evidence/runtime-evidence-report.json</code> 强制校验 debug build evidence 并生成证据汇总报告，然后上传 APK、APK metadata、build evidence JSON 与 runtime evidence report；</li>
+  <li><code>showcase-android-runtime</code>：下载 debug APK artifact，启用 KVM，启动 Android API 35 x86_64 emulator，执行 <code>pnpm run mf:android-runtime-run</code> 安装并启动 Showcase，再运行 <code>pnpm run mf:runtime-evidence -- --require android.runtime-evidence --report data/runtime-evidence/runtime-evidence-report.json</code> 强制校验 Android runtime evidence，并上传 Android runtime evidence 和汇总报告。</li>
+  </ul>
+  <p>触发方式：</p>
+  <ul>
+  <li>pull request；</li>
+  <li>push 到 <code>main</code> 或 <code>game-helper-app</code>；</li>
+  <li>手动 <code>workflow_dispatch</code>。</li>
+  </ul>
+  <p>这代表示例 App 自动构建与 emulator runtime 流程已配置到仓库。是否真正完成验收，还需要远端 GitHub Actions 运行记录证明 <code>showcase-android-debug</code> 成功产出 <code>mobile-frame-showcase-debug-apk</code>，并证明 <code>showcase-android-runtime</code> 成功产出 <code>mobile-frame-showcase-runtime-evidence</code>，其中应包含 Android runtime evidence 和 <code>runtime-evidence-report.json</code>。</p>
+  <p>本地使用以下命令守住 workflow 结构：</p>
+  <pre><code class="language-bash">pnpm run mf:ci-workflow-check</code></pre>
+  <p>它会检查 pull request、<code>main</code>、<code>game-helper-app</code> 和手动触发配置，以及源码验证、Android SDK 安装、统一 Android 构建脚本、strict Android preflight、Showcase debug APK 构建、debug build evidence 必需门禁、runtime evidence report 生成、APK/evidence artifact 上传、emulator runtime job、KVM 配置、debug APK artifact 下载、<code>mf:android-runtime-run</code> 安装/启动校验、Android runtime evidence 必需门禁和 runtime evidence artifact 上传步骤是否仍在。</p>
+  <h2 id="doc-docs-release-heading-5">文档站点</h2>
+  <p>文档站点是无额外依赖的静态 HTML，生成结果为 <code>docs-site/index.html</code>：</p>
+  <pre><code class="language-bash">pnpm run mf:docs-site
+pnpm run mf:docs-site:check</code></pre>
+  <p><code>mf:validate</code> 会运行 <code>mf:docs-site:check</code>，确保站点入口与 README、架构、设计系统、生成器、原生契约、preset、release 和主改造方案文档保持同步。</p>
+  <h2 id="doc-docs-release-heading-6">原生预检</h2>
+  <p>检查原生工程文件：</p>
+  <pre><code class="language-bash">pnpm run mf:native-readiness
+pnpm run mf:native-readiness:strict</code></pre>
+  <p>检查本机 Android/iOS 构建工具：</p>
+  <pre><code class="language-bash">pnpm run mf:native-build-preflight
+pnpm run mf:native-build-preflight:strict
+pnpm run mf:native-build-preflight -- --platform android --strict
+pnpm run mf:native-build-preflight -- --platform ios --strict</code></pre>
+  <p>检查 Android APK、adb 和设备：</p>
+  <pre><code class="language-bash">pnpm run mf:android-runtime-preflight
+pnpm run mf:android-runtime-preflight:strict</code></pre>
+  <h2 id="doc-docs-release-heading-7">Android Debug</h2>
+  <p>环境要求：</p>
+  <ul>
+  <li>JDK 17 或更高；</li>
+  <li>Android SDK；</li>
+  <li>compileSdk 对应平台；</li>
+  <li>buildToolsVersion 对应版本；</li>
+  <li>platform-tools；</li>
+  <li>Gradle wrapper 或已缓存 wrapper distribution。</li>
+  </ul>
+  <p>构建：</p>
+  <pre><code class="language-bash">pnpm run mf:android-build:debug</code></pre>
+  <p>该命令会先运行：</p>
+  <pre><code class="language-bash">node scripts/mf-native-build-preflight.mjs --app apps/showcase --platform android --strict</code></pre>
+  <p>然后执行 <code>:app:assembleDebug</code>，校验 <code>output-metadata.json</code>、APK 文件、<code>applicationId</code> 和 SHA-256，并写入：</p>
+  <pre><code class="language-text">data/runtime-evidence/android/apps-showcase-debug-build-evidence.json</code></pre>
+  <p>如需直接调用 Gradle，先确认 strict preflight 通过：</p>
+  <pre><code class="language-bash">pnpm run mf:native-build-preflight -- --platform android --strict
+cd apps/showcase/android
+./gradlew :app:assembleDebug --no-daemon --stacktrace</code></pre>
+  <p>Windows 直接调用 Gradle：</p>
+  <pre><code class="language-powershell">cd apps\showcase\android
+.\gradlew.bat :app:assembleDebug --no-daemon --stacktrace</code></pre>
+  <p>默认 APK 输出：</p>
+  <pre><code class="language-text">apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk</code></pre>
+  <p>安装和启动前：</p>
+  <pre><code class="language-bash">pnpm run mf:android-runtime-preflight:strict
+pnpm run mf:android-runtime-run</code></pre>
+  <p><code>mf:android-runtime-run</code> 会安装 debug APK、通过 launcher intent 启动 App、检查前台窗口中包含 <code>applicationId</code>，并写入：</p>
+  <pre><code class="language-text">data/runtime-evidence/android/apps-showcase-runtime-evidence.json</code></pre>
+  <h2 id="doc-docs-release-heading-8">Android Release</h2>
+  <p>Release 构建需要业务 App 配置签名信息后再执行。当前底座只提供 preflight 和原生工程模板，不提交密钥。</p>
+  <p>推荐流程：</p>
+  <pre><code class="language-bash">pnpm run mf:android-build -- --app apps/&lt;app-name&gt; --variant release</code></pre>
+  <p>签名文件、密码和发布渠道配置必须通过本地环境变量、CI secret 或未提交的 Gradle 配置注入。</p>
+  <p>当前 Showcase 模板仍使用 debug signingConfig 作为 scaffold 占位。只有为了验证脚手架 release build 流程时，才允许显式运行：</p>
+  <pre><code class="language-bash">pnpm run mf:android-build:release -- --allow-debug-release-signing</code></pre>
+  <p>正式业务 App 不应使用该参数。</p>
+  <h2 id="doc-docs-release-heading-9">iOS Debug</h2>
+  <p>iOS 必须在 macOS 上执行，环境要求：</p>
+  <ul>
+  <li>Xcode；</li>
+  <li>CocoaPods；</li>
+  <li>可用模拟器或真机签名配置。</li>
+  </ul>
+  <p>流程：</p>
+  <pre><code class="language-bash">pnpm run mf:ios-build:debug</code></pre>
+  <p>该命令会先运行 iOS strict preflight，再执行 <code>pod install</code> 和 <code>xcodebuild build</code>，校验 <code>.app</code> bundle 并写入：</p>
+  <pre><code class="language-text">data/runtime-evidence/ios/apps-showcase-debug-build-evidence.json</code></pre>
+  <p>生成 App 的 iOS 工程名会随 registry name 替换，例如 <code>SmokeApp.xcodeproj</code>。</p>
+  <h2 id="doc-docs-release-heading-10">iOS Release</h2>
+  <p>iOS Release 需要 Apple Developer Team、Bundle Identifier、证书、描述文件和导出配置。当前仓库只保留工程模板、preflight 和归档/导出证据脚本，不提交证书或描述文件。</p>
+  <p>推荐在 macOS CI 上补齐：</p>
+  <pre><code class="language-bash">pnpm run mf:ios-build -- --app apps/&lt;app-name&gt; --configuration Release
+pnpm run mf:ios-export -- --app apps/&lt;app-name&gt; --export-options-plist &lt;path&gt;</code></pre>
+  <p>第一条命令会执行 <code>xcodebuild archive</code>，校验 <code>.xcarchive</code> 与归档中的 <code>.app</code> bundle，并写入 build evidence JSON：</p>
+  <pre><code class="language-text">data/runtime-evidence/ios/apps-showcase-release-build-evidence.json</code></pre>
+  <p>第二条命令会读取已生成的 <code>.xcarchive</code> 和业务提供的 <code>ExportOptions.plist</code>，执行 <code>xcodebuild -exportArchive</code>，校验导出的 IPA，并写入：</p>
+  <pre><code class="language-text">data/runtime-evidence/ios/apps-showcase-export-evidence.json</code></pre>
+  <p><code>ExportOptions.plist</code>、证书、描述文件、Apple 账号和签名 secret 应保留在本地或 CI secret 中。上传 TestFlight 或企业分发仍由业务 CI 在 IPA 导出后继续处理。</p>
+  <h2 id="doc-docs-release-heading-11">提交前检查</h2>
+  <pre><code class="language-bash">pnpm run mf:source-control-preflight:strict
+git status --short
+git diff --check</code></pre>
+  <p>不要提交：</p>
+  <ul>
+  <li><code>node_modules/</code></li>
+  <li><code>dist/</code></li>
+  <li>Android <code>.gradle/</code>、<code>.kotlin/</code>、<code>build/</code>、<code>app/build/</code></li>
+  <li>iOS <code>Pods/</code>、<code>build/</code></li>
+  <li>signing keys、证书、描述文件和本地 secret</li>
+  </ul>
+</article>
+<article class="doc-article" id="doc-docs-mobile-frame-product-overview">
+  <div class="article-meta">
+    <span class="category-pill">Reference</span>
+    <a class="source-link" href="../docs/mobile-frame-product-overview.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-mobile-frame-product-overview-heading-1">MobileFrame Product Overview</h1>
+  <p>Last updated: 2026-06-03</p>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-2">Product Positioning</h2>
+  <p>MobileFrame is a reusable mobile application foundation for teams that need to create multiple business apps without rebuilding the same native shell, design system, module contracts, and scaffolding every time.</p>
+  <p>It is not a single-purpose app. It is a starter platform that gives a team a ready React Native bare project, a shared UI system, native capability contracts, app/module generators, and a showcase app that demonstrates how the pieces fit together.</p>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-3">Target Users</h2>
+  <ul>
+  <li>Product engineering teams building multiple internal or customer-facing mobile apps.</li>
+  <li>Platform teams standardizing React Native app architecture across projects.</li>
+  <li>Developers who need a fast way to generate app shells, modules, screens, and native extension points.</li>
+  <li>Teams that need a bridge between TypeScript business logic and platform-native iOS/Android capabilities.</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-4">Product Value</h2>
+  <p>MobileFrame reduces repeated setup work in four areas:</p>
+  <ul>
+  <li>App foundation: workspace structure, TypeScript, linting, testing, validation, and native project folders are already wired.</li>
+  <li>UI foundation: shared tokens, component primitives, layout helpers, feedback components, and app shell state are available from the start.</li>
+  <li>Native foundation: platform capability contracts and mock adapters provide a stable TypeScript-facing boundary before real native modules are implemented.</li>
+  <li>Delivery foundation: generators and validation scripts give teams a consistent path for creating apps, modules, screens, and native extension points.</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-5">Core Product Experience</h2>
+  <p>The showcase app is the reference experience. It demonstrates:</p>
+  <ul>
+  <li>App startup and local navigation.</li>
+  <li>Theme switching.</li>
+  <li>Toast and sheet feedback.</li>
+  <li>Forms and validation.</li>
+  <li>Settings/profile flows.</li>
+  <li>Permission and system capability placeholders.</li>
+  <li>Catalog-style areas for components, templates, modules, and native capabilities.</li>
+  </ul>
+  <p>The intended product workflow is:</p>
+  <ol>
+  <li>Choose a preset for the new app.</li>
+  <li>Generate an app shell with <code>mf:create-app</code>.</li>
+  <li>Generate business modules and screens.</li>
+  <li>Mount modules through the app shell.</li>
+  <li>Use shared UI and native capability contracts.</li>
+  <li>Validate with <code>mf:validate</code>.</li>
+  <li>Build native iOS/Android projects when the local toolchain is available.</li>
+  </ol>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-6">Feature Scope</h2>
+  <p>Current product scope:</p>
+  <ul>
+  <li>React Native bare showcase app.</li>
+  <li>pnpm monorepo workspace.</li>
+  <li>Shared TypeScript configuration.</li>
+  <li>ESLint, Vitest, and TypeScript build validation.</li>
+  <li>UI token and component packages.</li>
+  <li>App shell package.</li>
+  <li>Native capability contract package.</li>
+  <li>Module SDK and preset package.</li>
+  <li>Code generators.</li>
+  <li>Native readiness and native build preflight scripts.</li>
+  <li>Android debug APK build evidence.</li>
+  <li>Android emulator runtime evidence path through local ADB scripts and GitHub Actions.</li>
+  </ul>
+  <p>Planned product scope:</p>
+  <ul>
+  <li>iOS simulator build evidence on macOS.</li>
+  <li>Successful Android emulator or physical-device runtime evidence from a real local or remote run.</li>
+  <li>Real platform implementations for selected native capability modules.</li>
+  <li>More complete reusable page templates.</li>
+  <li>More complete module catalog and preset coverage.</li>
+  <li>CI workflow that runs workspace validation and platform-specific build checks on suitable hosts.</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-7">Native Capability Strategy</h2>
+  <p>MobileFrame keeps app pages away from direct platform API calls. Pages and business modules should use TypeScript contracts such as permission, clipboard, network, biometric, secure vault, lifecycle, logger, and device-info adapters.</p>
+  <p>This keeps the product scalable:</p>
+  <ul>
+  <li>Mock adapters can support early UI and product work.</li>
+  <li>Real native modules can replace mocks without changing page code.</li>
+  <li>iOS and Android can evolve independently behind a shared contract.</li>
+  <li>Security rules can be enforced at the capability boundary.</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-product-overview-heading-8">Success Criteria</h2>
+  <p>The scaffold is successful when a team can:</p>
+  <ul>
+  <li>Generate a new app or module without copying files by hand.</li>
+  <li>Build and test shared TypeScript packages with one validation command.</li>
+  <li>Run the showcase app through native Android and iOS toolchains.</li>
+  <li>Add a native capability without changing unrelated app code.</li>
+  <li>Reuse the same app shell and UI system across multiple app products.</li>
+  </ul>
+  <p>The current milestone has reached source-level validation, Android APK assembly scripting, and an Android emulator runtime evidence channel. The next closure milestone is real local or remote runtime proof on Android and native build/runtime proof on iOS.</p>
+</article>
+<article class="doc-article" id="doc-docs-mobile-frame-landing-plan">
+  <div class="article-meta">
+    <span class="category-pill">Reference</span>
+    <a class="source-link" href="../docs/mobile-frame-landing-plan.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-docs-mobile-frame-landing-plan-heading-1">MobileFrame UI 与交互落地方案</h1>
+  <blockquote>依据根目录新增资源：<code>mobile-frame-complete-ui-kit.zip</code>、<code>mobile-frame-wireframes.md</code>、<code>preview.html</code>、<code>docs/gemini-code-1780431805962.html</code></blockquote>
+  <blockquote>当前工程状态：Phase 0 monorepo 骨架已建立，<code>mf:validate</code> 已可跑通。</blockquote>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-2">1. 目标</h2>
+  <p>把交互原型和组件资源包落成一个可持续演进的 React Native 原生脚手架首版：</p>
+  <ul>
+  <li>设计 token 成为唯一视觉源。</li>
+  <li>UI kit 组件并入现有 <code>packages/ui-native</code>，保留 RN 可运行实现。</li>
+  <li>原型里的 11 个页面落成 <code>apps/showcase</code> 的首版页面。</li>
+  <li>页面交互、Toast、Sheet、主题切换、底部导航、表单校验形成可复用模式。</li>
+  <li>后续 SwiftUI / Kotlin Compose / Turbo Module 可以按同一 TS 契约补原生实现。</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-3">2. 资源清单与归宿</h2>
+  <table><thead><tr><th>资源</th><th>内容</th><th>落地位置</th><th>处理方式</th></tr></thead><tbody><tr><td><code>ui-resources/tokens/design-tokens.json</code></td><td>主色、圆角、间距、字体、玻璃、动效</td><td><code>packages/design-tokens</code></td><td>作为 L0 token 基准，替换当前临时 token</td></tr><tr><td><code>component-package/src/theme/tokens.ts</code></td><td>RN 组件用 token</td><td><code>packages/design-tokens/src</code></td><td>转成从 JSON 派生的 TS 常量，避免双 token</td></tr><tr><td><code>component-package/src/components/*</code></td><td><code>MFButton</code>、<code>MFCard</code>、<code>MFText</code>、<code>MFListItem</code>、<code>MFSwitch</code>、<code>MFPage</code>、<code>MFGlassPanel</code> 等</td><td><code>packages/ui-native/src/components</code></td><td>合并到现有组件包，统一 props 与命名</td></tr><tr><td><code>ui-resources/icons/*.svg</code></td><td>Tab、设置、权限、搜索、返回等图标</td><td><code>packages/ui-native/assets/icons</code></td><td>首版保留 SVG 文件；RN 侧后续接 <code>react-native-svg</code> 或 icon adapter</td></tr><tr><td><code>ui-resources/logo/mobile-frame-logo.svg</code></td><td>品牌 Logo</td><td><code>packages/ui-native/assets/logo</code></td><td>用于启动页、关于页</td></tr><tr><td><code>prototype-images/*.png</code></td><td>11 张页面原型图</td><td><code>docs/prototype-images</code></td><td>作为视觉验收参考，不进入运行时代码</td></tr><tr><td><code>mobile-frame-wireframes.md</code></td><td>页面清单、交互说明、模拟数据</td><td><code>docs/mobile-frame-wireframes.md</code></td><td>作为页面实现验收文档</td></tr><tr><td><code>interactive-prototype/*.html</code> / <code>preview.html</code></td><td>可交互 HTML 原型</td><td><code>docs/prototypes</code></td><td>作为动效、页面跳转和文案参考</td></tr></tbody></table>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-4">3. 包边界</h2>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-5"><code>packages/design-tokens</code></h3>
+  <p>职责：只管理 L0 设计变量。</p>
+  <p>落地内容：</p>
+  <ul>
+  <li><code>mfTokens</code>：完整 token 对象。</li>
+  <li><code>mfColors</code>、<code>mfSpacing</code>、<code>mfRadius</code>、<code>mfTypography</code>、<code>mfGlass</code>、<code>mfMotion</code>。</li>
+  <li><code>createMFTheme(mode)</code>：输出 light / dark / system 所需主题对象。</li>
+  <li>token 单元测试：主色、圆角、玻璃限制、动效时长必须稳定。</li>
+  </ul>
+  <p>原则：业务页面和组件不得硬编码主色、圆角、间距。</p>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-6"><code>packages/ui-core</code></h3>
+  <p>职责：组件类型、主题类型、状态算法、无平台逻辑。</p>
+  <p>落地内容：</p>
+  <ul>
+  <li><code>MFVariant</code>、<code>MFSize</code>、<code>MFComponentState</code>。</li>
+  <li><code>getInteractiveOpacity</code>、<code>getPressedScale</code>、<code>resolveVariantColor</code>。</li>
+  <li>组件公共 props 类型，例如 <code>MFBaseProps</code>、<code>MFActionProps</code>。</li>
+  </ul>
+  <p>原则：这里不直接 import <code>react-native</code>。</p>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-7"><code>packages/ui-native</code></h3>
+  <p>职责：React Native 可运行 UI 组件。</p>
+  <p>首批组件：</p>
+  <ul>
+  <li>布局：<code>MFPage</code>、<code>MFScrollPage</code>、<code>MFStack</code>、<code>MFRow</code>、<code>MFSection</code>、<code>MFGlassPanel</code>。</li>
+  <li>文本：<code>MFText</code>、<code>MFHeading</code>、<code>MFParagraph</code>、<code>MFLabel</code>、<code>MFCaption</code>。</li>
+  <li>操作：<code>MFButton</code>、<code>MFIconButton</code>、<code>MFSwitch</code>、<code>MFCheckbox</code>。</li>
+  <li>数据：<code>MFCard</code>、<code>MFStatCard</code>、<code>MFListItem</code>、<code>MFBadge</code>、<code>MFToast</code>、<code>MFSheet</code>。</li>
+  <li>导航：<code>MFTabBar</code>、<code>MFBackButton</code>、<code>MFPageHeader</code>。</li>
+  </ul>
+  <p>原则：先用 RN 实现视觉和交互；真正的 SwiftUI / Compose 原生组件在后续通过同名 adapter 替换。</p>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-8"><code>packages/app-shell</code></h3>
+  <p>职责：App 壳层、主题、导航、Toast/Sheet 全局状态、模块挂载。</p>
+  <p>落地内容：</p>
+  <ul>
+  <li><code>MFAppProvider</code>：主题、模块、用户状态、系统状态。</li>
+  <li><code>useMFToast()</code>：全局 Toast。</li>
+  <li><code>useMFSheet()</code>：全局 Sheet。</li>
+  <li><code>useMFThemeMode()</code>：浅色 / 深色 / 跟随系统。</li>
+  <li><code>createAppConfig()</code>：业务 app 配置入口。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-9"><code>apps/showcase</code></h3>
+  <p>职责：实现原型 11 个页面和组件展示。</p>
+  <p>首版页面：</p>
+  <ul>
+  <li>P0：启动页、引导页、登录页、注册页、首页、个人中心、设置页。</li>
+  <li>P1：权限管理、个人信息、通用设置、关于页。</li>
+  </ul>
+  <p>首版用本地模拟状态，不接真实后端。</p>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-10">4. 页面落地顺序</h2>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-11">P0-1：导航与壳层</h3>
+  <p>交付：</p>
+  <ul>
+  <li><code>RootNavigator</code>：启动页 -&gt; 引导页 -&gt; 登录页 / 注册页 -&gt; 主 Tab。</li>
+  <li><code>MainTabs</code>：首页、组件、原生能力、模板、我的。</li>
+  <li><code>SettingsStack</code>：设置、权限管理、通用设置、关于。</li>
+  <li>页面跳转符合 <code>mobile-frame-wireframes.md</code>。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li>所有 P0 页面可以通过按钮或 Tab 进入。</li>
+  <li>未实现页面不空白，显示预留状态。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-12">P0-2：全局反馈</h3>
+  <p>交付：</p>
+  <ul>
+  <li><code>MFToastHost</code>：1500ms 自动淡出。</li>
+  <li><code>MFSheetHost</code>：底部弹出，20% 黑色遮罩。</li>
+  <li>登录、注册、保存、复制、权限、更新检查等 Toast 文案落地。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li><code>登录成功</code> 后进入首页。</li>
+  <li><code>注册成功</code> 后进入首页。</li>
+  <li><code>检查更新</code> 显示 <code>当前已是最新版本</code>。</li>
+  <li>权限项点击打开说明 Sheet。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-13">P0-3：基础表单</h3>
+  <p>交付：</p>
+  <ul>
+  <li>登录页：账号输入、密码输入、忘记密码、第三方登录占位。</li>
+  <li>注册页：手机号、验证码、倒计时、密码、确认密码、协议勾选。</li>
+  <li>通用校验：空值、协议未勾选、密码不一致。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li>协议未勾选时不能注册。</li>
+  <li>验证码按钮进入 60 秒倒计时。</li>
+  <li>登录成功后进入首页。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-14">P0-4：首页与个人中心</h3>
+  <p>交付：</p>
+  <ul>
+  <li>首页统计卡：组件 32、原生能力 28、页面模板 16、模块 12。</li>
+  <li>快捷操作：新建页面、组件、模块、导入项目，以 Sheet 或 Toast 占位。</li>
+  <li>个人中心：用户卡、数据卡、菜单列表。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li>首页卡片、快捷操作和项目状态与交互文档一致。</li>
+  <li>个人中心菜单能进入个人信息、通用设置、关于页。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-15">P0-5：设置页</h3>
+  <p>交付：</p>
+  <ul>
+  <li>外观 segmented control：浅色、深色、跟随系统。</li>
+  <li>系统菜单：权限管理、安全与隐私、网络状态、生物识别。</li>
+  <li>系统状态卡：Wi-Fi、存储、内存。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li>主题切换影响全局页面颜色。</li>
+  <li>权限管理和关于页面可进入。</li>
+  <li>预留项显示明确 Toast。</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-16">5. P1 页面落地</h2>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-17">权限管理</h3>
+  <p>交付：</p>
+  <ul>
+  <li>已授权：相机、相册、麦克风、通知、生物识别。</li>
+  <li>需手动开启：剪贴板、文件访问。</li>
+  <li>隐私建议 Banner。</li>
+  </ul>
+  <p>后续对接：</p>
+  <ul>
+  <li><code>PermissionModule.request(permission)</code>。</li>
+  <li>系统设置跳转 adapter。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-18">个人信息</h3>
+  <p>交付：</p>
+  <ul>
+  <li>用户卡、手机号、邮箱、部门、职位、地区、个性签名。</li>
+  <li>微信、Apple ID、邮箱状态。</li>
+  <li>保存按钮触发 <code>保存成功</code>。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-19">通用设置</h3>
+  <p>交付：</p>
+  <ul>
+  <li>语言与地区、字体大小、默认首页。</li>
+  <li>缓存管理、自动更新、跟随系统、动画、声音触感。</li>
+  <li>数据同步、存储空间清理确认 Sheet。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-20">关于页</h3>
+  <p>交付：</p>
+  <ul>
+  <li>Logo、版本、构建号。</li>
+  <li>官方网站、开源协议、隐私政策、用户协议、更新日志、联系我们。</li>
+  <li>检查更新 Toast。</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-21">6. 技术实施阶段</h2>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-22">Stage 1：资产与 token 固化</h3>
+  <p>工作：</p>
+  <ul>
+  <li>解压资源包到临时目录，不直接污染源码。</li>
+  <li>复制 <code>design-tokens.json</code> 到 <code>packages/design-tokens/src/tokens.json</code>。</li>
+  <li>生成或手写 <code>tokens.ts</code> 导出强类型 token。</li>
+  <li>复制图标和 Logo 到 <code>packages/ui-native/assets</code>。</li>
+  <li>移动原型图和交互 HTML 到 <code>docs</code>。</li>
+  </ul>
+  <p>校验：</p>
+  <ul>
+  <li><code>pnpm mf:validate</code>。</li>
+  <li>token 测试通过。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-23">Stage 2：组件包合并</h3>
+  <p>工作：</p>
+  <ul>
+  <li>将 zip 里的组件迁移到 <code>packages/ui-native/src/components</code>。</li>
+  <li>保留当前已有 <code>layout.tsx</code>、<code>typography.tsx</code>、<code>feedback.tsx</code>，但拆分为组件目录。</li>
+  <li>统一 props：</li>
+  <li><code>children</code> 优先，<code>title</code> 兼容但不作为唯一入口。</li>
+  <li><code>style</code> 使用 <code>StyleProp</code>。</li>
+  <li><code>variant</code> 使用 <code>primary | secondary | danger | ghost</code>。</li>
+  <li><code>size</code> 使用 <code>sm | md | lg</code>。</li>
+  <li>加入 <code>StyleSheet.create</code>，减少内联样式扩散。</li>
+  </ul>
+  <p>校验：</p>
+  <ul>
+  <li>组件导出完整。</li>
+  <li>每个组件至少有基础渲染测试或类型测试。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-24">Stage 3：App 壳层与导航</h3>
+  <p>工作：</p>
+  <ul>
+  <li>增加 <code>@react-navigation/native</code> 与 native stack / bottom tabs。</li>
+  <li><code>apps/showcase</code> 接入 <code>RootNavigator</code>。</li>
+  <li>加入 <code>MFAppProvider</code>、<code>MFToastHost</code>、<code>MFSheetHost</code>。</li>
+  </ul>
+  <p>校验：</p>
+  <ul>
+  <li>所有 P0 页面可达。</li>
+  <li>Tab 状态正确。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-25">Stage 4：P0 页面实现</h3>
+  <p>工作：</p>
+  <ul>
+  <li>实现启动页、引导页、登录页、注册页、首页、个人中心、设置页。</li>
+  <li>文案、模拟数据和交互严格对齐 wireframes。</li>
+  <li>预留功能用 Toast 或 Sheet 表达，不留空按钮。</li>
+  </ul>
+  <p>校验：</p>
+  <ul>
+  <li>页面视觉接近 <code>preview.html</code>：白色简约、浅蓝主色、毛玻璃、低饱和阴影。</li>
+  <li>Android / iOS RN runtime 不报红屏。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-26">Stage 5：P1 页面实现</h3>
+  <p>工作：</p>
+  <ul>
+  <li>实现权限管理、个人信息、通用设置、关于页。</li>
+  <li>接入模拟权限状态、模拟用户资料、模拟系统状态。</li>
+  </ul>
+  <p>校验：</p>
+  <ul>
+  <li>交互文档 11 个页面全部可达。</li>
+  <li>Toast 文案完整。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-27">Stage 6：原生能力契约对接</h3>
+  <p>工作：</p>
+  <ul>
+  <li>在 <code>packages/ui-native/src/native-modules.ts</code> 基础上拆出 <code>packages/core/src/native</code>。</li>
+  <li>为 <code>SecureVaultModule</code>、<code>BiometricModule</code>、<code>NetworkMonitorModule</code>、<code>ClipboardModule</code>、<code>PermissionModule</code> 建 mock adapter。</li>
+  <li>Showcase 使用 mock adapter，不直接访问平台 API。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li>权限页、生物识别、网络状态、剪贴板可通过 adapter 调用。</li>
+  <li>日志脱敏仍生效。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-28">Stage 7：真机与原生工程</h3>
+  <p>工作：</p>
+  <ul>
+  <li>在 <code>apps/showcase</code> 创建 RN Bare iOS / Android 工程。</li>
+  <li>开启 New Architecture。</li>
+  <li>SwiftUI / UIKit 实现首个原生按钮或玻璃面板。</li>
+  <li>Kotlin Compose 实现同名原生组件。</li>
+  </ul>
+  <p>验收：</p>
+  <ul>
+  <li>iOS / Android 模拟器可运行。</li>
+  <li>Turbo Module / Fabric 链路至少跑通一个示例。</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-29">7. 关键设计决策</h2>
+  <ol>
+  <li><code>component-package</code> 不作为独立新包引入，避免和现有 <code>ui-core</code> 命名冲突。它的 RN 组件实现并入 <code>ui-native</code>。</li>
+  <li><code>ui-core</code> 保持无平台逻辑，不直接放 React Native 组件。</li>
+  <li><code>design-tokens.json</code> 是视觉单一源，当前临时 token 需要迁移到资源包 token。</li>
+  <li>原型图只做视觉参考，不进入运行时代码。</li>
+  <li><code>preview.html</code> 的交互行为可以复刻，但 CSS/Tailwind 代码不直接迁移到 RN。</li>
+  <li>毛玻璃区域首版用半透明背景和阴影近似；真机阶段再按平台能力增强 blur。</li>
+  <li>所有系统能力必须通过 module adapter，不允许页面直接访问平台 API。</li>
+  </ol>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-30">8. 首版验收清单</h2>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-31">视觉</h3>
+  <ul>
+  <li>主色为 <code>#1677FF</code>。</li>
+  <li>页面横向边距为 <code>16</code>。</li>
+  <li>主按钮高度 <code>52</code> 左右。</li>
+  <li>输入框高度 <code>52-60</code>。</li>
+  <li>卡片圆角 <code>16-20</code>，大卡片可到 <code>24</code>。</li>
+  <li>单屏不超过 3 个大面积玻璃区域。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-32">交互</h3>
+  <ul>
+  <li>启动页点击进入引导页。</li>
+  <li>引导页最后一步进入登录页。</li>
+  <li>登录成功进入首页。</li>
+  <li>注册成功进入首页。</li>
+  <li>Tab 能切换主页面。</li>
+  <li>设置页可切换主题。</li>
+  <li>权限项打开 Sheet。</li>
+  <li>保存资料显示 Toast。</li>
+  <li>检查更新显示 Toast。</li>
+  </ul>
+  <h3 id="doc-docs-mobile-frame-landing-plan-heading-33">工程</h3>
+  <ul>
+  <li><code>corepack pnpm mf:validate</code> 通过。</li>
+  <li>不新增未声明依赖。</li>
+  <li>不把生成的 <code>dist</code> 产物作为源码提交。</li>
+  <li>不把敏感信息写入普通存储。</li>
+  </ul>
+  <h2 id="doc-docs-mobile-frame-landing-plan-heading-34">9. 建议执行顺序</h2>
+  <ol>
+  <li>先做 Stage 1 和 Stage 2：固化 token 与组件包。</li>
+  <li>再做 Stage 3：导航和全局反馈。</li>
+  <li>接着做 Stage 4：P0 页面完整可走通。</li>
+  <li>然后做 Stage 5：补齐 11 个页面。</li>
+  <li>最后做 Stage 6 / Stage 7：原生能力和双端工程。</li>
+  </ol>
+  <p>这样可以先快速得到一个可运行、可验收、和原型一致的 showcase，再逐步把原生能力替换进去。</p>
+</article>
+<article class="doc-article" id="doc-mobile-frame-wireframes">
+  <div class="article-meta">
+    <span class="category-pill">Reference</span>
+    <a class="source-link" href="../mobile-frame-wireframes.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-mobile-frame-wireframes-heading-1">MobileFrame 原型线框图与交互说明</h1>
+  <h2 id="doc-mobile-frame-wireframes-heading-2">1. 页面清单</h2>
+  <table><thead><tr><th>编号</th><th>页面</th><th>原型图文件</th><th>首版优先级</th></tr></thead><tbody><tr><td>01</td><td>启动页</td><td><code>prototype-images/01-splash.png</code></td><td>P0</td></tr><tr><td>02</td><td>引导页</td><td><code>prototype-images/02-onboarding.png</code></td><td>P0</td></tr><tr><td>03</td><td>登录页</td><td><code>prototype-images/03-login.png</code></td><td>P0</td></tr><tr><td>04</td><td>注册页</td><td><code>prototype-images/04-register.png</code></td><td>P0</td></tr><tr><td>05</td><td>首页</td><td><code>prototype-images/05-home.png</code></td><td>P0</td></tr><tr><td>06</td><td>个人中心</td><td><code>prototype-images/06-profile.png</code></td><td>P0</td></tr><tr><td>07</td><td>设置页</td><td><code>prototype-images/07-settings.png</code></td><td>P0</td></tr><tr><td>08</td><td>权限管理</td><td><code>prototype-images/08-permissions.png</code></td><td>P1</td></tr><tr><td>09</td><td>个人信息</td><td><code>prototype-images/09-personal-info.png</code></td><td>P1</td></tr><tr><td>10</td><td>通用设置</td><td><code>prototype-images/10-general-settings.png</code></td><td>P1</td></tr><tr><td>11</td><td>关于页</td><td><code>prototype-images/11-about.png</code></td><td>P1</td></tr></tbody></table>
+  <hr />
+  <h2 id="doc-mobile-frame-wireframes-heading-3">2. 全局导航结构</h2>
+  <pre><code class="language-text">启动页
+  ↓
+引导页
+  ↓
+登录页
+  ├── 注册页
+  └── 首页
+        └── 个人中心
+              ├── 个人信息
+              ├── 通用设置
+              └── 关于页
+
+设置页
+  ├── 权限管理
+  ├── 安全与隐私（预留）
+  ├── 网络状态（预留）
+  ├── 生物识别（预留）
+  └── 关于页</code></pre>
+  <p>底部导航：</p>
+  <table><thead><tr><th>Tab</th><th>图标</th><th>跳转</th></tr></thead><tbody><tr><td>首页</td><td>Home</td><td>首页</td></tr><tr><td>组件</td><td>Puzzle</td><td>组件页（预留）</td></tr><tr><td>原生能力</td><td>Cube</td><td>原生能力页（预留）</td></tr><tr><td>模板</td><td>Document</td><td>模板页（预留）</td></tr><tr><td>我的</td><td>User</td><td>个人中心</td></tr></tbody></table>
+  <hr />
+  <h2 id="doc-mobile-frame-wireframes-heading-4">3. 页面线框与交互</h2>
+  <h3 id="doc-mobile-frame-wireframes-heading-5">3.1 启动页</h3>
+  <pre><code class="language-text">┌─────────────────────────────┐
+│ 状态栏                       │
+│                             │
+│           Logo              │
+│       MobileFrame           │
+│   通用移动端原生脚手架         │
+│                             │
+│       [ 开始体验 ]            │
+│                             │
+│ Home Indicator              │
+└─────────────────────────────┘</code></pre>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>中部</td><td>Logo</td><td><code>M</code> 品牌图标</td><td>无</td></tr><tr><td>2</td><td>中部</td><td>标题</td><td><code>MobileFrame</code></td><td>无</td></tr><tr><td>3</td><td>中部</td><td>副标题</td><td><code>通用移动端原生脚手架</code></td><td>无</td></tr><tr><td>4</td><td>底部</td><td>主按钮</td><td><code>开始体验</code></td><td>跳转引导页</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-6">3.2 引导页</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>顶部</td><td>标题</td><td><code>原生体验</code></td><td>无</td></tr><tr><td>2</td><td>顶部</td><td>副标题</td><td><code>统一壳层，双端原生组件</code></td><td>无</td></tr><tr><td>3</td><td>中部</td><td>Banner</td><td>原生组件插画</td><td>无</td></tr><tr><td>4</td><td>中部</td><td>特性卡</td><td><code>统一设计系统</code></td><td>无</td></tr><tr><td>5</td><td>中部</td><td>特性卡</td><td><code>模块化扩展</code></td><td>无</td></tr><tr><td>6</td><td>中部</td><td>特性卡</td><td><code>原生能力封装</code></td><td>无</td></tr><tr><td>7</td><td>底部</td><td>主按钮</td><td><code>下一步</code></td><td>切换下一张引导页；最后一页进入登录页</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-7">3.3 登录页</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>顶部</td><td>标题</td><td><code>欢迎回来</code></td><td>无</td></tr><tr><td>2</td><td>表单</td><td>输入框</td><td><code>手机号 / 邮箱</code></td><td>唤起键盘</td></tr><tr><td>3</td><td>表单</td><td>密码框</td><td><code>输入密码</code></td><td>支持显示 / 隐藏</td></tr><tr><td>4</td><td>表单右侧</td><td>文字按钮</td><td><code>忘记密码</code></td><td>进入找回密码流程</td></tr><tr><td>5</td><td>操作区</td><td>主按钮</td><td><code>登录</code></td><td>校验成功后进入首页</td></tr><tr><td>6</td><td>第三方登录</td><td>图标按钮</td><td>微信、QQ、Apple</td><td>唤起对应授权流程</td></tr><tr><td>7</td><td>底部</td><td>文字按钮</td><td><code>还没有账号？注册</code></td><td>跳转注册页</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-8">3.4 注册页</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>顶部</td><td>标题</td><td><code>创建账号</code></td><td>无</td></tr><tr><td>2</td><td>表单</td><td>手机号</td><td><code>手机号</code></td><td>唤起键盘</td></tr><tr><td>3</td><td>表单</td><td>验证码</td><td><code>验证码</code></td><td>输入验证码</td></tr><tr><td>4</td><td>表单右侧</td><td>次按钮</td><td><code>获取验证码</code></td><td>进入 60 秒倒计时</td></tr><tr><td>5</td><td>表单</td><td>密码</td><td><code>设置密码</code></td><td>支持显示 / 隐藏</td></tr><tr><td>6</td><td>表单</td><td>确认密码</td><td><code>确认密码</code></td><td>支持显示 / 隐藏</td></tr><tr><td>7</td><td>协议区</td><td>Checkbox</td><td><code>用户协议</code>、<code>隐私政策</code></td><td>打开协议页面</td></tr><tr><td>8</td><td>操作区</td><td>主按钮</td><td><code>注册</code></td><td>成功后进入首页</td></tr><tr><td>9</td><td>底部</td><td>文字按钮</td><td><code>已有账号？去登录</code></td><td>返回登录页</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-9">3.5 首页</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>顶部</td><td>欢迎语</td><td><code>你好，开发者👋</code></td><td>无</td></tr><tr><td>2</td><td>顶部</td><td>通知铃铛</td><td>未读角标</td><td>打开通知 Sheet</td></tr><tr><td>3</td><td>搜索区</td><td>搜索框</td><td><code>搜索组件、原生能力、模板或模块...</code></td><td>进入搜索页</td></tr><tr><td>4</td><td>数据区</td><td>统计卡</td><td><code>组件 32</code></td><td>进入组件页</td></tr><tr><td>5</td><td>数据区</td><td>统计卡</td><td><code>原生能力 28</code></td><td>进入原生能力页</td></tr><tr><td>6</td><td>数据区</td><td>统计卡</td><td><code>页面模板 16</code></td><td>进入模板页</td></tr><tr><td>7</td><td>数据区</td><td>统计卡</td><td><code>模块 12</code></td><td>进入模块页</td></tr><tr><td>8</td><td>快捷操作</td><td>按钮组</td><td>新建页面 / 新建组件 / 新建模块 / 导入项目</td><td>打开对应 Sheet</td></tr><tr><td>9</td><td>状态区</td><td>Banner</td><td><code>开发环境</code>、<code>v1.2.0</code></td><td>进入项目详情</td></tr><tr><td>10</td><td>底部</td><td>TabBar</td><td>首页 / 组件 / 原生能力 / 模板 / 我的</td><td>切换主页面</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-10">3.6 个人中心</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>顶部</td><td>用户卡</td><td><code>张三</code>、<code>产品经理</code></td><td>点击头像打开修改 Sheet</td></tr><tr><td>2</td><td>数据区</td><td>数据卡</td><td><code>12 任务</code>、<code>8 组件</code>、<code>5 文档</code></td><td>打开对应列表</td></tr><tr><td>3</td><td>列表</td><td>菜单项</td><td><code>个人信息</code></td><td>跳转个人信息页</td></tr><tr><td>4</td><td>列表</td><td>菜单项</td><td><code>账号安全</code></td><td>跳转账号安全页（预留）</td></tr><tr><td>5</td><td>列表</td><td>菜单项</td><td><code>通知设置</code></td><td>跳转通知设置页（预留）</td></tr><tr><td>6</td><td>列表</td><td>菜单项</td><td><code>通用设置</code></td><td>跳转通用设置页</td></tr><tr><td>7</td><td>列表</td><td>菜单项</td><td><code>帮助与反馈</code></td><td>跳转帮助页（预留）</td></tr><tr><td>8</td><td>列表</td><td>菜单项</td><td><code>关于我们</code></td><td>跳转关于页</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-11">3.7 设置页</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>外观</td><td>Segmented Control</td><td>浅色 / 深色 / 跟随系统</td><td>切换主题</td></tr><tr><td>2</td><td>系统</td><td>菜单项</td><td><code>权限管理</code></td><td>跳转权限管理页</td></tr><tr><td>3</td><td>系统</td><td>菜单项</td><td><code>安全与隐私</code></td><td>跳转详情页（预留）</td></tr><tr><td>4</td><td>系统</td><td>菜单项</td><td><code>网络状态</code></td><td>跳转详情页（预留）</td></tr><tr><td>5</td><td>系统</td><td>菜单项</td><td><code>生物识别</code></td><td>跳转详情页（预留）</td></tr><tr><td>6</td><td>关于</td><td>菜单项</td><td><code>关于</code></td><td>跳转关于页</td></tr><tr><td>7</td><td>系统状态</td><td>状态卡</td><td>Wi-Fi、存储、内存</td><td>展示信息</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-12">3.8 权限管理</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>已授权</td><td>权限项</td><td>相机 / 相册 / 麦克风 / 通知 / 生物识别</td><td>打开权限说明 Sheet</td></tr><tr><td>2</td><td>需手动开启</td><td>权限项</td><td>剪贴板 / 文件访问</td><td>跳转系统设置</td></tr><tr><td>3</td><td>隐私建议</td><td>Banner</td><td><code>我们仅在需要时使用权限</code></td><td>无</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-13">3.9 个人信息</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>用户卡</td><td>头像、昵称、职位</td><td><code>张三</code>、<code>产品经理</code></td><td>编辑头像</td></tr><tr><td>2</td><td>资料列表</td><td>手机号</td><td><code>138 **** 5678</code></td><td>修改手机号</td></tr><tr><td>3</td><td>资料列表</td><td>邮箱</td><td><code>zhangsan@example.com</code></td><td>修改邮箱</td></tr><tr><td>4</td><td>资料列表</td><td>部门</td><td><code>产品部</code></td><td>打开部门选择 Sheet</td></tr><tr><td>5</td><td>资料列表</td><td>职位</td><td><code>产品经理</code></td><td>打开编辑 Sheet</td></tr><tr><td>6</td><td>资料列表</td><td>地区</td><td><code>中国 · 北京</code></td><td>打开地区选择器</td></tr><tr><td>7</td><td>资料列表</td><td>个性签名</td><td><code>专注产品，创造价值。</code></td><td>编辑签名</td></tr><tr><td>8</td><td>账号绑定</td><td>微信 / Apple ID / 邮箱状态</td><td>已绑定 / 已验证</td><td>绑定或解绑</td></tr><tr><td>9</td><td>底部</td><td>主按钮</td><td><code>保存修改</code></td><td>Toast：保存成功</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-14">3.10 通用设置</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>基础设置</td><td>菜单项</td><td><code>语言与地区 - 简体中文</code></td><td>打开选择 Sheet</td></tr><tr><td>2</td><td>基础设置</td><td>菜单项</td><td><code>字体大小 - 标准</code></td><td>打开选择 Sheet</td></tr><tr><td>3</td><td>基础设置</td><td>菜单项</td><td><code>默认首页 - 首页</code></td><td>打开选择 Sheet</td></tr><tr><td>4</td><td>缓存</td><td>菜单项</td><td><code>缓存管理 - 128 MB</code></td><td>打开缓存详情</td></tr><tr><td>5</td><td>开关</td><td>Switch</td><td>自动更新 / 跟随系统 / 动画 / 声音触感</td><td>切换开关</td></tr><tr><td>6</td><td>数据</td><td>菜单项</td><td><code>数据同步 - 已开启</code></td><td>打开同步设置</td></tr><tr><td>7</td><td>数据</td><td>菜单项</td><td><code>存储空间清理 - 2.4 GB</code></td><td>弹出确认 Dialog</td></tr></tbody></table>
+  <h3 id="doc-mobile-frame-wireframes-heading-15">3.11 关于页</h3>
+  <table><thead><tr><th>顺序</th><th>区域</th><th>组件</th><th>文案 / 模拟数据</th><th>点击交互</th></tr></thead><tbody><tr><td>1</td><td>品牌卡</td><td>Logo、标题、副标题</td><td><code>MobileFrame</code></td><td>无</td></tr><tr><td>2</td><td>版本信息</td><td>当前版本</td><td><code>1.0.0</code></td><td>无</td></tr><tr><td>3</td><td>版本信息</td><td>构建号</td><td><code>100</code></td><td>无</td></tr><tr><td>4</td><td>列表</td><td>官方网站</td><td>外部链接</td><td>打开浏览器</td></tr><tr><td>5</td><td>列表</td><td>开源协议</td><td>内部页面</td><td>打开协议列表</td></tr><tr><td>6</td><td>列表</td><td>隐私政策</td><td>外部或内部页面</td><td>打开政策页</td></tr><tr><td>7</td><td>列表</td><td>用户协议</td><td>外部或内部页面</td><td>打开协议页</td></tr><tr><td>8</td><td>列表</td><td>更新日志</td><td>内部页面</td><td>打开日志页</td></tr><tr><td>9</td><td>列表</td><td>联系我们</td><td>邮箱或反馈表单</td><td>打开反馈流程</td></tr><tr><td>10</td><td>底部</td><td>次按钮</td><td><code>检查更新</code></td><td>Toast 或更新 Sheet</td></tr></tbody></table>
+  <hr />
+  <h2 id="doc-mobile-frame-wireframes-heading-16">4. 全局视觉规则</h2>
+  <table><thead><tr><th>项目</th><th>规范</th></tr></thead><tbody><tr><td>风格</td><td>白色简约、轻量毛玻璃、低饱和浅蓝</td></tr><tr><td>页面左右边距</td><td><code>16 px</code></td></tr><tr><td>列表项高度</td><td><code>56–64 px</code></td></tr><tr><td>主按钮高度</td><td><code>48–56 px</code></td></tr><tr><td>输入框高度</td><td><code>52–60 px</code></td></tr><tr><td>卡片圆角</td><td><code>16–20 px</code></td></tr><tr><td>大卡片圆角</td><td><code>24 px</code></td></tr><tr><td>毛玻璃区域</td><td>TabBar、Sheet、Banner、状态卡</td></tr><tr><td>单屏玻璃区域上限</td><td>不超过 3 个大面积玻璃区域</td></tr><tr><td>主色</td><td><code>#1677FF</code></td></tr><tr><td>危险色</td><td><code>#D93F3F</code></td></tr><tr><td>成功色</td><td><code>#22A06B</code></td></tr></tbody></table>
+  <h2 id="doc-mobile-frame-wireframes-heading-17">5. 全局 Toast 文案</h2>
+  <pre><code class="language-text">登录成功
+注册成功
+保存成功
+复制成功
+权限已开启
+当前已是最新版本
+网络连接失败</code></pre>
+</article>
+<article class="doc-article" id="doc-mobile-frame">
+  <div class="article-meta">
+    <span class="category-pill">Reference</span>
+    <a class="source-link" href="../mobile-frame-%E9%80%9A%E7%94%A8%E7%A7%BB%E5%8A%A8%E7%AB%AF%E5%8E%9F%E7%94%9F%E8%84%9A%E6%89%8B%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88.md">Open source Markdown</a>
+  </div>
+  <h1 id="doc-mobile-frame-heading-1">mobile-frame 通用移动端原生脚手架设计方案</h1>
+  <blockquote>React Native 业务壳 + iOS Swift 原生组件 + Android Kotlin Compose 原生组件</blockquote>
+  <blockquote>版本：v1.0</blockquote>
+  <blockquote>日期：2026-06-03</blockquote>
+  <h2 id="doc-mobile-frame-heading-2">1. 项目定位</h2>
+  <p><code>mobile-frame</code> 是一套可长期复用的移动端原生脚手架。它不绑定 SSH、Codex、HMN、游戏助手或发布中心等具体业务，而是提供统一的应用壳、设计系统、原生组件、系统能力模块、页面模板、业务模块 SDK 与代码生成器。</p>
+  <p>目标是让后续 App 从“重新搭底层工程”转变为“选择 preset、生成项目、挂载业务模块”。</p>
+  <table><thead><tr><th>项目项</th><th>约定</th></tr></thead><tbody><tr><td>仓库名</td><td><code>mobile-frame</code></td></tr><tr><td>演示应用名</td><td><code>MobileFrame</code></td></tr><tr><td>iOS Bundle ID</td><td><code>com.misk.mobileframe</code></td></tr><tr><td>Android Package</td><td><code>com.misk.mobileframe</code></td></tr><tr><td>核心定位</td><td>模板仓库 + 原生组件库 + 业务模块 SDK + 生成器</td></tr></tbody></table>
+  <h2 id="doc-mobile-frame-heading-3">2. 技术路线</h2>
+  <ul>
+  <li>React Native Bare Project + TypeScript</li>
+  <li>React Native New Architecture</li>
+  <li>pnpm workspace Monorepo</li>
+  <li>Fabric Native Components + Turbo Native Modules + Codegen</li>
+  <li>iOS：SwiftUI + UIKit</li>
+  <li>Android：Kotlin + Jetpack Compose + Android View</li>
+  <li>状态与请求：Zustand + TanStack Query + Zod</li>
+  <li>本地数据：MMKV + SQLite</li>
+  <li>敏感信息：iOS Keychain + Android Keystore</li>
+  </ul>
+  <h2 id="doc-mobile-frame-heading-4">3. 核心原则</h2>
+  <ol>
+  <li>React Native 负责路由、状态、API、数据模型、主题、错误处理、页面组合和业务模块挂载。</li>
+  <li>iOS 与 Android 分别实现真正的原生 UI，但共享 TypeScript 接口。</li>
+  <li>普通布局继续使用 React Native；系统质感、高性能绘制、复杂输入和系统能力进入原生层。</li>
+  <li>冗余组件用于扩展，但必须分层、统一命名、可测试、可替换。</li>
+  <li>后续应用通过 preset 和生成器创建，禁止复制旧项目后随意修改。</li>
+  </ol>
+  <h2 id="doc-mobile-frame-heading-5">4. 组件分层</h2>
+  <table><thead><tr><th>层级</th><th>名称</th><th>职责</th><th>示例</th></tr></thead><tbody><tr><td>L0</td><td>Design Tokens</td><td>只存设计变量</td><td>颜色、圆角、间距、字体、阴影、动画</td></tr><tr><td>L1</td><td>Primitive</td><td>基础积木</td><td><code>MFText</code>、<code>MFIcon</code>、<code>MFStack</code>、<code>MFRow</code></td></tr><tr><td>L2</td><td>Component</td><td>页面通用组件</td><td><code>MFButton</code>、<code>MFInput</code>、<code>MFCard</code>、<code>MFToast</code></td></tr><tr><td>L3</td><td>Pattern</td><td>页面组合组件</td><td><code>MFLoginForm</code>、<code>MFListPage</code>、<code>MFSettingsGroup</code></td></tr><tr><td>L4</td><td>Business Module</td><td>具体业务组件</td><td><code>TerminalSessionCard</code>、<code>HMNApprovalCard</code></td></tr></tbody></table>
+  <h2 id="doc-mobile-frame-heading-6">5. 目录结构</h2>
+  <pre><code class="language-text">mobile-frame/
+├── apps/showcase/
+├── packages/
+│   ├── app-shell/
+│   ├── design-tokens/
+│   ├── ui-core/
+│   ├── ui-native/
+│   ├── core/
+│   ├── module-sdk/
+│   └── presets/
+├── templates/
+├── tools/
+├── docs/
+├── scripts/
+├── pnpm-workspace.yaml
+└── README.md</code></pre>
+  <h2 id="doc-mobile-frame-heading-7">6. 必须实现的通用组件</h2>
+  <h3 id="doc-mobile-frame-heading-8">布局</h3>
+  <p><code>MFPage</code>、<code>MFScrollPage</code>、<code>MFSafeArea</code>、<code>MFStack</code>、<code>MFRow</code>、<code>MFColumn</code>、<code>MFSpacer</code>、<code>MFSection</code>、<code>MFDivider</code></p>
+  <h3 id="doc-mobile-frame-heading-9">展示</h3>
+  <p><code>MFText</code>、<code>MFHeading</code>、<code>MFParagraph</code>、<code>MFLabel</code>、<code>MFCaption</code>、<code>MFIcon</code>、<code>MFBadge</code>、<code>MFAvatar</code></p>
+  <h3 id="doc-mobile-frame-heading-10">输入</h3>
+  <p><code>MFButton</code>、<code>MFIconButton</code>、<code>MFInput</code>、<code>MFPasswordInput</code>、<code>MFSearchBar</code>、<code>MFTextArea</code>、<code>MFSwitch</code>、<code>MFCheckbox</code>、<code>MFRadio</code>、<code>MFSegmentedControl</code>、<code>MFSelect</code>、<code>MFFormField</code></p>
+  <h3 id="doc-mobile-frame-heading-11">数据与反馈</h3>
+  <p><code>MFCard</code>、<code>MFListItem</code>、<code>MFStatCard</code>、<code>MFStatusCard</code>、<code>MFTag</code>、<code>MFProgress</code>、<code>MFSkeleton</code>、<code>MFKeyValue</code>、<code>MFCodeBlock</code>、<code>MFEmptyState</code>、<code>MFToast</code>、<code>MFSnackbar</code>、<code>MFDialog</code>、<code>MFConfirmDialog</code>、<code>MFSheet</code>、<code>MFLoadingOverlay</code>、<code>MFErrorState</code>、<code>MFSuccessState</code></p>
+  <h3 id="doc-mobile-frame-heading-12">导航</h3>
+  <p><code>MFNavigationBar</code>、<code>MFTabBar</code>、<code>MFBackButton</code>、<code>MFPageHeader</code>、<code>MFFloatingAction</code></p>
+  <h2 id="doc-mobile-frame-heading-13">7. 预留扩展组件</h2>
+  <p><code>MFDatePicker</code>、<code>MFTimePicker</code>、<code>MFOTPInput</code>、<code>MFSlider</code>、<code>MFFilePicker</code>、<code>MFImagePicker</code>、<code>MFAccordion</code>、<code>MFTimeline</code>、<code>MFStepper</code>、<code>MFTabs</code>、<code>MFGrid</code>、<code>MFFilterSheet</code>、<code>MFOfflineBanner</code>、<code>MFUpdateBanner</code>、<code>MFLogViewer</code>、<code>MFCodeViewer</code>、<code>MFDiffViewer</code>、<code>MFMetricCard</code>、<code>MFHealthIndicator</code>、<code>MFTaskProgress</code>、<code>MFApprovalCard</code>、<code>MFExecutionTimeline</code>、<code>MFRiskBadge</code>、<code>MFAuditItem</code></p>
+  <p>高性能插槽：<code>NativeTerminalView</code>、<code>NativeLogView</code>、<code>NativeCodeEditorView</code>、<code>NativeDiffView</code>、<code>NativeFloatingWindow</code></p>
+  <h2 id="doc-mobile-frame-heading-14">8. 原生能力模块</h2>
+  <p>第一阶段必须实现：</p>
+  <ul>
+  <li><code>SecureVaultModule</code></li>
+  <li><code>BiometricModule</code></li>
+  <li><code>NetworkMonitorModule</code></li>
+  <li><code>HapticsModule</code></li>
+  <li><code>ClipboardModule</code></li>
+  <li><code>FileSystemModule</code></li>
+  <li><code>PermissionModule</code></li>
+  <li><code>AppLifecycleModule</code></li>
+  <li><code>LoggerModule</code></li>
+  <li><code>DeviceInfoModule</code></li>
+  <li><code>ShareModule</code></li>
+  </ul>
+  <p>统一返回：</p>
+  <pre><code class="language-ts">export type MFResult&lt;T&gt; =
+  | { ok: true; data: T }
+  | { ok: false; error: MFError };
+
+export type MFError = {
+  code: string;
+  message: string;
+  module: string;
+  recoverable: boolean;
+  details?: Record&lt;string, unknown&gt;;
+};</code></pre>
+  <h2 id="doc-mobile-frame-heading-15">9. 业务模块 SDK</h2>
+  <pre><code class="language-ts">export const terminalModule = defineModule({
+  id: 'terminal',
+  name: '终端',
+  version: '1.0.0',
+  routes: [{ name: 'terminal.home', screen: TerminalHomeScreen }],
+  permissions: ['network.read', 'vault.read'],
+  capabilities: ['terminal.session', 'terminal.history'],
+  navigation: {
+    tab: { title: '终端', icon: 'terminal', order: 20 },
+  },
+});</code></pre>
+  <h2 id="doc-mobile-frame-heading-16">10. 页面模板</h2>
+  <ul>
+  <li><code>ListPage</code></li>
+  <li><code>DetailPage</code></li>
+  <li><code>EditorPage</code></li>
+  <li><code>DashboardPage</code></li>
+  <li><code>FullScreenPage</code></li>
+  <li><code>SettingsPage</code></li>
+  </ul>
+  <h2 id="doc-mobile-frame-heading-17">11. Preset 与生成器</h2>
+  <p>Preset：</p>
+  <ul>
+  <li><code>minimal</code></li>
+  <li><code>standard</code></li>
+  <li><code>operations</code></li>
+  </ul>
+  <p>生成器：</p>
+  <pre><code class="language-bash">pnpm mf:create-app terminal-app --preset operations
+pnpm mf:create-module terminal
+pnpm mf:create-screen terminal SessionList --type list
+pnpm mf:create-native-component TerminalView
+pnpm mf:create-native-module SSHSession
+pnpm mf:validate</code></pre>
+  <h2 id="doc-mobile-frame-heading-18">12. 安全规则</h2>
+  <ul>
+  <li>密码、Token、私钥和 Passphrase 只进入 Keychain / Keystore。</li>
+  <li>禁止将敏感数据写入 AsyncStorage、普通 MMKV、SQLite、URL 或崩溃日志。</li>
+  <li>日志默认脱敏。</li>
+  <li>页面不得直接访问平台 API。</li>
+  <li>业务模块先声明权限，由 <code>PermissionModule</code> 统一处理。</li>
+  </ul>
+  <h2 id="doc-mobile-frame-heading-19">13. 第一版验收</h2>
+  <ul>
+  <li>iOS 与 Android 模拟器和真机均可运行。</li>
+  <li>New Architecture、Fabric、Turbo Module 链路可用。</li>
+  <li>浅色、深色主题可用。</li>
+  <li>Swift 与 Compose 原生按钮可用。</li>
+  <li>Keychain、Keystore、生物识别、网络监听、Toast、Sheet 可用。</li>
+  <li>统一错误和日志脱敏生效。</li>
+  <li>生成器可创建 App、模块、页面和原生模块。</li>
+  <li>Showcase 页面完整。</li>
+  </ul>
+  <h2 id="doc-mobile-frame-heading-20">14. 实施阶段</h2>
+  <ol>
+  <li>Phase 0：初始化工程。</li>
+  <li>Phase 1：设计系统。</li>
+  <li>Phase 2：基础组件。</li>
+  <li>Phase 3：原生能力。</li>
+  <li>Phase 4：页面模板。</li>
+  <li>Phase 5：模块系统。</li>
+  <li>Phase 6：生成器。</li>
+  <li>Phase 7：Showcase。</li>
+  <li>Phase 8：双端构建、测试和文档修复。</li>
+  </ol>
+  <p>每个 Phase 完成后必须运行 lint、typecheck、单元测试、iOS 构建和 Android 构建，修复全部错误后再继续。</p>
+</article>
+    </section>
+  </main>
+</body>
+</html>

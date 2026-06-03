@@ -715,6 +715,7 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 - `admin-mobile`；
 - create-app；
 - create-screen；
+- create-preset；
 - create-native-module。
 
 ### 阶段 4：文档和 Release
@@ -730,30 +731,33 @@ pnpm create:app game-helper-admin-mobile --preset admin-mobile
 
 ## 12. 验收清单
 
+> 当前推进状态更新于 2026-06-03。源码级验证已通过 `typecheck`、`lint`、`test`、`mf:generator-smoke`、`mf:workspace-check`、`mf:docs-site:check`、`mf:ci-workflow-check`、非严格 `mf:runtime-evidence` 和非严格 `mf:validate`。原生 Debug/Release、远端示例 App 自动构建与真机/模拟器运行仍需要具备 Android SDK、ADB、Gradle wrapper distribution、macOS/Xcode/CocoaPods 或 GitHub Actions 成功记录继续验证；仓库内已配置 Android debug APK 和 emulator runtime 两段 CI 证据通道。
+
 ### P0
 
-- [ ] Showcase 可运行；
-- [ ] Design Tokens 可统一引用；
-- [ ] 组件库可独立预览；
-- [ ] 页面模板可复用；
-- [ ] 所有原生能力有 mock adapter；
-- [ ] Android Debug / Release 可打包。
+- [ ] Showcase 可运行；源码和 Showcase 集成已通过校验，Android runtime 已提供 `mf:android-runtime-run` 安装/启动/前台校验与 runtime evidence 输出，并已配置 `showcase-android-runtime` GitHub Actions emulator job 下载 debug APK、启动 Android emulator、运行安装/启动校验并上传 runtime evidence。当前环境缺 APK、ADB 和在线设备，仍需本地真机/模拟器或远端 Actions 成功记录闭环。
+- [x] Design Tokens 可统一引用；`packages/design-tokens`、`ui-core` 和 `ui-native` 已接入。
+- [x] 组件库可独立预览；Showcase 已覆盖组件、模板和 Native mock 能力入口。
+- [x] 页面模板可复用；`packages/screen-templates` 已提供通用模板并被 `create-screen`/Showcase 使用。
+- [x] 所有原生能力有 mock adapter；`@mobile-frame/core/native-modules` 已覆盖设备信息、权限、已安装应用、浮窗、安全存储、网络和 legacy mock。
+- [ ] Android Debug / Release 可打包；已提供统一 `mf:android-build:debug`/`mf:android-build:release` 构建入口，可执行 strict preflight、Gradle assemble、APK metadata 校验和 build evidence 输出。当前环境缺 Android SDK/Gradle/ADB，Release 签名也需业务侧配置或显式 scaffold 验证参数。
 
 ### P1
 
-- [ ] create-app 可创建独立 RN Bare App；
-- [ ] create-screen 可创建页面；
-- [ ] create-native-module 可创建原生模块模板；
-- [ ] `device-agent` preset 可用；
-- [ ] `admin-mobile` preset 可用。
+- [x] create-app 可创建独立 RN Bare App；生成结果包含 `android/`、`ios/`、`src/navigation`、`src/screens`、`src/modules`、`src/store`、`src/theme`，并通过 generator smoke TypeScript 构建。
+- [x] create-screen 可创建页面；已支持 `blank`、`dashboard`、`detail`、`installed-apps`、`list`、`permission`、`settings` 等模板类型。
+- [x] create-preset 可创建 preset 扩展文件；生成结果位于 `packages/presets/src/generated/`，并通过 generator smoke 覆盖正向生成、dry-run 和重复保护。
+- [x] create-native-module 可创建原生模块模板；generator smoke 已覆盖生成、dry-run 和重复保护。
+- [x] `device-agent` preset 可用；已加入 canonical preset 并被 `create-app` 支持。
+- [x] `admin-mobile` preset 可用；已加入 canonical preset 并被 `create-app` 支持。
 
 ### P2
 
-- [ ] iOS Release 流程稳定；
-- [ ] 暗色主题；
-- [ ] 组件快照测试；
-- [ ] 文档站点；
-- [ ] 示例 App 自动构建。
+- [ ] iOS Release 流程稳定；已提供统一 `mf:ios-build:debug`/`mf:ios-build:release` 构建入口和 `mf:ios-export` IPA 导出入口，可执行 iOS strict preflight、`pod install`、`xcodebuild build/archive`、`.app`/`.xcarchive` 校验、`xcodebuild -exportArchive`、IPA 校验、build evidence 和 export evidence 输出。仍需 macOS/Xcode/CocoaPods、`ExportOptions.plist` 与签名配置跑出真实 Release/IPA 证据。
+- [x] 暗色主题；`design-tokens`、`ui-core`、`app-shell` 和 Showcase 主题切换已接入，并有 token/ui-core/app-shell 测试覆盖。
+- [x] 组件快照测试；`packages/ui-native/src/component-snapshots.test.tsx` 已通过 RN mock 覆盖核心 feedback、navigation 和 overlay 组件，并生成稳定 snapshot。
+- [x] 文档站点；已提供无额外依赖的 `docs-site/index.html` 静态入口，并通过 `mf:docs-site:check` 接入 `mf:validate`。
+- [ ] 示例 App 自动构建；`.github/workflows/mobile-frame.yml` 已配置 `source-validation`、`showcase-android-debug` 和 `showcase-android-runtime`，debug job 通过 `mf:android-build:debug` 构建并用 `mf:runtime-evidence --require android.debug-build-evidence` 强制校验 build evidence，runtime job 下载 APK、启动 Android emulator、执行 `mf:android-runtime-run` 并用 `mf:runtime-evidence --require android.runtime-evidence` 强制校验 runtime evidence，且通过 `mf:ci-workflow-check` 做本地结构校验。仍需远端 GitHub Actions 成功记录证明 APK 和 runtime evidence artifact 产出。
 
 ---
 

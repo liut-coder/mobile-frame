@@ -83,6 +83,19 @@ describe('mf-android-runtime-preflight', () => {
       expect(result.stdout).toContain('install debug APK passed');
       expect(result.stdout).toContain('launch debug APK passed');
       expect(result.stdout).toContain('launch verification passed: com.misk.mobileframe is foreground-visible');
+      expect(result.stdout).toContain('runtime evidence: data/runtime-evidence/android/apps-showcase-runtime-evidence.json');
+
+      const evidence = readJson(workspaceRoot, 'data/runtime-evidence/android/apps-showcase-runtime-evidence.json');
+      expect(evidence.applicationId).toBe('com.misk.mobileframe');
+      expect(evidence.apkPath).toBe('apps/showcase/android/app/build/outputs/apk/debug/app-debug.apk');
+      expect(evidence.apkSha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(evidence.device).toBe('fixture-device');
+      expect(evidence.actions).toHaveLength(3);
+      expect(evidence.actions.map((action: { label: string }) => action.label)).toEqual([
+        'install debug APK',
+        'launch debug APK',
+        'launch foreground verification'
+      ]);
     });
   });
 });
@@ -173,6 +186,10 @@ function writeAdbFixture(androidSdkPath: string) {
 
 function writeJson(workspaceRoot: string, relativePath: string, value: Record<string, unknown>) {
   writeFile(workspaceRoot, relativePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function readJson(workspaceRoot: string, relativePath: string) {
+  return JSON.parse(fs.readFileSync(path.join(workspaceRoot, relativePath), 'utf8'));
 }
 
 function writeFile(workspaceRoot: string, relativePath: string, value: string) {

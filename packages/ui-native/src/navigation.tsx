@@ -16,6 +16,16 @@ export type MFTabBarItem<TValue extends string> = {
   value: TValue;
 };
 
+export type MFHeaderProps = {
+  backLabel?: string;
+  eyebrow?: string;
+  onBack?: () => void;
+  right?: ReactNode;
+  subtitle?: string;
+  theme?: MFTheme;
+  title: string;
+};
+
 export function MFBackButton({
   label = 'Back',
   onPress,
@@ -47,15 +57,7 @@ export function MFPageHeader({
   subtitle,
   theme = defaultTheme,
   title
-}: {
-  backLabel?: string;
-  eyebrow?: string;
-  onBack?: () => void;
-  right?: ReactNode;
-  subtitle?: string;
-  theme?: MFTheme;
-  title: string;
-}) {
+}: MFHeaderProps) {
   return (
     <MFStack gap={10}>
       {onBack ? <MFBackButton label={backLabel} onPress={onBack} theme={theme} /> : null}
@@ -69,6 +71,10 @@ export function MFPageHeader({
       </MFRow>
     </MFStack>
   );
+}
+
+export function MFHeader(props: MFHeaderProps) {
+  return <MFPageHeader {...props} />;
 }
 
 export function MFTabBar<TValue extends string>({
