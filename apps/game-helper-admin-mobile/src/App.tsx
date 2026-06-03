@@ -79,7 +79,12 @@ type RouteKey =
   | 'deviceDetail'
   | 'deviceActions'
   | 'deviceUnbind'
-  | 'deviceAlert';
+  | 'deviceAlert'
+  | 'profileInfo'
+  | 'notificationSettings'
+  | 'systemSettings'
+  | 'permissionSettings'
+  | 'logoutConfirm';
 type Tone = 'info' | 'success' | 'warning' | 'danger';
 type UserFormMode = 'create' | 'edit';
 type ModuleFormMode = 'create' | 'edit';
@@ -1237,6 +1242,26 @@ function MainScreen({
 
   if (route === 'deviceAlert') {
     return <DeviceAlertScreen actions={actions} device={selectedDevice} theme={theme} />;
+  }
+
+  if (route === 'profileInfo') {
+    return <ProfileInfoScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'notificationSettings') {
+    return <NotificationSettingsScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'systemSettings') {
+    return <SystemSettingsScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'permissionSettings') {
+    return <PermissionSettingsScreen actions={actions} theme={theme} />;
+  }
+
+  if (route === 'logoutConfirm') {
+    return <LogoutConfirmScreen actions={actions} theme={theme} />;
   }
 
   return (
@@ -3356,7 +3381,25 @@ function ProfileScreen({ actions, theme }: { actions: AdminActions; theme: MFThe
                     return;
                   }
 
-                  actions.openSheet(entry.title, `${entry.title} 后续会接入独立子页面。`);
+                  if (entry.title === '个人信息') {
+                    actions.goRoute('profileInfo');
+                    return;
+                  }
+
+                  if (entry.title === '通知设置') {
+                    actions.goRoute('notificationSettings');
+                    return;
+                  }
+
+                  if (entry.title === '系统设置') {
+                    actions.goRoute('systemSettings');
+                    return;
+                  }
+
+                  if (entry.title === '权限') {
+                    actions.goRoute('permissionSettings');
+                    return;
+                  }
                 }}
                 theme={theme}
                 title={entry.title}
@@ -3365,7 +3408,154 @@ function ProfileScreen({ actions, theme }: { actions: AdminActions; theme: MFThe
             </View>
           ))}
         </MFCard>
-        <MFButton onPress={() => actions.goLogin()} theme={theme} title="退出登录" variant="danger" />
+        <MFButton onPress={() => actions.goRoute('logoutConfirm')} theme={theme} title="退出登录" variant="danger" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function ProfileInfoScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="profile" subtitle="管理员资料、联系方式和部门信息" theme={theme} title="个人信息" />
+        <MFCard glass theme={theme}>
+          <MFRow gap={14}>
+            <View style={{ alignItems: 'center', backgroundColor: theme.colors.primarySoft, borderRadius: 28, height: 56, justifyContent: 'center', width: 56 }}>
+              <MFText theme={theme} style={{ color: theme.colors.primary, fontSize: 24, fontWeight: '900' }}>
+                A
+              </MFText>
+            </View>
+            <MFStack gap={4} style={{ flex: 1 }}>
+              <MFText theme={theme} style={{ fontSize: 18, fontWeight: '900' }}>
+                Admin
+              </MFText>
+              <MFCaption theme={theme}>超级管理员 · 全局权限</MFCaption>
+            </MFStack>
+            <MFBadge label="在线" tone="success" theme={theme} />
+          </MFRow>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="手机号" theme={theme}>
+              <MFInput defaultValue="13800000000" keyboardType="phone-pad" placeholder="请输入手机号" theme={theme} />
+            </MFFormField>
+            <MFFormField label="邮箱" theme={theme}>
+              <MFInput autoCapitalize="none" defaultValue="admin@example.com" placeholder="admin@example.com" theme={theme} />
+            </MFFormField>
+            <MFFormField label="部门" theme={theme}>
+              <MFInput defaultValue="运维管理组" placeholder="请输入部门" theme={theme} />
+            </MFFormField>
+          </MFStack>
+        </MFCard>
+        <MFButton onPress={() => actions.showToast('个人信息已保存')} theme={theme} title="保存" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function NotificationSettingsScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="profile" subtitle="告警、任务和发版通知策略" theme={theme} title="通知设置" />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <SectionTitle theme={theme} title="通知渠道" />
+            <MFCheckbox label="设备异常实时通知" onValueChange={() => actions.showToast('设备异常通知已切换')} theme={theme} value />
+            <MFCheckbox label="任务失败实时通知" onValueChange={() => actions.showToast('任务失败通知已切换')} theme={theme} value />
+            <MFCheckbox label="发版失败实时通知" onValueChange={() => actions.showToast('发版失败通知已切换')} theme={theme} value />
+          </MFStack>
+        </MFCard>
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="免打扰" />
+            <MFKeyValue label="夜间策略" theme={theme} value="仅推送高危告警" />
+            <MFKeyValue label="摘要频率" theme={theme} value="每 2 小时一次" />
+          </MFStack>
+        </MFCard>
+        <MFButton onPress={() => actions.showToast('通知设置已保存')} theme={theme} title="保存设置" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function SystemSettingsScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="profile" subtitle="服务地址、缓存、主题和本地设置" theme={theme} title="系统设置" />
+        <MFCard theme={theme}>
+          <MFStack gap={12}>
+            <MFFormField label="Mobile API" required theme={theme}>
+              <MFInput autoCapitalize="none" defaultValue="https://api.example.com/api/v1/mobile" placeholder="Mobile API 地址" theme={theme} />
+            </MFFormField>
+            <MFFormField label="Realtime Gateway" required theme={theme}>
+              <MFInput autoCapitalize="none" defaultValue="wss://api.example.com/ws/admin" placeholder="WebSocket 地址" theme={theme} />
+            </MFFormField>
+          </MFStack>
+        </MFCard>
+        <MFCard padded={false} theme={theme}>
+          <MFListItem meta="清理远端缓存、页面草稿和本地列表状态" onPress={() => actions.showToast('本地缓存已清理')} theme={theme} title="清理缓存" />
+          <MFDivider />
+          <MFListItem meta="当前使用浅色主题" onPress={() => actions.showToast('主题切换将在接入设置存储后生效')} theme={theme} title="主题" />
+          <MFDivider />
+          <MFListItem meta="当前版本 v0.1.0" onPress={() => actions.goRoute('launchReadiness')} theme={theme} title="上线检查" />
+        </MFCard>
+        <MFButton onPress={() => actions.showToast('系统设置已保存')} theme={theme} title="保存设置" />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function PermissionSettingsScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="profile" subtitle="前端权限仅用于展示，后端会做最终校验" theme={theme} title="权限" />
+        <MFCard glass theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="超级管理员" />
+            <MFKeyValue label="角色" theme={theme} value="admin.super" />
+            <MFKeyValue label="权限范围" theme={theme} value={preset.features.join(' / ')} />
+          </MFStack>
+        </MFCard>
+        {preset.features.map((feature) => (
+          <MFCard key={feature} theme={theme}>
+            <MFRow style={{ justifyContent: 'space-between' }}>
+              <MFStack gap={4} style={{ flex: 1 }}>
+                <MFText theme={theme} style={{ fontWeight: '900' }}>
+                  {feature}
+                </MFText>
+                <MFCaption theme={theme}>移动端展示权限，服务端按角色二次校验。</MFCaption>
+              </MFStack>
+              <MFBadge label="允许" tone="success" theme={theme} />
+            </MFRow>
+          </MFCard>
+        ))}
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+function LogoutConfirmScreen({ actions, theme }: { actions: AdminActions; theme: MFTheme }) {
+  return (
+    <MFScrollPage theme={theme}>
+      <MFStack gap={16}>
+        <BackHeader actions={actions} backTab="profile" subtitle="退出后需要重新登录管理员账号" theme={theme} title="退出登录确认" />
+        <MFStatusCard message="确认退出会清理本地会话状态。管理员 Token 应由 SecureVaultModule 从 Keychain / Keystore 中移除。" theme={theme} title="退出说明" tone="warning" />
+        <MFCard theme={theme}>
+          <MFStack gap={10}>
+            <SectionTitle theme={theme} title="Admin" />
+            <MFKeyValue label="账号" theme={theme} value="admin@example.com" />
+            <MFKeyValue label="角色" theme={theme} value="超级管理员" />
+            <MFKeyValue label="当前状态" theme={theme} value="在线" />
+          </MFStack>
+        </MFCard>
+        <MFRow gap={10}>
+          <MFButton fullWidth={false} onPress={() => actions.goTabs('profile')} theme={theme} title="取消" variant="ghost" />
+          <MFButton fullWidth={false} onPress={() => actions.goLogin()} theme={theme} title="确认退出" variant="danger" />
+        </MFRow>
       </MFStack>
     </MFScrollPage>
   );
