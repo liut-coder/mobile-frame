@@ -223,11 +223,23 @@ export const bffContracts = [
   'GET /api/v1/mobile/devices',
   'GET /api/v1/mobile/devices/{id}',
   'POST /api/v1/mobile/devices/{id}/bind',
+  'POST /api/v1/mobile/devices/{id}/unbind',
   'GET /api/v1/mobile/tasks',
   'GET /api/v1/mobile/tasks/{id}',
   'POST /api/v1/mobile/tasks/{id}/stop',
   'POST /api/v1/mobile/tasks/{id}/retry',
-  'GET /api/v1/mobile/tasks/{id}/logs'
+  'GET /api/v1/mobile/tasks/{id}/logs',
+  'GET /api/v1/mobile/users',
+  'GET /api/v1/mobile/users/{id}',
+  'GET /api/v1/mobile/modules',
+  'GET /api/v1/mobile/modules/{id}',
+  'GET /api/v1/mobile/assets',
+  'GET /api/v1/mobile/assets/{id}',
+  'GET /api/v1/mobile/releases',
+  'GET /api/v1/mobile/releases/{id}',
+  'POST /api/v1/mobile/releases/{id}/pause',
+  'POST /api/v1/mobile/releases/{id}/resume',
+  'GET /api/v1/mobile/logs'
 ];
 
 export function findDevice(deviceId: string): DeviceRecord | undefined {

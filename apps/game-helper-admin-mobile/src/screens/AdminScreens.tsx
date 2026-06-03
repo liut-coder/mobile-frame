@@ -48,12 +48,17 @@ import {
 } from '../store';
 import {
   adminMobileBffClient,
+  useMobileBffAssets,
   useMobileBffDashboard,
   useMobileBffDevice,
   useMobileBffDevices,
+  useMobileBffModules,
+  useMobileBffReleases,
+  useMobileBffRuntimeLogs,
   useMobileBffTask,
   useMobileBffTaskLogs,
-  useMobileBffTasks
+  useMobileBffTasks,
+  useMobileBffUsers
 } from '../services/mobile-bff';
 import { adminNativeActions } from '../services/native-actions';
 import { useRealtimeDeviceStatus, useRealtimeGlobalAlerts, useRealtimeTaskProgress } from '../services/realtime';
@@ -539,6 +544,11 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
 
 export function ManagementHomeScreen() {
   const session = useAdminSession();
+  const assetList = useMobileBffAssets({ limit: listPageSize });
+  const moduleList = useMobileBffModules({ limit: listPageSize });
+  const releaseList = useMobileBffReleases({ limit: listPageSize });
+  const runtimeLogList = useMobileBffRuntimeLogs({ limit: listPageSize });
+  const userList = useMobileBffUsers({ limit: listPageSize });
   const visibleEntries = managementEntries.filter((entry) => canAccess(session, { permission: entry.permission }));
 
   return (
@@ -557,6 +567,62 @@ export function ManagementHomeScreen() {
             No management entries are available for the current administrator permissions.
           </MFText>
         )}
+        <MFStack gap={appTheme.spacing.md}>
+          <SectionTitle title="/api/v1/mobile previews" />
+          <MFText muted theme={appTheme} style={captionTextStyle()}>
+            Fixture-backed management data from the mobile BFF boundary; full second-stage pages remain planned separately.
+          </MFText>
+          {canAccess(session, { permission: 'user.view' }) ? (
+            <EntityListItem
+              badge={`Total ${userList.total}`}
+              meta="GET /api/v1/mobile/users"
+              status={{ label: `${facetCount(userList.facets, 'active')} active`, tone: 'success' }}
+              subtitle={userList.items.map((user) => `${user.name} (${user.status})`).join(' - ')}
+              theme={appTheme}
+              title="Managed users"
+            />
+          ) : null}
+          {canAccess(session, { permission: 'module.view' }) ? (
+            <EntityListItem
+              badge={`Total ${moduleList.total}`}
+              meta="GET /api/v1/mobile/modules"
+              status={{ label: `${facetCount(moduleList.facets, 'enabled')} enabled`, tone: 'success' }}
+              subtitle={moduleList.items.map((module) => `${module.name} v${module.version}`).join(' - ')}
+              theme={appTheme}
+              title="Game modules"
+            />
+          ) : null}
+          {canAccess(session, { permission: 'asset.view' }) ? (
+            <EntityListItem
+              badge={`Total ${assetList.total}`}
+              meta="GET /api/v1/mobile/assets"
+              status={{ label: `${facetCount(assetList.facets, 'review')} review`, tone: facetCount(assetList.facets, 'review') > 0 ? 'warning' : 'neutral' }}
+              subtitle={assetList.items.map((asset) => `${asset.name} (${asset.kind})`).join(' - ')}
+              theme={appTheme}
+              title="Visual assets"
+            />
+          ) : null}
+          {canAccess(session, { permission: 'app.release.view' }) ? (
+            <EntityListItem
+              badge={`Total ${releaseList.total}`}
+              meta="GET /api/v1/mobile/releases"
+              status={{ label: `${facetCount(releaseList.facets, 'staged')} staged`, tone: facetCount(releaseList.facets, 'staged') > 0 ? 'warning' : 'neutral' }}
+              subtitle={releaseList.items.map((release) => `${release.version} ${release.status}`).join(' - ')}
+              theme={appTheme}
+              title="App releases"
+            />
+          ) : null}
+          {canAccess(session, { permission: 'log.view' }) ? (
+            <EntityListItem
+              badge={`Total ${runtimeLogList.total}`}
+              meta="GET /api/v1/mobile/logs"
+              status={{ label: `${facetCount(runtimeLogList.facets, 'error')} error`, tone: facetCount(runtimeLogList.facets, 'error') > 0 ? 'danger' : 'neutral' }}
+              subtitle={runtimeLogList.items.map((log) => `${log.scope}: ${log.level}`).join(' - ')}
+              theme={appTheme}
+              title="Running logs"
+            />
+          ) : null}
+        </MFStack>
         <AdminBoundaryCard items={adminBoundaries} theme={appTheme} />
       </MFStack>
     </MFScrollPage>

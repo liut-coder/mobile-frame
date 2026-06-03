@@ -59,6 +59,57 @@ export type MobileBffTask = {
   }>;
 };
 
+export type MobileBffUserStatus = 'active' | 'disabled' | 'pending';
+export type MobileBffModuleStatus = 'enabled' | 'disabled' | 'draft';
+export type MobileBffAssetStatus = 'ready' | 'review' | 'outdated';
+export type MobileBffReleaseStatus = 'draft' | 'staged' | 'paused' | 'published';
+
+export type MobileBffUser = {
+  deviceCount: number;
+  id: string;
+  lastActiveAt: string;
+  name: string;
+  role: string;
+  status: MobileBffUserStatus;
+};
+
+export type MobileBffGameModule = {
+  game: string;
+  id: string;
+  name: string;
+  rollout: string;
+  status: MobileBffModuleStatus;
+  updatedAt: string;
+  version: string;
+};
+
+export type MobileBffVisualAsset = {
+  id: string;
+  kind: 'template' | 'screenshot' | 'icon' | 'model' | (string & {});
+  name: string;
+  status: MobileBffAssetStatus;
+  updatedAt: string;
+  version: string;
+};
+
+export type MobileBffRelease = {
+  channel: 'alpha' | 'beta' | 'gray' | 'production' | (string & {});
+  id: string;
+  notes: string;
+  progress: string;
+  status: MobileBffReleaseStatus;
+  updatedAt: string;
+  version: string;
+};
+
+export type MobileBffRuntimeLog = {
+  id: string;
+  level: MobileBffLogLevel;
+  message: string;
+  scope: 'device' | 'task' | 'release' | 'system' | (string & {});
+  time: string;
+};
+
 export type MobileBffFacet<TValue extends string = string> = {
   count: number;
   label: string;
@@ -95,23 +146,39 @@ export type MobileBffActionReceipt = {
 export type MobileBffClient = {
   bindDevice: (deviceId: string, payload?: { code?: string }) => Promise<MobileBffActionReceipt>;
   getDashboard: () => Promise<MobileBffDashboard>;
+  getAsset: (assetId: string) => Promise<MobileBffVisualAsset | null>;
   getDevice: (deviceId: string) => Promise<MobileBffDevice | null>;
+  getModule: (moduleId: string) => Promise<MobileBffGameModule | null>;
+  getRelease: (releaseId: string) => Promise<MobileBffRelease | null>;
   getTask: (taskId: string) => Promise<MobileBffTask | null>;
+  getUser: (userId: string) => Promise<MobileBffUser | null>;
+  listAssets: (request?: MobileBffListRequest<MobileBffAssetStatus>) => Promise<MobileBffListResponse<MobileBffVisualAsset, MobileBffAssetStatus>>;
   listDevices: (request?: MobileBffListRequest<MobileBffDeviceStatus>) => Promise<MobileBffListResponse<MobileBffDevice, MobileBffDeviceStatus>>;
+  listLogs: (request?: MobileBffListRequest<MobileBffLogLevel>) => Promise<MobileBffListResponse<MobileBffRuntimeLog, MobileBffLogLevel>>;
+  listModules: (request?: MobileBffListRequest<MobileBffModuleStatus>) => Promise<MobileBffListResponse<MobileBffGameModule, MobileBffModuleStatus>>;
+  listReleases: (request?: MobileBffListRequest<MobileBffReleaseStatus>) => Promise<MobileBffListResponse<MobileBffRelease, MobileBffReleaseStatus>>;
   listTaskLogs: (taskId: string, request?: MobileBffListRequest<MobileBffLogLevel>) => Promise<MobileBffListResponse<MobileBffTaskLogEntry, MobileBffLogLevel>>;
   listTasks: (request?: MobileBffListRequest<MobileBffTaskStatus>) => Promise<MobileBffListResponse<MobileBffTask, MobileBffTaskStatus>>;
+  listUsers: (request?: MobileBffListRequest<MobileBffUserStatus>) => Promise<MobileBffListResponse<MobileBffUser, MobileBffUserStatus>>;
+  pauseRelease: (releaseId: string) => Promise<MobileBffActionReceipt>;
+  resumeRelease: (releaseId: string) => Promise<MobileBffActionReceipt>;
   retryTask: (taskId: string) => Promise<MobileBffActionReceipt>;
   stopTask: (taskId: string) => Promise<MobileBffActionReceipt>;
   unbindDevice: (deviceId: string) => Promise<MobileBffActionReceipt>;
 };
 
 export type MobileBffFixtureData = {
+  assets?: MobileBffVisualAsset[];
   dashboard: {
     alerts: MobileBffAlert[];
     metrics: MobileBffMetric[];
   };
   devices: MobileBffDevice[];
+  logs?: MobileBffRuntimeLog[];
+  modules?: MobileBffGameModule[];
+  releases?: MobileBffRelease[];
   tasks: MobileBffTask[];
+  users?: MobileBffUser[];
 };
 
 export type MobileBffFetch = (
@@ -138,6 +205,7 @@ export type MobileBffHttpClientOptions = {
 export function createFixtureMobileBffClient(data: MobileBffFixtureData): MobileBffClient {
   return {
     bindDevice: async (deviceId) => actionReceipt(deviceId, 'device.bind'),
+    getAsset: async (assetId) => data.assets?.find((asset) => asset.id === assetId) ?? null,
     getDashboard: async () => ({
       activeTasks: data.tasks.filter((task) => task.status === 'running').slice(0, 2),
       alerts: [...data.dashboard.alerts],
@@ -145,13 +213,23 @@ export function createFixtureMobileBffClient(data: MobileBffFixtureData): Mobile
       recentDevices: data.devices.slice(0, 2)
     }),
     getDevice: async (deviceId) => data.devices.find((device) => device.id === deviceId) ?? null,
+    getModule: async (moduleId) => data.modules?.find((module) => module.id === moduleId) ?? null,
+    getRelease: async (releaseId) => data.releases?.find((release) => release.id === releaseId) ?? null,
     getTask: async (taskId) => data.tasks.find((task) => task.id === taskId) ?? null,
+    getUser: async (userId) => data.users?.find((user) => user.id === userId) ?? null,
+    listAssets: async (request = {}) => listAssets(data.assets ?? [], request),
     listDevices: async (request = {}) => listDevices(data.devices, request),
+    listLogs: async (request = {}) => listRuntimeLogs(data.logs ?? [], request),
+    listModules: async (request = {}) => listModules(data.modules ?? [], request),
+    listReleases: async (request = {}) => listReleases(data.releases ?? [], request),
     listTaskLogs: async (taskId, request = {}) => {
       const task = data.tasks.find((item) => item.id === taskId);
       return listTaskLogs(task?.logs ?? [], request);
     },
     listTasks: async (request = {}) => listTasks(data.tasks, request),
+    listUsers: async (request = {}) => listUsers(data.users ?? [], request),
+    pauseRelease: async (releaseId) => actionReceipt(releaseId, 'release.pause'),
+    resumeRelease: async (releaseId) => actionReceipt(releaseId, 'release.resume'),
     retryTask: async (taskId) => actionReceipt(taskId, 'task.retry'),
     stopTask: async (taskId) => actionReceipt(taskId, 'task.stop'),
     unbindDevice: async (deviceId) => actionReceipt(deviceId, 'device.unbind')
@@ -162,11 +240,22 @@ export function createHttpMobileBffClient(options: MobileBffHttpClientOptions): 
   return {
     bindDevice: (deviceId, payload) => request(options, 'POST', `/devices/${encodePath(deviceId)}/bind`, undefined, payload ?? {}),
     getDashboard: () => request(options, 'GET', '/dashboard'),
+    getAsset: (assetId) => request(options, 'GET', `/assets/${encodePath(assetId)}`),
     getDevice: (deviceId) => request(options, 'GET', `/devices/${encodePath(deviceId)}`),
+    getModule: (moduleId) => request(options, 'GET', `/modules/${encodePath(moduleId)}`),
+    getRelease: (releaseId) => request(options, 'GET', `/releases/${encodePath(releaseId)}`),
     getTask: (taskId) => request(options, 'GET', `/tasks/${encodePath(taskId)}`),
+    getUser: (userId) => request(options, 'GET', `/users/${encodePath(userId)}`),
+    listAssets: (listRequest = {}) => request(options, 'GET', '/assets', listRequest),
     listDevices: (listRequest = {}) => request(options, 'GET', '/devices', listRequest),
+    listLogs: (listRequest = {}) => request(options, 'GET', '/logs', listRequest),
+    listModules: (listRequest = {}) => request(options, 'GET', '/modules', listRequest),
+    listReleases: (listRequest = {}) => request(options, 'GET', '/releases', listRequest),
     listTaskLogs: (taskId, listRequest = {}) => request(options, 'GET', `/tasks/${encodePath(taskId)}/logs`, listRequest),
     listTasks: (listRequest = {}) => request(options, 'GET', '/tasks', listRequest),
+    listUsers: (listRequest = {}) => request(options, 'GET', '/users', listRequest),
+    pauseRelease: (releaseId) => request(options, 'POST', `/releases/${encodePath(releaseId)}/pause`, undefined, {}),
+    resumeRelease: (releaseId) => request(options, 'POST', `/releases/${encodePath(releaseId)}/resume`, undefined, {}),
     retryTask: (taskId) => request(options, 'POST', `/tasks/${encodePath(taskId)}/retry`, undefined, {}),
     stopTask: (taskId) => request(options, 'POST', `/tasks/${encodePath(taskId)}/stop`, undefined, {}),
     unbindDevice: (deviceId) => request(options, 'POST', `/devices/${encodePath(deviceId)}/unbind`, undefined, {})
@@ -223,6 +312,94 @@ export function listTaskLogs(
   request: MobileBffListRequest<MobileBffLogLevel> = {}
 ): MobileBffListResponse<MobileBffTaskLogEntry, MobileBffLogLevel> {
   const queryFiltered = filterByQuery(logs, request.query, (log) => [log.level, log.message, log.time]);
+  const statusFiltered = filterByStatus(queryFiltered, request.statuses, (log) => log.level);
+
+  return {
+    ...paginate(statusFiltered, request),
+    facets: createFacets(queryFiltered, ['info', 'warn', 'error'], (log) => log.level)
+  };
+}
+
+export function listUsers(
+  users: MobileBffUser[],
+  request: MobileBffListRequest<MobileBffUserStatus> = {}
+): MobileBffListResponse<MobileBffUser, MobileBffUserStatus> {
+  const queryFiltered = filterByQuery(users, request.query, (user) => [user.id, user.name, user.role, user.status, user.lastActiveAt]);
+  const statusFiltered = filterByStatus(queryFiltered, request.statuses, (user) => user.status);
+
+  return {
+    ...paginate(statusFiltered, request),
+    facets: createFacets(queryFiltered, ['active', 'pending', 'disabled'], (user) => user.status)
+  };
+}
+
+export function listModules(
+  modules: MobileBffGameModule[],
+  request: MobileBffListRequest<MobileBffModuleStatus> = {}
+): MobileBffListResponse<MobileBffGameModule, MobileBffModuleStatus> {
+  const queryFiltered = filterByQuery(modules, request.query, (module) => [
+    module.game,
+    module.id,
+    module.name,
+    module.rollout,
+    module.status,
+    module.updatedAt,
+    module.version
+  ]);
+  const statusFiltered = filterByStatus(queryFiltered, request.statuses, (module) => module.status);
+
+  return {
+    ...paginate(statusFiltered, request),
+    facets: createFacets(queryFiltered, ['enabled', 'draft', 'disabled'], (module) => module.status)
+  };
+}
+
+export function listAssets(
+  assets: MobileBffVisualAsset[],
+  request: MobileBffListRequest<MobileBffAssetStatus> = {}
+): MobileBffListResponse<MobileBffVisualAsset, MobileBffAssetStatus> {
+  const queryFiltered = filterByQuery(assets, request.query, (asset) => [
+    asset.id,
+    asset.kind,
+    asset.name,
+    asset.status,
+    asset.updatedAt,
+    asset.version
+  ]);
+  const statusFiltered = filterByStatus(queryFiltered, request.statuses, (asset) => asset.status);
+
+  return {
+    ...paginate(statusFiltered, request),
+    facets: createFacets(queryFiltered, ['ready', 'review', 'outdated'], (asset) => asset.status)
+  };
+}
+
+export function listReleases(
+  releases: MobileBffRelease[],
+  request: MobileBffListRequest<MobileBffReleaseStatus> = {}
+): MobileBffListResponse<MobileBffRelease, MobileBffReleaseStatus> {
+  const queryFiltered = filterByQuery(releases, request.query, (release) => [
+    release.channel,
+    release.id,
+    release.notes,
+    release.progress,
+    release.status,
+    release.updatedAt,
+    release.version
+  ]);
+  const statusFiltered = filterByStatus(queryFiltered, request.statuses, (release) => release.status);
+
+  return {
+    ...paginate(statusFiltered, request),
+    facets: createFacets(queryFiltered, ['draft', 'staged', 'paused', 'published'], (release) => release.status)
+  };
+}
+
+export function listRuntimeLogs(
+  logs: MobileBffRuntimeLog[],
+  request: MobileBffListRequest<MobileBffLogLevel> = {}
+): MobileBffListResponse<MobileBffRuntimeLog, MobileBffLogLevel> {
+  const queryFiltered = filterByQuery(logs, request.query, (log) => [log.id, log.level, log.message, log.scope, log.time]);
   const statusFiltered = filterByStatus(queryFiltered, request.statuses, (log) => log.level);
 
   return {
