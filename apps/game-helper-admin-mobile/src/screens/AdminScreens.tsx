@@ -2,6 +2,17 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { PermissionGate, canAccess, useAdminSession, type AdminPermission } from '@mobile-frame/auth-admin';
+import type {
+  MobileBffAssetStatus,
+  MobileBffGameModule,
+  MobileBffModuleStatus,
+  MobileBffRelease,
+  MobileBffReleaseStatus,
+  MobileBffRuntimeLog,
+  MobileBffUser,
+  MobileBffUserStatus,
+  MobileBffVisualAsset
+} from '@mobile-frame/mobile-bff';
 import type { RealtimeConnectionSnapshot, TaskRealtimeLogEntry } from '@mobile-frame/realtime';
 import {
   AdminBoundaryCard,
@@ -44,6 +55,8 @@ import {
   statusTone,
   type AdminTone,
   type DeviceRecord,
+  type LogLevel,
+  type ManagementArea,
   type TaskRecord
 } from '../store';
 import {
@@ -93,6 +106,14 @@ type TaskDetailScreenProps = {
   taskId: string;
 };
 
+type ManagementHomeScreenProps = {
+  onOpenArea: (area: ManagementArea) => void;
+};
+
+type ManagementListScreenProps = {
+  onBack: () => void;
+};
+
 type PermissionDeniedScreenProps = {
   onBack?: () => void;
   permissions: AdminPermission[];
@@ -101,6 +122,11 @@ type PermissionDeniedScreenProps = {
 
 type DeviceListSegment = 'all' | 'online' | 'attention';
 type TaskListSegment = 'all' | TaskRecord['status'];
+type UserListSegment = 'all' | MobileBffUserStatus;
+type ModuleListSegment = 'all' | MobileBffModuleStatus;
+type AssetListSegment = 'all' | MobileBffAssetStatus;
+type ReleaseListSegment = 'all' | MobileBffReleaseStatus;
+type RuntimeLogListSegment = 'all' | LogLevel;
 type NativeActionFeedback = {
   message: string;
   title: string;
@@ -542,7 +568,7 @@ export function TaskDetailScreen({ onBack, onOpenDevice, taskId }: TaskDetailScr
   );
 }
 
-export function ManagementHomeScreen() {
+export function ManagementHomeScreen({ onOpenArea }: ManagementHomeScreenProps) {
   const session = useAdminSession();
   const assetList = useMobileBffAssets({ limit: listPageSize });
   const moduleList = useMobileBffModules({ limit: listPageSize });
@@ -550,6 +576,10 @@ export function ManagementHomeScreen() {
   const runtimeLogList = useMobileBffRuntimeLogs({ limit: listPageSize });
   const userList = useMobileBffUsers({ limit: listPageSize });
   const visibleEntries = managementEntries.filter((entry) => canAccess(session, { permission: entry.permission }));
+  const linkedEntries = visibleEntries.map((entry) => ({
+    ...entry,
+    onPress: () => onOpenArea(entry.area)
+  }));
 
   return (
     <MFScrollPage theme={appTheme}>
@@ -561,7 +591,7 @@ export function ManagementHomeScreen() {
           title="Management"
         />
         {visibleEntries.length > 0 ? (
-          <ManagementEntryList entries={visibleEntries} theme={appTheme} />
+          <ManagementEntryList entries={linkedEntries} theme={appTheme} />
         ) : (
           <MFText muted theme={appTheme}>
             No management entries are available for the current administrator permissions.
@@ -570,7 +600,7 @@ export function ManagementHomeScreen() {
         <MFStack gap={appTheme.spacing.md}>
           <SectionTitle title="/api/v1/mobile previews" />
           <MFText muted theme={appTheme} style={captionTextStyle()}>
-            Fixture-backed management data from the mobile BFF boundary; full second-stage pages remain planned separately.
+            Fixture-backed management data from the mobile BFF boundary; open an entry above for list-level search, status filters, and pagination.
           </MFText>
           {canAccess(session, { permission: 'user.view' }) ? (
             <EntityListItem
@@ -624,6 +654,436 @@ export function ManagementHomeScreen() {
           ) : null}
         </MFStack>
         <AdminBoundaryCard items={adminBoundaries} theme={appTheme} />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+export function ManagedUserListScreen({ onBack }: ManagementListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<MobileBffUserStatus[]>([]);
+  const [segment, setSegment] = useState<UserListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : singleStatusForSegment<MobileBffUserStatus>(segment);
+  const userList = useMobileBffUsers({ limit: visibleCount, query, statuses: requestedStatuses });
+  const userSegmentOptions = [
+    { label: `All ${sumFacetCount(userList.facets)}`, value: 'all' },
+    { label: `Active ${facetCount(userList.facets, 'active')}`, value: 'active' },
+    { label: `Pending ${facetCount(userList.facets, 'pending')}`, value: 'pending' }
+  ] satisfies Array<{ label: string; value: UserListSegment }>;
+
+  const changeSegment = (value: UserListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: MobileBffUserStatus) => {
+    setSelectedStatuses((current) => toggleValue(current, status));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
+  return (
+    <MFScrollPage theme={appTheme}>
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
+          backLabel="Management"
+          eyebrow="Users"
+          onBack={onBack}
+          subtitle="Search managed users, inspect ownership state, and filter lightweight approval queues."
+          theme={appTheme}
+          title="Managed users"
+        />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search user, role, or account status"
+          theme={appTheme}
+          value={query}
+        />
+        <SegmentTabs onChange={changeSegment} options={userSegmentOptions} theme={appTheme} value={segment} />
+        <ManagementListToolbar
+          filterCount={selectedStatuses.length}
+          onOpenFilters={() => setFilterSheetVisible(true)}
+          total={userList.total}
+        />
+        <InfiniteList
+          emptyMessage="No managed users match the current filters."
+          emptyTitle="No users"
+          hasMore={Boolean(userList.nextCursor)}
+          items={userList.items}
+          keyExtractor={(user) => user.id}
+          loadMoreLabel="Load more users"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, userList.total))}
+          renderItem={(user) => <ManagedUserListItem user={user} />}
+          summary={`Showing ${userList.items.length} of ${userList.total} users`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={userList.facets}
+          selectedValues={selectedStatuses}
+          subtitle="Combine user status filters for account triage."
+          theme={appTheme}
+          title="Filter users"
+          visible={filterSheetVisible}
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+export function GameModuleListScreen({ onBack }: ManagementListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<MobileBffModuleStatus[]>([]);
+  const [segment, setSegment] = useState<ModuleListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : singleStatusForSegment<MobileBffModuleStatus>(segment);
+  const moduleList = useMobileBffModules({ limit: visibleCount, query, statuses: requestedStatuses });
+  const moduleSegmentOptions = [
+    { label: `All ${sumFacetCount(moduleList.facets)}`, value: 'all' },
+    { label: `Enabled ${facetCount(moduleList.facets, 'enabled')}`, value: 'enabled' },
+    { label: `Draft ${facetCount(moduleList.facets, 'draft')}`, value: 'draft' }
+  ] satisfies Array<{ label: string; value: ModuleListSegment }>;
+
+  const changeSegment = (value: ModuleListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: MobileBffModuleStatus) => {
+    setSelectedStatuses((current) => toggleValue(current, status));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
+  return (
+    <MFScrollPage theme={appTheme}>
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
+          backLabel="Management"
+          eyebrow="Modules"
+          onBack={onBack}
+          subtitle="Inspect server-side game module versions, rollout state, and enabled scope."
+          theme={appTheme}
+          title="Game modules"
+        />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search module, game, version, or rollout"
+          theme={appTheme}
+          value={query}
+        />
+        <SegmentTabs onChange={changeSegment} options={moduleSegmentOptions} theme={appTheme} value={segment} />
+        <ManagementListToolbar
+          filterCount={selectedStatuses.length}
+          onOpenFilters={() => setFilterSheetVisible(true)}
+          total={moduleList.total}
+        />
+        <InfiniteList
+          emptyMessage="No game modules match the current filters."
+          emptyTitle="No modules"
+          hasMore={Boolean(moduleList.nextCursor)}
+          items={moduleList.items}
+          keyExtractor={(module) => module.id}
+          loadMoreLabel="Load more modules"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, moduleList.total))}
+          renderItem={(module) => <GameModuleListItem module={module} />}
+          summary={`Showing ${moduleList.items.length} of ${moduleList.total} modules`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={moduleList.facets}
+          selectedValues={selectedStatuses}
+          subtitle="Combine module status filters before opening server-side rollout details."
+          theme={appTheme}
+          title="Filter modules"
+          visible={filterSheetVisible}
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+export function VisualAssetListScreen({ onBack }: ManagementListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<MobileBffAssetStatus[]>([]);
+  const [segment, setSegment] = useState<AssetListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : singleStatusForSegment<MobileBffAssetStatus>(segment);
+  const assetList = useMobileBffAssets({ limit: visibleCount, query, statuses: requestedStatuses });
+  const assetSegmentOptions = [
+    { label: `All ${sumFacetCount(assetList.facets)}`, value: 'all' },
+    { label: `Ready ${facetCount(assetList.facets, 'ready')}`, value: 'ready' },
+    { label: `Review ${facetCount(assetList.facets, 'review')}`, value: 'review' }
+  ] satisfies Array<{ label: string; value: AssetListSegment }>;
+
+  const changeSegment = (value: AssetListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: MobileBffAssetStatus) => {
+    setSelectedStatuses((current) => toggleValue(current, status));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
+  return (
+    <MFScrollPage theme={appTheme}>
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
+          backLabel="Management"
+          eyebrow="Assets"
+          onBack={onBack}
+          subtitle="Review visual asset metadata from the BFF without running OCR or image matching locally."
+          theme={appTheme}
+          title="Visual assets"
+        />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search asset, kind, version, or status"
+          theme={appTheme}
+          value={query}
+        />
+        <SegmentTabs onChange={changeSegment} options={assetSegmentOptions} theme={appTheme} value={segment} />
+        <ManagementListToolbar
+          filterCount={selectedStatuses.length}
+          onOpenFilters={() => setFilterSheetVisible(true)}
+          total={assetList.total}
+        />
+        <InfiniteList
+          emptyMessage="No visual assets match the current filters."
+          emptyTitle="No assets"
+          hasMore={Boolean(assetList.nextCursor)}
+          items={assetList.items}
+          keyExtractor={(asset) => asset.id}
+          loadMoreLabel="Load more assets"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, assetList.total))}
+          renderItem={(asset) => <VisualAssetListItem asset={asset} />}
+          summary={`Showing ${assetList.items.length} of ${assetList.total} assets`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={assetList.facets}
+          selectedValues={selectedStatuses}
+          subtitle="Combine asset status filters for review and cleanup queues."
+          theme={appTheme}
+          title="Filter assets"
+          visible={filterSheetVisible}
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+export function ReleaseListScreen({ onBack }: ManagementListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<MobileBffReleaseStatus[]>([]);
+  const [segment, setSegment] = useState<ReleaseListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : singleStatusForSegment<MobileBffReleaseStatus>(segment);
+  const releaseList = useMobileBffReleases({ limit: visibleCount, query, statuses: requestedStatuses });
+  const releaseSegmentOptions = [
+    { label: `All ${sumFacetCount(releaseList.facets)}`, value: 'all' },
+    { label: `Staged ${facetCount(releaseList.facets, 'staged')}`, value: 'staged' },
+    { label: `Paused ${facetCount(releaseList.facets, 'paused')}`, value: 'paused' }
+  ] satisfies Array<{ label: string; value: ReleaseListSegment }>;
+
+  const changeSegment = (value: ReleaseListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: MobileBffReleaseStatus) => {
+    setSelectedStatuses((current) => toggleValue(current, status));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
+  return (
+    <MFScrollPage theme={appTheme}>
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
+          backLabel="Management"
+          eyebrow="Releases"
+          onBack={onBack}
+          subtitle="Track mobile release channels and rollout state; artifact builds stay on the server."
+          theme={appTheme}
+          title="App releases"
+        />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search version, channel, status, or notes"
+          theme={appTheme}
+          value={query}
+        />
+        <SegmentTabs onChange={changeSegment} options={releaseSegmentOptions} theme={appTheme} value={segment} />
+        <ManagementListToolbar
+          filterCount={selectedStatuses.length}
+          onOpenFilters={() => setFilterSheetVisible(true)}
+          total={releaseList.total}
+        />
+        <InfiniteList
+          emptyMessage="No app releases match the current filters."
+          emptyTitle="No releases"
+          hasMore={Boolean(releaseList.nextCursor)}
+          items={releaseList.items}
+          keyExtractor={(release) => release.id}
+          loadMoreLabel="Load more releases"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, releaseList.total))}
+          renderItem={(release) => <ReleaseListItem release={release} />}
+          summary={`Showing ${releaseList.items.length} of ${releaseList.total} releases`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={releaseList.facets}
+          selectedValues={selectedStatuses}
+          subtitle="Combine release status filters for staged rollout triage."
+          theme={appTheme}
+          title="Filter releases"
+          visible={filterSheetVisible}
+        />
+      </MFStack>
+    </MFScrollPage>
+  );
+}
+
+export function RuntimeLogListScreen({ onBack }: ManagementListScreenProps) {
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<LogLevel[]>([]);
+  const [segment, setSegment] = useState<RuntimeLogListSegment>('all');
+  const [visibleCount, setVisibleCount] = useState(listPageSize);
+  const requestedStatuses = selectedStatuses.length > 0 ? selectedStatuses : singleStatusForSegment<LogLevel>(segment);
+  const runtimeLogList = useMobileBffRuntimeLogs({ limit: visibleCount, query, statuses: requestedStatuses });
+  const runtimeLogSegmentOptions = [
+    { label: `All ${sumFacetCount(runtimeLogList.facets)}`, value: 'all' },
+    { label: `Error ${facetCount(runtimeLogList.facets, 'error')}`, value: 'error' },
+    { label: `Warn ${facetCount(runtimeLogList.facets, 'warn')}`, value: 'warn' }
+  ] satisfies Array<{ label: string; value: RuntimeLogListSegment }>;
+
+  const changeSegment = (value: RuntimeLogListSegment) => {
+    setSegment(value);
+    setSelectedStatuses([]);
+    setVisibleCount(listPageSize);
+  };
+
+  const toggleStatus = (status: LogLevel) => {
+    setSelectedStatuses((current) => toggleValue(current, status));
+    setVisibleCount(listPageSize);
+  };
+
+  const resetFilters = () => {
+    setSelectedStatuses([]);
+    setSegment('all');
+    setVisibleCount(listPageSize);
+  };
+
+  return (
+    <MFScrollPage theme={appTheme}>
+      <MFStack gap={appTheme.spacing.lg}>
+        <AdminPageHeader
+          backLabel="Management"
+          eyebrow="Logs"
+          onBack={onBack}
+          subtitle="Read mobile BFF runtime logs for devices, tasks, releases, and system events."
+          theme={appTheme}
+          title="Running logs"
+        />
+        <MFSearchBar
+          onChangeText={(value) => {
+            setQuery(value);
+            setVisibleCount(listPageSize);
+          }}
+          placeholder="Search log scope, level, message, or time"
+          theme={appTheme}
+          value={query}
+        />
+        <SegmentTabs onChange={changeSegment} options={runtimeLogSegmentOptions} theme={appTheme} value={segment} />
+        <ManagementListToolbar
+          filterCount={selectedStatuses.length}
+          onOpenFilters={() => setFilterSheetVisible(true)}
+          total={runtimeLogList.total}
+        />
+        <InfiniteList
+          emptyMessage="No runtime logs match the current filters."
+          emptyTitle="No logs"
+          hasMore={Boolean(runtimeLogList.nextCursor)}
+          items={runtimeLogList.items}
+          keyExtractor={(log) => log.id}
+          loadMoreLabel="Load more logs"
+          onLoadMore={() => setVisibleCount((current) => Math.min(current + listPageSize, runtimeLogList.total))}
+          renderItem={(log) => <RuntimeLogListItem log={log} />}
+          summary={`Showing ${runtimeLogList.items.length} of ${runtimeLogList.total} logs`}
+          theme={appTheme}
+        />
+        <FilterSheet
+          onApply={() => setFilterSheetVisible(false)}
+          onClose={() => setFilterSheetVisible(false)}
+          onReset={resetFilters}
+          onToggle={toggleStatus}
+          options={runtimeLogList.facets}
+          selectedValues={selectedStatuses}
+          subtitle="Combine log levels for runtime triage."
+          theme={appTheme}
+          title="Filter logs"
+          visible={filterSheetVisible}
+        />
       </MFStack>
     </MFScrollPage>
   );
@@ -771,6 +1231,81 @@ function TaskListItem({ compact = false, onPress, task }: { compact?: boolean; o
   );
 }
 
+function ManagementListToolbar({ filterCount, onOpenFilters, total }: { filterCount: number; onOpenFilters: () => void; total: number }) {
+  return (
+    <MFRow gap={appTheme.spacing.sm} style={{ flexWrap: 'wrap' }}>
+      <StatusBadge label={`Showing ${total}`} theme={appTheme} tone="info" />
+      <StatusBadge label={`Filters ${filterCount}`} theme={appTheme} tone={filterCount > 0 ? 'warning' : 'neutral'} />
+      <MFButton fullWidth={false} onPress={onOpenFilters} theme={appTheme} title="Filters" variant="outline" />
+    </MFRow>
+  );
+}
+
+function ManagedUserListItem({ user }: { user: MobileBffUser }) {
+  return (
+    <EntityListItem
+      badge={`${user.deviceCount} devices`}
+      meta={`Last active ${user.lastActiveAt} - ${user.id}`}
+      status={{ label: statusLabel(user.status), tone: managementStatusTone(user.status) }}
+      subtitle={user.role}
+      theme={appTheme}
+      title={user.name}
+    />
+  );
+}
+
+function GameModuleListItem({ module }: { module: MobileBffGameModule }) {
+  return (
+    <EntityListItem
+      badge={module.rollout}
+      meta={`Version ${module.version} - updated ${module.updatedAt}`}
+      status={{ label: statusLabel(module.status), tone: managementStatusTone(module.status) }}
+      subtitle={module.game}
+      theme={appTheme}
+      title={module.name}
+    />
+  );
+}
+
+function VisualAssetListItem({ asset }: { asset: MobileBffVisualAsset }) {
+  return (
+    <EntityListItem
+      badge={asset.kind}
+      meta={`Version ${asset.version} - updated ${asset.updatedAt} - ${asset.id}`}
+      status={{ label: statusLabel(asset.status), tone: managementStatusTone(asset.status) }}
+      subtitle="Visual asset metadata stays server-backed for mobile inspection."
+      theme={appTheme}
+      title={asset.name}
+    />
+  );
+}
+
+function ReleaseListItem({ release }: { release: MobileBffRelease }) {
+  return (
+    <EntityListItem
+      badge={release.channel}
+      meta={`Rollout ${release.progress} - updated ${release.updatedAt} - ${release.id}`}
+      status={{ label: statusLabel(release.status), tone: managementStatusTone(release.status) }}
+      subtitle={release.notes}
+      theme={appTheme}
+      title={release.version}
+    />
+  );
+}
+
+function RuntimeLogListItem({ log }: { log: MobileBffRuntimeLog }) {
+  return (
+    <EntityListItem
+      badge={log.scope}
+      meta={`${log.time} - ${log.id}`}
+      status={{ label: statusLabel(log.level), tone: statusTone(log.level) }}
+      subtitle={log.message}
+      theme={appTheme}
+      title={`${log.scope} runtime event`}
+    />
+  );
+}
+
 function RealtimeConnectionSummary({ connection }: { connection: RealtimeConnectionSnapshot }) {
   const label = connection.fallback ? `Realtime ${connection.status} via ${connection.fallback}` : `Realtime ${connection.status}`;
 
@@ -876,6 +1411,46 @@ function taskStatusesForSegment(segment: TaskListSegment): TaskRecord['status'][
   }
 
   return [segment];
+}
+
+function singleStatusForSegment<TStatus extends string>(segment: 'all' | TStatus): TStatus[] {
+  if (segment === 'all') {
+    return [];
+  }
+
+  return [segment];
+}
+
+function toggleValue<TValue extends string>(values: TValue[], value: TValue): TValue[] {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+}
+
+function managementStatusTone(status: MobileBffAssetStatus | MobileBffModuleStatus | MobileBffReleaseStatus | MobileBffUserStatus): AdminTone {
+  switch (status) {
+    case 'active':
+    case 'enabled':
+    case 'published':
+    case 'ready':
+      return 'success';
+    case 'draft':
+    case 'paused':
+    case 'pending':
+    case 'review':
+    case 'staged':
+      return 'warning';
+    case 'disabled':
+    case 'outdated':
+      return 'danger';
+    default:
+      return 'info';
+  }
+}
+
+function statusLabel(status: string): string {
+  return status
+    .split(/[-_]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function facetCount<TValue extends string>(facets: Array<{ count: number; value: TValue }>, value: TValue): number {

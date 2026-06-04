@@ -15,6 +15,7 @@ export type AdminTone = MobileBffTone;
 export type DeviceStatus = MobileBffDeviceStatus;
 export type TaskStatus = MobileBffTaskStatus;
 export type LogLevel = MobileBffLogLevel;
+export type ManagementArea = 'assets' | 'logs' | 'modules' | 'releases' | 'users';
 export type DeviceRecord = MobileBffDevice;
 export type TaskLogEntry = MobileBffTaskLogEntry;
 export type TaskRecord = MobileBffTask;
@@ -176,36 +177,42 @@ export const tasks: TaskRecord[] = [
 
 export const managementEntries = [
   {
+    area: 'users',
     badge: 'Users',
     description: 'Review managed users, account ownership, and lightweight approvals.',
     permission: 'user.view',
     title: 'Managed users'
   },
   {
+    area: 'modules',
     badge: 'Modules',
     description: 'Inspect enabled game modules and server-side rollout status.',
     permission: 'module.view',
     title: 'Game modules'
   },
   {
+    area: 'assets',
     badge: 'Assets',
     description: 'Check visual asset versions and evidence galleries without running OCR locally.',
     permission: 'asset.view',
     title: 'Visual assets'
   },
   {
+    area: 'releases',
     badge: 'Release',
     description: 'Approve, pause, and inspect app releases. Build and upload stay on the server.',
     permission: 'app.release.view',
     title: 'App releases'
   },
   {
+    area: 'logs',
     badge: 'Logs',
     description: 'Open filtered runtime logs for devices, tasks, workers, and release events.',
     permission: 'log.view',
     title: 'Running logs'
   }
 ] satisfies Array<{
+  area: ManagementArea;
   badge: string;
   description: string;
   permission: AdminPermission;

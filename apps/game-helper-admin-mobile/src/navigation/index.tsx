@@ -8,14 +8,19 @@ import {
   DashboardScreen,
   DeviceDetailScreen,
   DeviceListScreen,
+  GameModuleListScreen,
   LoginScreen,
   ManagementHomeScreen,
   PermissionDeniedScreen,
   ProfileScreen,
+  ReleaseListScreen,
+  RuntimeLogListScreen,
   TaskDetailScreen,
-  TaskListScreen
+  TaskListScreen,
+  ManagedUserListScreen,
+  VisualAssetListScreen
 } from '../screens';
-import { adminSession, appTabs, type AdminTab } from '../store';
+import { adminSession, appTabs, type AdminTab, type ManagementArea } from '../store';
 import { appTheme } from '../theme';
 
 type DetailRoute = { id: string; type: 'device' | 'task' } | null;
@@ -42,10 +47,19 @@ const detailGuards: Record<NonNullable<DetailRoute>['type'], RouteGuard> = {
   task: { permissions: ['task.view'], title: 'Task access required' }
 };
 
+const managementGuards: Record<ManagementArea, RouteGuard> = {
+  assets: { permissions: ['asset.view'], title: 'Asset management access required' },
+  logs: { permissions: ['log.view'], title: 'Runtime log access required' },
+  modules: { permissions: ['module.view'], title: 'Module management access required' },
+  releases: { permissions: ['app.release.view'], title: 'Release management access required' },
+  users: { permissions: ['user.view'], title: 'User management access required' }
+};
+
 export function AppNavigator() {
   const [authenticated, setAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [detailRoute, setDetailRoute] = useState<DetailRoute>(null);
+  const [managementArea, setManagementArea] = useState<ManagementArea | null>(null);
 
   if (!authenticated) {
     return <LoginScreen onLogin={() => setAuthenticated(true)} />;
@@ -54,16 +68,25 @@ export function AppNavigator() {
   const openDevice = (deviceId: string) => {
     setActiveTab('devices');
     setDetailRoute({ id: deviceId, type: 'device' });
+    setManagementArea(null);
   };
 
   const openTask = (taskId: string) => {
     setActiveTab('tasks');
     setDetailRoute({ id: taskId, type: 'task' });
+    setManagementArea(null);
+  };
+
+  const openManagementArea = (area: ManagementArea) => {
+    setActiveTab('management');
+    setDetailRoute(null);
+    setManagementArea(area);
   };
 
   const changeTab = (tab: AdminTab) => {
     setActiveTab(tab);
     setDetailRoute(null);
+    setManagementArea(null);
   };
 
   return (
@@ -72,8 +95,13 @@ export function AppNavigator() {
         {renderScreen({
           activeTab,
           detailRoute,
-          onBack: () => setDetailRoute(null),
+          managementArea,
+          onBack: () => {
+            setDetailRoute(null);
+            setManagementArea(null);
+          },
           onOpenDevice: openDevice,
+          onOpenManagementArea: openManagementArea,
           onOpenTask: openTask
         })}
         <MFTabBar
@@ -96,25 +124,39 @@ export function AppNavigator() {
 function renderScreen({
   activeTab,
   detailRoute,
+  managementArea,
   onBack,
   onOpenDevice,
+  onOpenManagementArea,
   onOpenTask
 }: {
   activeTab: AdminTab;
   detailRoute: DetailRoute;
+  managementArea: ManagementArea | null;
   onBack: () => void;
   onOpenDevice: (deviceId: string) => void;
+  onOpenManagementArea: (area: ManagementArea) => void;
   onOpenTask: (taskId: string) => void;
 }) {
-  const guard = detailRoute ? detailGuards[detailRoute.type] : tabGuards[activeTab];
+  const guard = detailRoute
+    ? detailGuards[detailRoute.type]
+    : activeTab === 'management' && managementArea
+      ? managementGuards[managementArea]
+      : tabGuards[activeTab];
 
   return (
     <ProtectedScreen
-      fallback={<PermissionDeniedScreen onBack={detailRoute ? onBack : undefined} permissions={guard.permissions} title={guard.title} />}
+      fallback={
+        <PermissionDeniedScreen
+          onBack={detailRoute || managementArea ? onBack : undefined}
+          permissions={guard.permissions}
+          title={guard.title}
+        />
+      }
       mode={guard.mode}
       permissions={guard.permissions}
     >
-      {renderScreenContent({ activeTab, detailRoute, onBack, onOpenDevice, onOpenTask })}
+      {renderScreenContent({ activeTab, detailRoute, managementArea, onBack, onOpenDevice, onOpenManagementArea, onOpenTask })}
     </ProtectedScreen>
   );
 }
@@ -122,14 +164,18 @@ function renderScreen({
 function renderScreenContent({
   activeTab,
   detailRoute,
+  managementArea,
   onBack,
   onOpenDevice,
+  onOpenManagementArea,
   onOpenTask
 }: {
   activeTab: AdminTab;
   detailRoute: DetailRoute;
+  managementArea: ManagementArea | null;
   onBack: () => void;
   onOpenDevice: (deviceId: string) => void;
+  onOpenManagementArea: (area: ManagementArea) => void;
   onOpenTask: (taskId: string) => void;
 }) {
   if (detailRoute?.type === 'device') {
@@ -148,8 +194,26 @@ function renderScreenContent({
     case 'tasks':
       return <TaskListScreen onOpenTask={onOpenTask} />;
     case 'management':
-      return <ManagementHomeScreen />;
+      return renderManagementScreen(managementArea, onBack, onOpenManagementArea);
     case 'profile':
       return <ProfileScreen />;
+  }
+}
+
+function renderManagementScreen(area: ManagementArea | null, onBack: () => void, onOpenManagementArea: (area: ManagementArea) => void) {
+  switch (area) {
+    case 'assets':
+      return <VisualAssetListScreen onBack={onBack} />;
+    case 'logs':
+      return <RuntimeLogListScreen onBack={onBack} />;
+    case 'modules':
+      return <GameModuleListScreen onBack={onBack} />;
+    case 'releases':
+      return <ReleaseListScreen onBack={onBack} />;
+    case 'users':
+      return <ManagedUserListScreen onBack={onBack} />;
+    case null:
+    default:
+      return <ManagementHomeScreen onOpenArea={onOpenManagementArea} />;
   }
 }

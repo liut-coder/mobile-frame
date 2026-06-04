@@ -787,7 +787,7 @@ alert.created
 
 两套接口不要混在一起。
 
-当前落地状态更新于 2026-06-03：`@mobile-frame/mobile-bff` 已提供 `/api/v1/mobile` typed client、fixture transport、HTTP transport、分页/筛选/facet 契约、任务日志读取、第二阶段管理域 users/modules/assets/releases/logs 契约，以及设备绑定、任务停止/重试、发版暂停/恢复动作回执。`game-helper-admin-mobile` 已通过 `src/services/mobile-bff.ts` 把 dashboard、设备列表/详情、任务列表/详情、任务日志、托管用户、游戏模块、视觉资产、App 发版、运行日志、扫码绑定、停止、重试和发版动作接到该服务边界后面；管理入口已展示这些管理域的 `/api/v1/mobile` 预览摘要。`src/services/runtime.ts` 已提供运行时配置入口，可把默认 fixture BFF 切换为 HTTP BFF，并让 WebSocket 断线轮询复用同一个 mobile BFF client。后续仍需接入真实 baseUrl、真实鉴权 token、业务错误处理和生产数据。
+当前落地状态更新于 2026-06-03：`@mobile-frame/mobile-bff` 已提供 `/api/v1/mobile` typed client、fixture transport、HTTP transport、分页/筛选/facet 契约、任务日志读取、第二阶段管理域 users/modules/assets/releases/logs 契约，以及设备绑定、任务停止/重试、发版暂停/恢复动作回执。`game-helper-admin-mobile` 已通过 `src/services/mobile-bff.ts` 把 dashboard、设备列表/详情、任务列表/详情、任务日志、托管用户、游戏模块、视觉资产、App 发版、运行日志、扫码绑定、停止、重试和发版动作接到该服务边界后面；管理入口已展示这些管理域的 `/api/v1/mobile` 预览摘要，并可进入托管用户、游戏模块、视觉资产、App 发版和运行日志二级列表页，列表页支持搜索、状态分段/筛选和分页加载。`src/services/runtime.ts` 已提供运行时配置入口，可把默认 fixture BFF 切换为 HTTP BFF，并让 WebSocket 断线轮询复用同一个 mobile BFF client。后续仍需接入真实 baseUrl、真实鉴权 token、业务错误处理、生产数据、详情页和审批中心。
 
 ---
 
@@ -856,7 +856,7 @@ App 管理
 9. /api/v1/mobile BFF
 ```
 
-当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约、`packages/mobile-bff` typed client 和 admin app 服务层已完成首轮接入；`src/services/realtime.ts` 已支持默认 fixture、可配置 WebSocket transport 和 `/api/v1/mobile` polling fallback，`src/services/runtime.ts` 已提供 HTTP BFF 与 WebSocket realtime 的组合配置入口。第二阶段管理域 users/modules/assets/releases/logs 已先补齐 BFF 契约和管理入口预览，但完整列表/详情/审批页面仍按第二阶段继续拆分。真实环境 baseUrl/token/socket 工厂、生产数据、业务错误处理和真实 Android/iOS 原生实现仍待继续推进。
+当前落地状态更新于 2026-06-03：`admin-mobile` preset、底部 5 个导航、`ui-admin` 组件包、管理员 Token/权限控制、`InfiniteList`/`FilterSheet`/`SegmentTabs`、`packages/realtime` 实时订阅契约、`LogViewer`、扫码/复制/分享/打开链接 mock 契约、`packages/mobile-bff` typed client 和 admin app 服务层已完成首轮接入；`src/services/realtime.ts` 已支持默认 fixture、可配置 WebSocket transport 和 `/api/v1/mobile` polling fallback，`src/services/runtime.ts` 已提供 HTTP BFF 与 WebSocket realtime 的组合配置入口。第二阶段管理域 users/modules/assets/releases/logs 已补齐 BFF 契约、管理入口预览和五个二级列表页；详情页和审批中心仍按第二阶段继续拆分。真实环境 baseUrl/token/socket 工厂、生产数据、业务错误处理和真实 Android/iOS 原生实现仍待继续推进。
 
 不要第一阶段就加入：
 
@@ -955,7 +955,7 @@ App 管理
 审批中心
 ```
 
-当前落地状态更新于 2026-06-03：托管用户、游戏模块、视觉资产、App 发版和运行日志已先通过 `/api/v1/mobile` typed client、fixture/http transport、service hooks 和管理入口预览接入计划；下一步再拆分独立列表页、详情页和审批中心。
+当前落地状态更新于 2026-06-03：托管用户、游戏模块、视觉资产、App 发版和运行日志已通过 `/api/v1/mobile` typed client、fixture/http transport、service hooks、管理入口预览和二级列表页接入计划；下一步再拆分详情页和审批中心。
 
 ### 阶段五：通用化
 
@@ -979,7 +979,7 @@ App 管理
 可以接入管理员权限（已通过 `packages/auth-admin` 首轮接入）
 可以接入 WebSocket（已通过 `packages/realtime` 提供传输契约，并在 admin app 服务层支持可配置 WebSocket 和 BFF 轮询降级；`src/services/runtime.ts` 可组合配置 HTTP BFF 与 WebSocket，当前 demo 默认 fixture）
 可以分页加载列表（已通过 `ui-admin` 的 `InfiniteList`、`FilterSheet` 和 `SegmentTabs` 首轮接入）
-可以接入第二阶段管理域 BFF（users/modules/assets/releases/logs 已通过 `packages/mobile-bff`、service hooks 和管理入口预览接入）
+可以接入第二阶段管理域 BFF（users/modules/assets/releases/logs 已通过 `packages/mobile-bff`、service hooks、管理入口预览和二级列表页接入）
 可以查看实时日志
 可以扫码、复制、分享（已通过 native mock 契约和 `game-helper-admin-mobile` 服务层首轮接入）
 ```
